@@ -9,7 +9,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block title %}Edit Time Use Guideline{% endblock %}
-{% block h1 %}Edit Time Use Guideline{% endblock %}
+{% block h1 %}Edit Time Use Guideline{% if draft %}<h2>DRAFT</h2> {% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
@@ -19,9 +19,24 @@ $(document).ready(function() {
 {% block content %}
 <form action="" method="post" id="edit-time-use-guideline">{% csrf_token %}
 
-<p>TA Name: {{ta.name}}</p>
-<p>Course: {{course}}</p>
+<div>TA Name: {{ta.name}}</div>
+<div>Instructor: {% for instructor in course.instructors %}
+    {{instructor.name}} {% if not forloop.last %}, {% endif %}
+  {% endfor %}</div>
+<div>Course: {{course}}</div>
+<div>
+  <p>
+    Teaching Assistant total workload for the semester should approach but not exceed the 
+    maximum hours over the term of the semester (normally 17 weeks).
 
+  </p>
+  <p><em>
+    The following summary is an approximation of the length of time expected 
+    to be devoted to  the major activities.  There may be shifts between 
+    activities, but the total hours required over the semester cannot exceed the
+    maximum hours set out above.
+  </em></p>
+</div>
 {{ form.as_p }}
 <table>
 <tr>
@@ -50,81 +65,40 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
 </tr>
 </table>
 {{ form.config_form.management_form }}
-<p><input class='submit' type="submit" value="Save TUG" /></p>
+<div>
+  <p>
+    Teaching Assistants and course instructors should familiarize themselves with the general 
+    working conditions set out in Article 13C, assignment and compensation in Article 13D, 
+    and workload review mechanisms in Article 13E.
+  </p>
+  <p>
+    *There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
+    Article 13D. 2 b.  See Appendix B for calculation of hours.
+    <br/>
+    **  Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards. 
+    <br/>
+    *** Attendance at a TA/TM Day/ and other required Training
+  </p>
+  </div>
+  <p class="infomessage">Once you click on Submit, the TA will receive a pdf copy in their email. </p>
+  <div><input class='submit confirm-submit' type="submit" value="Save and Submit TUG" data-submit-action="submit" title="Once you click on Save and Submit, the TA will receive a pdf copy in their email" />
+
+        {% if draft %}
+          <input class="submit" name="save_draft" type="submit" value="Save to Draft"/>
+        {% endif %}
+  </div>
 </form>
 </div>
 
-<h3 class="instructions" id="instructions-header">TUG Information:</h3>
 <div class="instructions" id="instructions-section">
-<p>This form is based on the form in Appendix C (p. 73) of the 
-<a href="http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf">
-    TSSU's collective agreement</a></p>
-<p>
-    Teaching Assistant total workload for the semester should approach but not exceed the
-    maximum hours over the term of the semester (normally 13-17 weeks).
-</p>
-<p>
-    Teaching Assistants and course instructors should familiarize themselves with the general 
-    working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
-    and workload review mechanisms in Article XIII E.
-</p>
-<p>
-    When assigning base units, please note that there are no hours of work associated with the additional {{LAB_BONUS}} base unit for preparation, 
-    Article XIII D. 2 b.  See Appendix B for calculation of hours.
-</p>
-<p>
-    Grading includes grading of all assignments, reports and examinations. 
-</p>
-<p>
-    To compensate for all statutory holidays which 
-    may occur in a semester, the total workload required will be reduced by {{HOLIDAY_HOURS_PER_BU}} hour(s)
-    for each base unit assigned excluding the additional {{LAB_BONUS}} B.U. for preparation, 
-    e.g. 4.4 hours reduction for {{LAB_BONUS_4}} B.U. appointment.
-</p>
-
-<h3>Conducting Teaching Assistant Workload Reviews:</h3>
-<ul>
-  <li>
-  Course Supervisors are required to conduct a workload review if the size of a tutorial is
-over 24 or where the student to TA ratio is over 26:1 in a scheduled lab. Also, Course
-Supervisors are required to conduct a workload review if two or more of the following
-factors affecting workload occur:
-<ol><li>the average size of tutorials, labs or workshops for the Teaching Assistant is over
-   fifteen (15), or where the enrollment in any tutorial, lab or workshop assigned
-  exceeds eighteen (18)
-</li><li>the course is being offered for the first time
-</li><li>the course has been substantially modified, e.g. new text
-</li><li>it is the Teaching Assistant's first appointment
-</li><li>the instructor is supervising Teaching Assistants for the first time
-</li><li>the type of examinations and/or assignments have a significant impact on
-   workload when considered in combination with enrollment (e.g. essays vs.
-  multiple-choice exams)
-  </li>
-  </ol>
-  </li>
-  <li>
-    The Course Supervisor and T.A. should conduct the review as soon as reasonably
-    possible after the week three enrollment data is available.
-  <li>
-    In conducting the review, the Course Supervisor is expected to contact the T.A. and
-    discuss the workload factors.
-  </li>
-  <li>
-    Where the Course Supervisor concludes that the workload required will, by semester
-    end, exceed the total workload hours of the appointment, then it will be necessary to
-    either reduce the workload, where possible, or provide additional compensation.
-  </li>
-  <li>
-    The Course Supervisor should review these options with the T.A., but the option of
-    additional compensation must be approved by the Department Chair.
-  </li>
-  <li>
-    In all cases, once the department has made a decision on the workload review, the
-    Department Chair shall promptly advise the Teaching Assistant of the results and
-    reasons of the decision in writing, with a copy to the Union.
-  </li>
-</ul>
-
+  <p> This form is based on the form in Appendix C of the <a href="{{tssu_link}}" target="_new">TSSU's collective agreement.</a></p>
+  <p> To compensate for all statutory holidays which may occur in a semester, the total workload required will be reduced by 1.1 hour(s) for each base unit assigned excluding the additional 0.17 B.U. for preparation, e.g. 4.4 hours reduction for 4.17 B.U. appointment.</p>
+  <p> The Course instructor shall complete these forms during the first week of classes each semester in consultation with the Teaching Assistant. The Teaching Assistant is entitled to suggest amendments to the assigned times for the various activities. </p>
+  <p> All TA assignments will be reviewed by the Course instructor to assess that the workload will not by semester end, exceed the maximum hours of work provided as follows:</p>
+  <p> a. Prior to the end of week six (6), Departments shall remind Course instructors and Teaching Assistants that Course instructors are required to conduct a workload review.</p>
+  <p> b. The Course instructor will conduct the workload review in consultation with the Teaching Assistant in a timely manner so as to ensure that the course is sufficiently advanced to assess the workload. The Course instructor will advise the Teaching Assistant of the result of the review, and the Department will retain the copy of the completed review form until the conclusion of the following semester.</p>
+  <p>Where the Course instructor concludes that the workload required will, by semester end, exceed the total workload hours of the appointment, then it will be necessary to either reduce the workload, where possible, or provide additional compensation.</p>   
+</div>
 <script type="text/javascript" src="{{STATIC_URL}}js/ta.js"></script>
 <script nonce="{{ CSP_NONCE }}">
 var HOURS_PER_BU = {{HOURS_PER_BU}};

@@ -18,13 +18,14 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
 import os
-import datetime
+import datetime, decimal
 from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
 from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
 import iso8601;
+from textwrap import wrap
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -226,7 +227,7 @@ class LetterContents(object):
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, date=None,
+    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, extra_signature_prompt=None, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
                  body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
@@ -235,6 +236,7 @@ class LetterContents(object):
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
         self.extra_from_name_lines = extra_from_name_lines
+        self.extra_signature_prompt = extra_signature_prompt
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
@@ -332,6 +334,8 @@ class LetterContents(object):
             # we have two signatures to display: rebuild the signature part in a table with both
             data = []
             data.append([Paragraph(self.closing+",", style), Paragraph(self.cosigner_lines[0]+",", style)])
+            if self.extra_signature_prompt:
+                data.append(["", Paragraph(self.extra_signature_prompt, style)])
             if img:
                 data.append([img, Spacer(1, 4*space_height)])
             else:
@@ -580,171 +584,7 @@ class FASOfficialLetter(BaseDocTemplate, SFUMediaMixin):
     def write(self):
         "Write the PDF contents out"
         self.build(self.contents)
-
-class ScienceAliveLetter(SFUMediaMixin):
-    MAIN_WIDTH = 8*inch # size of the main box
-    ENTRY_FONT = "Helvetica"
-    NOTE_STYLE = ParagraphStyle(name='Normal',
-                                fontName=ENTRY_FONT,
-                                fontSize=10,
-                                leading=11,
-                                alignment=TA_LEFT,
-                                textColor=black)
-
-    def __init__(self, ra, config):
-        self.ra = ra
-        self.config = config
-        self._media_setup()
-        self.date = datetime.date.today()
-
-    def _box_entry(self, x, y, width, height, content=None):
-        self.c.setLineWidth(1)
-        self.c.rect(x, y, width, height)
-        if content:
-            self.c.setFont(self.ENTRY_FONT, 9)
-            self.c.drawString(x+2*mm, y+height-3.5*mm, content)
-
-    def draw_pdf(self, outfile):
-        """
-        Generates PDF in the file object (which could be a Django HttpResponse).
-        """
-        self.c = canvas.Canvas(outfile, pagesize=letter)
-        self.c.setStrokeColor(black)
-
-        self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
-        self.c.setStrokeColor(black)
-        self.c.setLineWidth(1)
-
-        # SFU logo
-
-        self.c.setFont("Helvetica", 10)
-        self.c.drawImage(logofile, 12*mm, y=237*mm, width=25*mm, height=12*mm)
-        self.c.setFillColor(self.sfu_blue)
-        self._drawStringLeading(self.c, 39*mm, 242*mm, 'Outreach & Science AL!VE')
-        self.c.setFillColor(black)
-        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Sciences')
         
-        self.c.setFont("Helvetica", 10)
-        self.c.drawString(12*mm, 225*mm, self.date.strftime('%B %d, %Y').replace(' 0', ' '))
-
-        self.c.drawString(12*mm, 215*mm, 'Dear ' + self.ra.get_first_name() + ',')
-
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.drawString(12*mm, 205*mm, 'We are pleased to provide the following offer of employment with Applied Sciences Outreach (with')
-        self.c.drawString(12*mm, 200*mm, 'Science AL!VE):')
-
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.drawString(12*mm, 190*mm, 'Name:')
-        self.c.drawString(12*mm, 185*mm, 'Position Title:')
-        self.c.drawString(12*mm, 180*mm, 'Reports to:')
-        self.c.drawString(12*mm, 175*mm, 'Duration')
-        self.c.drawString(12*mm, 170*mm, 'Part-time/Full-time:')
-        self.c.drawString(12*mm, 165*mm, 'Hours of work:')
-        self.c.drawString(12*mm, 160*mm, 'Rumuneration:')
-
-        letter_type = self.config["letter_type"]
-        final_bullet = self.config["final_bullet"]
-
-        name = self.ra.get_name()
-        work_hours = "9am - 3pm; " + str(self.ra.biweekly_hours/2) + " hours/week"
-        duration = str(self.ra.start_date) + " to " + str(self.ra.end_date)
-        employment_type = "Temporary full-time"
-        supervisor = self.ra.supervisor.name()
-        payment = "$" + str(self.ra.gross_hourly) + "/hour + 4% in lieu of benefits."
-
-        if letter_type == "TL":
-            position = "Team Lead, Summer Academy"
-            reports_to = "Coordinator, Outreach Programs"
-        elif letter_type == "TE":
-            position = "Instructor, TechEd"
-            reports_to = "Coordinator, Outreach Programs"
-            work_hours = work_hours + " with 1 hour unpaid lunch"
-        elif letter_type == "DCRS":
-            position = "Instructor, Pathway to STEAM at DiverseCity Resources Society"
-            reports_to = "Coordinator, Outreach Programs"
-        elif letter_type == "SA":
-            position ="Instructor, Summer Academy"
-            reports_to = "Summer Academy and Coordinator, Outreach Programs"
-
-        self.c.setFont("Helvetica", 10)
-        self.c.drawString(60*mm, 190*mm, name)
-        self.c.drawString(60*mm, 185*mm, position)
-        self.c.drawString(60*mm, 180*mm, reports_to)
-        self.c.drawString(60*mm, 175*mm, duration)
-        self.c.drawString(60*mm, 170*mm, employment_type)
-        self.c.drawString(60*mm, 165*mm, work_hours)
-        self.c.drawString(60*mm, 160*mm, payment)
-
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.drawString(12*mm, 150*mm, "Responsibilities and Duties ('Duties')")
-
-        cat = self.ra.hiring_category
-        research_assistant = (cat=="RA")
-        non_continuing = (cat=="NC")
-
-        self.c.setFont("Helvetica", 10)
-        duties = []
-        if research_assistant:
-            duties_list = self.ra.duties_list()
-            for duty in duties_list:
-                duties.append(Paragraph(duty, style=self.NOTE_STYLE))
-            duties.append(Paragraph(self.ra.ra_other_duties, style=self.NOTE_STYLE))
-        elif non_continuing:
-            duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
-
-        f = Frame(12*mm, 90*mm, 184*mm, 58*mm, 0, 0, 0, 0)
-        f.addFromList(duties, self.c) 
-
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.drawString(12*mm, 85*mm, "Terms of Contract")
-
-        point_1 = "\u2022 You will be provided with vacation pay of four (4%) percent (equivalent to 10 day vacation per annum)"
-        point_1_2 = "  that will be automatically added to the above hourly rate in each bi-weekly pay period."
-
-        point_2 = "\u2022 Termination of this appointment may be initiated by either party giving two (2) week notice, except in the"
-        point_2_2 = "  case of termination for cause"
-
-        point_3 = "\u2022 You are expected to adhere to the employer's policies and procedures at all times while performing your"
-        point_3_2 = "  'Duties'."
-
-        point_4 = []
-        if final_bullet:
-            self.c.drawString(20*mm, 32*mm, "\u2022 ")
-            point_4.append(Paragraph(final_bullet, style=self.NOTE_STYLE))
-        
-        f = Frame(22*mm, 0*mm, 170*mm, 35*mm, 0, 0, 0, 0)
-        f.addFromList(point_4, self.c)
-
-        self.c.setFont("Helvetica", 10)
-        self.c.drawString(20*mm, 75*mm, point_1)
-        self.c.drawString(20*mm, 70*mm, point_1_2)
-
-        self.c.drawString(20*mm, 60*mm, point_2)
-        self.c.drawString(20*mm, 55*mm, point_2_2)
-
-        self.c.drawString(20*mm, 45*mm, point_3)
-        self.c.drawString(20*mm, 40*mm, point_3_2)
-
-        self.c.setFont('DINPro-Bold', 5)
-        self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
-
-        self.c.showPage()
-        self.c.translate(6*mm, 16*mm)
-        self.c.setStrokeColor(black)
-        self.c.setLineWidth(1)
-
-        self.c.setFont("Helvetica", 10)
-        self.c.drawString(12*mm, 240*mm, "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records")
-        self.c.drawString(12*mm, 225*mm, "Yours Truly,")
-        self.c.drawString(12*mm, 195*mm, supervisor)
-        self.c.drawString(12*mm, 190*mm, "Faculty of Applied Sciences")
-        self.c.drawString(100*mm, 225*mm, "I agree to the conditions of employment,")
-        self.c.drawString(100*mm, 195*mm, name)
-
-        self.c.setFont('DINPro-Bold', 5)
-        self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
-
-        self.c.save()
 
 class RARequestForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
@@ -1060,7 +900,12 @@ class RARequestForm(SFUMediaMixin):
             init_comment = "Salary amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         else:
             init_comment = ""
+        
+        post_comment = ""
+        if non_continuing:
+            post_comment += "Supervisor: " + str(self.ra.supervisor.name()) + " / Grant signing authority:" 
         comments.append(Paragraph("COMMENTS: " + init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
+        comments.append(Paragraph(post_comment, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
         self.c.setFillColor(self.sfu_red)
@@ -1366,7 +1211,7 @@ class RARequestForm(SFUMediaMixin):
 
         self.c.showPage()
 
-        if research_assistant or non_continuing:
+        if research_assistant:
         # PAGE TWO
 
             self.c.setStrokeColor(black)
@@ -2148,12 +1993,6 @@ def ra_paf(ra, config, outfile):
     form = RARequestForm(ra, config)
     return form.draw_pdf(outfile)
 
-def ra_science_alive(ra, config, outfile):
-    """
-    Generate Science Alive form for this RARequest.
-    """
-    form = ScienceAliveLetter(ra, config)
-    return form.draw_pdf(outfile)
 
 
 class TAForm(object):
@@ -4737,3 +4576,1166 @@ def key_form(booking, outfile):
     doc = KeyForm(outfile)
     doc.draw_form(booking)
     doc.save()
+
+def ta_evaluation_form(ta_evaluation, member, course, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = TAEvalForm(outfile)
+    doc.draw_form_ta_eval(ta_evaluation, member, course)
+    doc.save()  
+
+class TAEvalForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+                        
+
+    def __init__(self, outfile):
+        """
+        Create TAEvalForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_ta_eval(self, ta_evaluation, member, course):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """        
+        return self.draw_form(
+                ta_evaluation = ta_evaluation, member = member, course = course
+        )
+
+    def draw_form(self, ta_evaluation, member, course):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box        
+
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+
+        # header
+        # x = from 179-225mm  
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(0, 225*mm, "APPENDIX E")
+        p.moveTo(0, 224*mm)   #x, y
+        p.lineTo(22*mm, 224*mm)
+        self.c.drawImage(logofile, x=20.5*mm, y=210*mm, width=20.5*mm, height=10.3*mm)
+        self.c.setFont("Helvetica-Oblique", 10)
+        self.c.drawString(60.35*mm, 215*mm, "SIMON FRASER UNIVERSITY")
+        p.moveTo(60.35*mm, 214*mm)   #x, y
+        p.lineTo(110.5*mm, 214*mm)
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(60.35*mm, 210*mm, "Teaching Assistant Evaluation")
+        
+        # description
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(0, 195*mm, "1. You must review this Evaluation Form and Evaluative Criteria with your TA at the beginning of the semester (ref. Art. 20 A).")
+        self.c.drawString(0, 190*mm, "2. Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this Evaluation Form (ref. Art. 20 I).")       
+        self.c.drawString(0, 185*mm, "3. This form is to be completed by you at the conclusion of the semester. Your assessment of the TA's teaching abilities will become part of the TA's employment")
+        self.c.drawString(0, 182*mm, "record. This feedback is intended to enhance teaching performance.")
+
+        self.draw_form_page_1(ta_evaluation, member, course)
+        self.draw_form_page_2(ta_evaluation)
+
+
+    def draw_form_page_1(self, ta_evaluation, member, course):
+        # section A
+        # x = from 158-174mm       
+        main_width = 184.15*mm
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath() 
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(0, 174*mm)
+        p.lineTo(main_width, 174*mm)
+        p.lineTo(main_width, 158*mm)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        if ta_evaluation.draft:
+            self.c.setFont("Helvetica", 12)        
+            self.c.drawString(1*mm, 176*mm, "DRAFT")
+        moving_y = 170*mm
+
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION A: Teaching Assistant Information")
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Name")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(10*mm, moving_y, member.person.name())        
+        p.moveTo(10*mm, moving_y-1*mm)   #x, y
+        p.lineTo(60*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(65*mm, moving_y, "Department")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(83*mm, moving_y, course.owner.name)
+        p.moveTo(83*mm, moving_y-1*mm)   #x, y
+        p.lineTo(125*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(128*mm, moving_y, "Semester")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(142*mm, moving_y, course.semester.name)
+        p.moveTo(142*mm, moving_y-1*mm)   #x, y
+        p.lineTo(150*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(152*mm, moving_y, "Course#")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(165*mm, moving_y, course.name())
+        p.moveTo(165*mm, moving_y-1*mm)   #x, y
+        p.lineTo(183*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Course Title")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(20*mm, moving_y, course.title)
+        p.moveTo(20*mm, moving_y-1*mm)   #x, y
+        p.lineTo(62*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(65*mm, moving_y, "Instructor")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(83*mm, moving_y, course.instructors_str())
+        p.moveTo(83*mm, moving_y-1*mm)   #x, y
+        p.lineTo(150*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(152*mm, moving_y, "TA's 1st Appt.")
+        self.c.setFont("Helvetica", 8)
+        if ta_evaluation.first_appoint is None:
+            self.c.drawString(172*mm, moving_y, 'Unknown')
+        elif ta_evaluation.first_appoint:
+            self.c.drawString(175*mm, moving_y, 'Yes')
+        else:
+            self.c.drawString(175*mm, moving_y, 'No')
+        p.moveTo(175*mm, moving_y-1*mm)   #x, y
+        p.lineTo(183*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section B
+        # x = from 50-155mm
+        main_width = 184.15*mm
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath() 
+        
+        # Section B - border
+        #p.moveTo(0, 50*mm)   #x, y
+        #p.lineTo(0, 150*mm)
+        #p.lineTo(main_width, 150*mm)
+        #p.lineTo(main_width, 50*mm)
+        #p.close()        
+        #self.c.drawPath(p, stroke=1, fill=0)
+         
+        self.c.setFont("Helvetica-Bold", 9)
+        moving_y = 146*mm
+        self.c.drawString(1*mm, moving_y, "SECTION B: EVALUATIVE CRITERIA")
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Using the evaluative criteria below, indicate whether the TA's performance:")
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "1     Meets Job Requirements - Good")
+        self.c.drawString(90*mm, moving_y, "2     Meets Job Requirements - Satistactory")
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "3     Does not meet job requirement -")
+        self.c.drawString(90*mm, moving_y, "4     Does not meet job requirement -")
+        moving_y = moving_y-3*mm
+        self.c.drawString(6.5*mm, moving_y, "Requires some improvement *")
+        self.c.drawString(95.5*mm, moving_y, "Requires major improvement *")        
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "5     No opportunity to evaluate or criterion is not applicable.")
+        
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "* Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "Evaluation Form(ref. Art. 20 I ).")
+        p.moveTo(0, moving_y-1*mm)   #x, y
+        p.lineTo(main_width, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section B - criterion
+        moving_y = moving_y-10*mm
+        
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_lab_prep))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Preparation of Lab/Tutorial Material")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_meet_deadline))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Meets Deadlines")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_maintain_hour))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Maintains Office Hours")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_attend_plan))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Attendance at Planning/Coordinating Meetings")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_attend_lec))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Attendance at Lectures")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_grading_fair))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Grading Fair/Consistent")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_lab_performance))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Performance in Lab/Tutorial")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_quality_of_feedback))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Quality of Feedback")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_quiz_prep))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Quiz Preparation/Assist in Exam Preparation")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_instr_content))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Instructional Content")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_others))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Other Job Requirements")
+        
+        #p.moveTo(55*mm, moving_y-(2*mm))   #x, y
+        #p.lineTo(180*mm, moving_y-(2*mm))    
+        #self.c.drawPath(p, stroke=1, fill=0)
+        #self.c.setFont("Helvetica", 8)
+        #self.c.drawString(55*mm, moving_y, str(ta_evaluation.criteria_other_comment))
+
+        self.c.setFont("Helvetica", 8)
+        wrap_line_max = 100
+        lines = wrap(str(ta_evaluation.criteria_other_comment), wrap_line_max)
+        
+        if len(lines) == 0:
+            moving_y = moving_y-5*mm
+
+        for line in lines:
+            self.c.drawString(55*mm, moving_y, line)
+            p.moveTo(55*mm, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        self.c.setFont("Helvetica-Bold", 8)
+        # Section B - border
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, 150*mm)
+        p.lineTo(main_width, 150*mm)
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+    def draw_form_page_2(self, ta_evaluation):
+        
+        self.c.showPage()
+        p = self.c.beginPath()
+        self.c.setStrokeColor(black)
+        self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+        self.c.setLineWidth(0.5)
+        main_width = 184.15*mm
+        moving_y = 220*mm
+        wrap_line_max = 138
+
+        # section C
+        # x around from 145-225mm          
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION C: EVALUATION COMMENTARY")
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Please comment on the TA's positive contributions to instruction (e.g. teching methods, grading, ")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "ability to lead discussion) - or other noteworthy strengths")
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.positive_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Please comment on those duties which you noted as not meeting job requirements and suggest ")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "ways in which the TA's performance could be improved")
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.improve_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm                
+
+        # draw section c box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, 225*mm)
+        p.lineTo(main_width, 225*mm)
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section D        
+        # roughly calculate the section box height, if no enough for this page, show on new page
+        lines = wrap(str(ta_evaluation.no_recommend_comment), wrap_line_max) 
+        section_d_height = (45*mm) + (len(lines) * 5)*mm
+
+        if section_d_height > moving_y:
+            self.c.showPage()
+            p = self.c.beginPath()
+            self.c.setStrokeColor(black)
+            self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+            self.c.setLineWidth(0.5)
+            main_width = 184.15*mm
+            moving_y = 220*mm
+
+        section_d_start = moving_y        
+        moving_y = moving_y-10*mm        
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION D: SUMMARY/OVERALL EVALUATION")
+        
+        moving_y = moving_y-8*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(15*mm, moving_y, "Meets Job Requirements")
+
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(105*mm, moving_y, "Does Not Meeting Requirements")
+
+        if ta_evaluation.overall_evalation is not None:
+            self.c.setFont("Helvetica", 8)
+            if ta_evaluation.overall_evalation:
+                self.c.drawString(4.5*mm, moving_y, "X")
+            else:
+                self.c.drawString(94.5*mm, moving_y, "X")
+
+        moving_y = moving_y-7*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(2*mm, moving_y, "Would you recommend this TA for reappointment?")
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(105*mm, moving_y, "Yes")
+
+        p.moveTo(122*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(122*mm, moving_y+(4*mm))
+        p.lineTo(128*mm, moving_y+(4*mm))
+        p.lineTo(128*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(135*mm, moving_y, "No")
+
+        if ta_evaluation.recommend_TA is not None:
+            self.c.setFont("Helvetica", 8)
+            if ta_evaluation.recommend_TA:
+                self.c.drawString(94.5*mm, moving_y, "X")
+            else:
+                self.c.drawString(124.5*mm, moving_y, "X")
+        
+        moving_y = moving_y-7*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(2*mm, moving_y, "If No, explain briefly")
+        moving_y = moving_y-5*mm        
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.no_recommend_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm     
+
+        moving_y = moving_y-5*mm
+        p.moveTo(5*mm, moving_y)   #x, y
+        p.lineTo(80*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.drawString(10*mm, moving_y+(1*mm), ta_evaluation.instructor_sign)        
+        p.moveTo(105*mm, moving_y)   #x, y
+        p.lineTo(175*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        if ta_evaluation.instructor_signdate:
+            self.c.drawString(110*mm, moving_y+(1*mm), ta_evaluation.instructor_signdate.strftime('%Y/%m/%d'))
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(20*mm, moving_y, "Instruction's Signature")
+        self.c.drawString(130*mm, moving_y, "Year/Month/Day")
+        moving_y = moving_y-5*mm
+        
+        # draw section d box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, section_d_start-(5*mm))
+        p.lineTo(main_width, section_d_start-(5*mm))
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section E 
+        # roughly calculate the section box height, if no enough for this page, show on new page
+        lines = wrap(str(ta_evaluation.ta_comment), wrap_line_max) 
+        section_d_height = (23*mm) + (len(lines) * 5)*mm
+
+        if section_d_height > moving_y:
+            self.c.showPage()
+            p = self.c.beginPath()
+            self.c.setStrokeColor(black)
+            self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+            self.c.setLineWidth(0.5)
+            main_width = 184.15*mm
+            moving_y = 220*mm
+
+        section_e_start = moving_y
+        moving_y = moving_y-10*mm
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION E: TEACHING ASSISTANT'S COMMENTS")
+
+        self.c.setFont("Helvetica-Bold", 8)
+        moving_y = moving_y-5*mm        
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.ta_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm     
+
+        moving_y = moving_y-5*mm
+        p.moveTo(5*mm, moving_y)   #x, y
+        p.lineTo(80*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.drawString(10*mm, moving_y+(1*mm), str(ta_evaluation.ta_sign))        
+        p.moveTo(105*mm, moving_y)   #x, y
+        p.lineTo(175*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        if ta_evaluation.ta_signdate:
+            self.c.drawString(110*mm, moving_y+(1*mm), ta_evaluation.ta_signdate.strftime('%Y/%m/%d'))
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(20*mm, moving_y, "Teaching Assistant's Signature")
+        self.c.drawString(130*mm, moving_y, "Year/Month/Day")
+        moving_y = moving_y-5*mm
+
+        # draw section e box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, section_e_start-(5*mm))
+        p.lineTo(main_width, section_e_start-(5*mm))
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        
+        moving_y = moving_y-5*mm
+        if moving_y < (12*mm):
+            self.c.showPage()
+            p = self.c.beginPath()
+            moving_y = 220*mm
+
+        self.c.setFont("Helvetica-Bold", 7)
+        self.c.drawString(5*mm, moving_y, "Distribution of and retention of the Evaluation Form")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "1. The original coy of the Evaluation Form must be forwarded to the Department Chair on completion and included in the TA's employment file.")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "2. The TA must receive a copy of the Evaluation Form no later than the end of the first week of classes of the following semester")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "3. The TA may make comments on the evaluation and such comments will then be added to the employment file. The TA should complete TA comments")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "section, sign and date the form and return the form to the Department Chair as soon as possible.")
+        
+    def save(self):
+        self.c.save()    
+
+def tug_form(tug, contract_info, new_format, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = TUGForm(outfile)
+    doc.draw_form_tug(tug, contract_info, new_format)
+    doc.save()    
+
+class TUGForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+
+
+    def __init__(self, outfile):
+        """
+        Create TUGForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_tug(self, tug, contract_info, new_format):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """
+        iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
+        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
+        total_hours = round(total_hours, 2)
+
+        from ta.models import LAB_BONUS_DECIMAL, HOLIDAY_HOURS_PER_BU, HOURS_PER_BU, LAB_BONUS_DECIMAL, HOURS_PER_BU
+
+        contract_info = None
+        if contract_info:
+            bu = contract_info.bu
+            has_lab_or_tut = contract_info.has_labtut()
+            lab_bonus_decimal = contract_info.prep_bu
+            holiday_hours_per_bu = contract_info.holiday_hours_per_bu
+            hours_per_bu = HOURS_PER_BU
+            total_bu = contract_info.total_bu
+            max_hours = contract_info.hours
+        else:
+            bu = tug.base_units
+            has_lab_or_tut = tug.member.offering.labtas()
+            lab_bonus_decimal = LAB_BONUS_DECIMAL
+            holiday_hours_per_bu = HOLIDAY_HOURS_PER_BU
+            hours_per_bu = HOURS_PER_BU
+            total_bu = tug.base_units + LAB_BONUS_DECIMAL
+            max_hours = tug.base_units * HOURS_PER_BU
+
+        if new_format:
+            return self.draw_form_newformat(
+                tug = tug, 
+                ta = tug.member, 
+                course = tug.member.offering, 
+                bu = bu,
+                max_hours = max_hours, 
+                total_hours = total_hours,                
+                has_lab_or_tut= has_lab_or_tut,
+                lab_bonus = lab_bonus_decimal,
+                lab_bonus_4 = lab_bonus_decimal+4,                
+                lab_bonus_hours = lab_bonus_decimal*hours_per_bu,
+                hours_per_bu = hours_per_bu,
+                holiday_hours_per_bu = holiday_hours_per_bu,
+                total_bu = total_bu,
+                draft = tug.draft,
+            )
+        else:
+            return self.draw_form(
+                tug = tug, 
+                ta = tug.member, 
+                course = tug.member.offering, 
+                bu = bu,
+                max_hours = max_hours, 
+                total_hours = total_hours,                
+                has_lab_or_tut= has_lab_or_tut,
+                lab_bonus = lab_bonus_decimal,
+                lab_bonus_4 = lab_bonus_decimal+4,                
+                lab_bonus_hours = lab_bonus_decimal*hours_per_bu,
+                hours_per_bu = hours_per_bu,
+                holiday_hours_per_bu = holiday_hours_per_bu,
+                total_bu = total_bu,
+                draft = tug.draft,
+            )
+
+    def draw_form(self, tug, ta, course, bu, max_hours, total_hours, has_lab_or_tut, lab_bonus, lab_bonus_4,
+                  lab_bonus_hours, hours_per_bu, holiday_hours_per_bu, total_bu, draft):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # main outline
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+        p.moveTo(0, 7.975*inch)   #x, y
+        p.lineTo(0, 8.875*inch)
+        p.lineTo(main_width, 8.875*inch)
+        p.lineTo(main_width, 7.975*inch)
+        p.close()
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(main_width, 158*mm)
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # header
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.5*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2*inch, 228*mm, "Teaching Assistant Time Use Guideline")
+        if draft:
+            self.c.drawString(6*inch, 228*mm, "DRAFT")
+
+        # draw tug summary
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(5, 220*mm, "TA Name: " + ta.person.name())
+        self.c.drawString(main_width/2, 220*mm, "Instructor: " + course.instructors_str())
+        self.c.drawString(5, 215*mm, "Course: " + str(course))
+        self.c.drawString(5, 210*mm, "Maximum Hours to be Assigned: " + str(max_hours))
+        self.c.drawString(5, 205*mm, "Base Units Assigned*:" + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
+        if has_lab_or_tut:
+            self.c.drawString(main_width/2, 205*mm, "{ + " + str(lab_bonus) + " for prep = "+ str(total_bu) + "}" )
+
+       # draw tug description
+        self.c.drawString(5, 195*mm, "Teaching Assistant total workload for the semester should approach but not exceed the maximum hours over the term of the ")
+        self.c.drawString(5, 190*mm, "semester (normally 17 weeks).")
+        self.c.setFont("Helvetica-Oblique", 9)
+        self.c.drawString(5, 180*mm, "The following summary is an approximation of the length of time expected to be devoted to the major activities. There may be shifts ")
+        self.c.drawString(5, 175*mm, "between activities, but the total hours required over the semester cannot exceed the maximum hours set out above.")
+
+
+        # draw tug detail - title
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(main_width*0.8, 165*mm, "Average")
+        self.c.drawString(main_width*0.9, 165*mm, "Total")
+        self.c.drawString(5, 160*mm, "Duties and Responsibilities")
+        self.c.drawString(main_width*0.8, 160*mm, "hrs/week")
+        self.c.drawString(main_width*0.9, 160*mm, "hrs/semester")
+
+        # draw tug detail - detail
+        # item
+        self.c.drawString(5, 150*mm, "1. Preparation for labs/tutorials")
+        self.c.drawString(5, 143*mm, "2. Attendance at planning/coordinating meetings with instructor")
+        self.c.drawString(5, 136*mm, "3. Attendance at lectures")
+        self.c.drawString(5, 129*mm, "4. Attendance at labs/tutorials")
+        self.c.drawString(5, 122*mm, "5. Office hours/student consultation/electronic communication")
+        self.c.drawString(5, 115*mm, "6. Grading **")
+        self.c.drawString(5, 108*mm, "7. Quiz preparation/assist in exam preparation/Invigilation of exams")
+        self.c.drawString(5, 101*mm, "8. Statutory Holiday Compensation -")
+        self.c.drawString(15, 96*mm, "To compensate for all statutory holidays which may occur in a semester, the total workload")
+        self.c.drawString(15, 91*mm, "required will be reduced by " + str(holiday_hours_per_bu) + " hour(s) for each base unit assigned excluding the additional")
+        self.c.drawString(15, 86*mm, str(lab_bonus)+ " B.U. for preparation, e.g. 4.4 hours reduction for "+ str(lab_bonus_4) + " B.U. appointment.")        
+        self.c.drawString(5, 79*mm, "9. Other - specify***")
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(15, xpos, other.get('label'))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(5, xpos-2*mm, "Required Total Hours =")
+
+        # weekly 
+        self.c.drawString(main_width*0.8, 150*mm, str({None: ''}.get(tug.config['prep']['weekly'], tug.config['prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 143*mm, str({None: ''}.get(tug.config['meetings']['weekly'], tug.config['meetings']['weekly'])))
+        self.c.drawString(main_width*0.8, 136*mm, str({None: ''}.get(tug.config['lectures']['weekly'], tug.config['lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 129*mm, str({None: ''}.get(tug.config['tutorials']['weekly'], tug.config['tutorials']['weekly'])))
+        self.c.drawString(main_width*0.8, 122*mm, str({None: ''}.get(tug.config['office_hours']['weekly'], tug.config['office_hours']['weekly'])))
+        self.c.drawString(main_width*0.8, 115*mm, str({None: ''}.get(tug.config['grading']['weekly'], tug.config['grading']['weekly'])))
+        self.c.drawString(main_width*0.8, 108*mm, str({None: ''}.get(tug.config['test_prep']['weekly'], tug.config['test_prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 101*mm, str({None: ''}.get(tug.config['holiday']['weekly'], tug.config['holiday']['weekly'])))        
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.8, xpos, str({None: ''}.get(other.get('weekly'), other.get('weekly'))))            
+            xpos = xpos - (5*mm)
+
+        # total 
+        self.c.drawString(main_width*0.9, 150*mm, str({None: ''}.get(tug.config['prep']['total'], tug.config['prep']['total'])))
+        self.c.drawString(main_width*0.9, 143*mm, str({None: ''}.get(tug.config['meetings']['total'], tug.config['meetings']['total'])))
+        self.c.drawString(main_width*0.9, 136*mm, str({None: ''}.get(tug.config['lectures']['total'], tug.config['lectures']['total'])))
+        self.c.drawString(main_width*0.9, 129*mm, str({None: ''}.get(tug.config['tutorials']['total'], tug.config['tutorials']['total'])))
+        self.c.drawString(main_width*0.9, 122*mm, str({None: ''}.get(tug.config['office_hours']['total'], tug.config['office_hours']['total'])))
+        self.c.drawString(main_width*0.9, 115*mm, str({None: ''}.get(tug.config['grading']['total'], tug.config['grading']['total'])))
+        self.c.drawString(main_width*0.9, 108*mm, str({None: ''}.get(tug.config['test_prep']['total'], tug.config['test_prep']['total'])))
+        self.c.drawString(main_width*0.9, 101*mm, str({None: ''}.get(tug.config['holiday']['total'], tug.config['holiday']['total'])))
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.9, xpos, str({None: ''}.get(other.get('total'), other.get('total'))))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(main_width*0.9, xpos-2*mm, str({None: ''}.get(total_hours, total_hours)))
+
+        # draw tug description
+        self.c.drawString(5, xpos-20*mm, "Teaching Assistants and course instructors should familiarize themselves with the general working conditions set out in Article 13C, ")
+        self.c.drawString(5, xpos-25*mm, "assignment and compensation in Article 13D, and workload review mechanisms in Article 13E.")
+
+        self.c.drawString(5, xpos-30*mm, "*There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
+        self.c.drawString(5, xpos-35*mm, "calculation of hours.")
+        self.c.drawString(5, xpos-40*mm, "** Includes grading of all assignments, reports and examinations.")
+        self.c.drawString(5, xpos-45*mm, "*** Attendance at a TA/TM Day/Training")
+
+        self.c.drawString(5, xpos-55*mm, "Instructor Signature:")
+        self.c.drawString(main_width/2, xpos-55*mm, "TA Signature:")
+        self.c.drawString(5, xpos-60*mm, "Date:")
+        self.c.drawString(main_width/2, xpos-60*mm, "Date:")
+
+    def draw_form_newformat(self, tug, ta, course, bu, max_hours, total_hours, has_lab_or_tut, lab_bonus, lab_bonus_4,
+                  lab_bonus_hours, hours_per_bu, holiday_hours_per_bu, total_bu, draft):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # main outline
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+        p.moveTo(0, 7.975*inch)   #x, y
+        p.lineTo(0, 8.675*inch)
+        p.lineTo(main_width, 8.675*inch)
+        p.lineTo(main_width, 7.975*inch)
+        p.close()
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(main_width, 158*mm)
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # header
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.5*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2*inch, 228*mm, "Teaching Assistant Time Use Guideline")
+        if draft:
+            self.c.drawString(6*inch, 228*mm, "DRAFT")
+
+        # draw tug summary
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(5, 215*mm, "TA Name: " + ta.person.name())
+        self.c.drawString(main_width/2, 215*mm, "Instructor: " + course.instructors_str())
+        self.c.drawString(5, 210*mm, "Course: " + str(course))
+        #self.c.drawString(5, 210*mm, "Maximum Hours to be Assigned: " + str(max_hours))
+        self.c.drawString(5, 205*mm, "Base Units Assigned*:" + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
+        if has_lab_or_tut:
+            self.c.drawString(main_width/2, 205*mm, "{ + " + str(lab_bonus) + " for prep = "+ str(total_bu) + "}" )
+
+       # draw tug description
+        self.c.drawString(5, 195*mm, "Teaching Assistant total workload for the semester should approach but not exceed the maximum hours over the term of the ")
+        self.c.drawString(5, 190*mm, "semester (normally 17 weeks).")
+        self.c.setFont("Helvetica-Oblique", 9)
+        self.c.drawString(5, 180*mm, "The following summary is an approximation of the length of time expected to be devoted to the major activities. There may be shifts ")
+        self.c.drawString(5, 175*mm, "between activities, but the total hours required over the semester cannot exceed the maximum hours set out above.")
+
+
+        # draw tug detail - title
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(main_width*0.8, 165*mm, "Average")
+        self.c.drawString(main_width*0.9, 165*mm, "Total")
+        self.c.drawString(5, 160*mm, "Duties and Responsibilities")
+        self.c.drawString(main_width*0.8, 160*mm, "hrs/week")
+        self.c.drawString(main_width*0.9, 160*mm, "hrs/semester")
+
+        # draw tug detail - detail
+        # item
+        self.c.drawString(5, 150*mm, "1. Preparation for labs/tutorials/workshops")
+        self.c.drawString(5, 144*mm, "2. Attendance at orientation and planning/coordinating meetings with instructor")
+        self.c.drawString(5, 138*mm, "3. Preparation for lectures")
+        self.c.drawString(5, 132*mm, "4. Attendance at lectures, including breakout groups")
+        self.c.drawString(5, 126*mm, "5. Support classroom course delivery, including technical support")
+        self.c.drawString(5, 120*mm, "6. Attendance at labs/tutorials/workshops")
+        self.c.drawString(5, 114*mm, "7. Leading dicussions")
+        self.c.drawString(5, 108*mm, "8. Office hours/student consultation")
+        self.c.drawString(5, 102*mm, "9. Electronic communication")
+        self.c.drawString(5, 96*mm, "10. Grading **")
+        self.c.drawString(5, 90*mm, "11. Quiz preparation/assist in exam preparation/Invigilation of exams")
+        self.c.drawString(5, 84*mm, "12. Statutory Holiday Compensation -")
+        self.c.drawString(15, 79*mm, "To compensate for all statutory holidays which may occur in a semester, the total workload")
+        self.c.drawString(15, 74*mm, "required will be reduced by " + str(holiday_hours_per_bu) + " hour(s) for each base unit assigned excluding the additional")
+        self.c.drawString(15, 69*mm, str(lab_bonus)+ " B.U. for preparation, e.g. 4.4 hours reduction for "+ str(lab_bonus_4) + " B.U. appointment.")        
+        self.c.drawString(5, 63*mm, "13. Other - specify***")
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(15, xpos, other.get('label'))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(5, xpos-2*mm, "Required Total Hours =")
+
+        # weekly 
+        self.c.drawString(main_width*0.8, 150*mm, str({None: ''}.get(tug.config['prep']['weekly'], tug.config['prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 144*mm, str({None: ''}.get(tug.config['meetings']['weekly'], tug.config['meetings']['weekly'])))
+        self.c.drawString(main_width*0.8, 138*mm, str({None: ''}.get(tug.config['prep_lectures']['weekly'], tug.config['prep_lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 132*mm, str({None: ''}.get(tug.config['lectures']['weekly'], tug.config['lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 126*mm, str({None: ''}.get(tug.config['support']['weekly'], tug.config['support']['weekly'])))
+        self.c.drawString(main_width*0.8, 120*mm, str({None: ''}.get(tug.config['tutorials']['weekly'], tug.config['tutorials']['weekly'])))
+        self.c.drawString(main_width*0.8, 114*mm, str({None: ''}.get(tug.config['leading']['weekly'], tug.config['leading']['weekly'])))
+        self.c.drawString(main_width*0.8, 108*mm, str({None: ''}.get(tug.config['office_hours']['weekly'], tug.config['office_hours']['weekly'])))
+        self.c.drawString(main_width*0.8, 102*mm, str({None: ''}.get(tug.config['e_communication']['weekly'], tug.config['e_communication']['weekly'])))
+        self.c.drawString(main_width*0.8, 96*mm, str({None: ''}.get(tug.config['grading']['weekly'], tug.config['grading']['weekly'])))
+        self.c.drawString(main_width*0.8, 90*mm, str({None: ''}.get(tug.config['test_prep']['weekly'], tug.config['test_prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 84*mm, str({None: ''}.get(tug.config['holiday']['weekly'], tug.config['holiday']['weekly'])))        
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.8, xpos, str({None: ''}.get(other.get('weekly'), other.get('weekly'))))            
+            xpos = xpos - (5*mm)
+
+        # total 
+        self.c.drawString(main_width*0.9, 150*mm, str({None: ''}.get(tug.config['prep']['total'], tug.config['prep']['total'])))
+        self.c.drawString(main_width*0.9, 144*mm, str({None: ''}.get(tug.config['meetings']['total'], tug.config['meetings']['total'])))
+        self.c.drawString(main_width*0.9, 138*mm, str({None: ''}.get(tug.config['prep_lectures']['total'], tug.config['prep_lectures']['total'])))
+        self.c.drawString(main_width*0.9, 132*mm, str({None: ''}.get(tug.config['lectures']['total'], tug.config['lectures']['total'])))
+        self.c.drawString(main_width*0.9, 126*mm, str({None: ''}.get(tug.config['support']['total'], tug.config['support']['total'])))
+        self.c.drawString(main_width*0.9, 120*mm, str({None: ''}.get(tug.config['tutorials']['total'], tug.config['tutorials']['total'])))
+        self.c.drawString(main_width*0.9, 114*mm, str({None: ''}.get(tug.config['leading']['total'], tug.config['leading']['total'])))
+        self.c.drawString(main_width*0.9, 108*mm, str({None: ''}.get(tug.config['office_hours']['total'], tug.config['office_hours']['total'])))
+        self.c.drawString(main_width*0.9, 102*mm, str({None: ''}.get(tug.config['e_communication']['total'], tug.config['e_communication']['total'])))
+        self.c.drawString(main_width*0.9, 96*mm, str({None: ''}.get(tug.config['grading']['total'], tug.config['grading']['total'])))
+        self.c.drawString(main_width*0.9, 90*mm, str({None: ''}.get(tug.config['test_prep']['total'], tug.config['test_prep']['total'])))
+        self.c.drawString(main_width*0.9, 84*mm, str({None: ''}.get(tug.config['holiday']['total'], tug.config['holiday']['total'])))
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.9, xpos, str({None: ''}.get(other.get('total'), other.get('total'))))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(main_width*0.9, xpos-2*mm, str({None: ''}.get(total_hours, total_hours)))
+
+        # draw tug description
+        self.c.drawString(5, xpos-10*mm, "Teaching Assistants and course instructors should familiarize themselves with the general working conditions set out in Article 13C, ")
+        self.c.drawString(5, xpos-15*mm, "assignment and compensation in Article 13D, and workload review mechanisms in Article 13E.")
+
+        self.c.drawString(5, xpos-20*mm, "*There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
+        self.c.drawString(5, xpos-25*mm, "calculation of hours.")
+        self.c.drawString(5, xpos-30*mm, "** Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards.")
+        self.c.drawString(5, xpos-35*mm, "*** Attendance at a TA/TM Day/and other required Training")
+
+        self.c.drawString(5, xpos-50*mm, "Instructor Signature:")
+        self.c.drawString(main_width/2, xpos-50*mm, "TA Signature:")
+        self.c.drawString(5, xpos-55*mm, "Date:")
+        self.c.drawString(main_width/2, xpos-55*mm, "Date:")
+
+    def save(self):
+        self.c.save()
+
+def taworkload_form(taworkload, max_hours, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = WRForm(outfile)
+    doc.draw_form_wr(taworkload, max_hours)
+    doc.save()    
+
+class WRForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+                        
+
+    def __init__(self, outfile):
+        """
+        Create TUGForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_wr(self, taworkload, max_hours):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """
+        return self.draw_form(                
+                taworkload = taworkload,
+                max_hours = max_hours
+        )
+
+    def draw_form(self, taworkload, max_hours):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # draw line
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+
+        # WR
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.8*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(3*inch, 228*mm, "TA Workload Review")
+
+        # draw WR header
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(0, 200*mm, "Instructor: " + taworkload.member.offering.instructors_str())
+        self.c.drawString(main_width*0.7, 200*mm, "TA Name: " + taworkload.member.person.name())
+        p.moveTo(0, 198*mm)   #x, y
+        p.lineTo(main_width, 198*mm)
+
+        self.c.drawString(0, 190*mm, "Semester: " + str(taworkload.member.offering.semester))
+        self.c.drawString(main_width*0.3, 190*mm, "Course #: " + str(taworkload.member.offering.name()))
+        self.c.drawString(main_width*0.7, 190*mm, "Original hrs Assigned: " + str(max_hours))
+        p.moveTo(0, 188*mm)
+        p.lineTo(main_width, 188*mm)
+
+        self.c.drawString(main_width*0.2, 180*mm, "Will the number of hours required exceed the number of hours assigned?")
+        if taworkload:
+            if taworkload.reviewhour:
+                self.c.drawString(main_width/2-18*mm, 170*mm, "YES")
+            else:
+                self.c.drawString(main_width/2-18*mm, 170*mm, "NO")
+        p.moveTo(main_width/2-18*mm, 168*mm)
+        p.lineTo((main_width+18*mm)/2, 168*mm)
+
+        self.c.drawString(0, 160*mm, "Signature of Instructor:")
+        self.c.drawString(main_width*0.7, 160*mm, "Date of Review:")
+        if taworkload:
+            self.c.drawString(0, 150*mm, str(taworkload.reviewsignature))
+        p.moveTo(0, 148*mm)
+        p.lineTo(main_width*0.3, 148*mm)
+        if taworkload:
+            self.c.drawString(main_width*0.7, 150*mm, str(taworkload.reviewdate))
+        p.moveTo(main_width*0.7, 148*mm)
+        p.lineTo(main_width, 148*mm)
+
+        import textwrap
+        self.c.drawString(main_width*0.2, 130*mm, "Decision if number of hours required exceeds the number or hours assigned:")
+        if taworkload:
+            reviewcomment = textwrap.wrap(str(taworkload.reviewcomment), 128)        
+            xpos = 120*mm
+            for i in range(len(reviewcomment)):
+                self.c.drawString(0, xpos, str(reviewcomment[i]))
+                p.moveTo(0, xpos-2*mm)   #x, y
+                p.lineTo(main_width, xpos-2*mm)
+                xpos = xpos-7*mm
+                if i>12:
+                    break
+
+        if xpos-10*mm > 0:
+            self.c.drawString(main_width/2, xpos-10*mm, "Signature of Authorized person in the Department")
+            p.moveTo(0, xpos-10*mm)
+            p.lineTo(main_width/2, xpos-10*mm)
+        else:
+            self.c.showPage()
+            self.c.drawString(main_width/2, 220*mm, "Signature of Authorized person in the Department")
+            p.moveTo(0, 220*mm)
+            p.lineTo(main_width/2, 220*mm)
+
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+
+    def save(self):
+        self.c.save()         

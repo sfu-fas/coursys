@@ -881,10 +881,16 @@ def delete_visit_admin(request, visit_slug):
     l.save()
     return HttpResponseRedirect(reverse('advising:all_visits'))
 
+@requires_role(['ADVS', 'ADVM'])
+def view_nonstudents(request):
+    start = datetime.datetime.now() - datetime.timedelta(days=365)
+    nonstudents = NonStudent.objects.filter(unit__in=request.units, created_at__isnull=False, created_at__gte=start)
+    context = {'nonstudents': nonstudents}
+    return render(request, 'advisornotes/view_nonstudents.html', context)
 
 @requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
-def new_nonstudent(request):
+def new_nonstudent(request: HttpRequest) -> HttpResponse:
     """
     View to create a new non-student
     """
@@ -893,12 +899,65 @@ def new_nonstudent(request):
         form = NonStudentForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
+            nonstudent = form.save(commit=False)
+            nonstudent.created_at = datetime.datetime.now()
             nonstudent = form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new prospective student %s by %s") % (NonStudent, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Prospective Student "%s" Created.' % nonstudent)
             return _redirect_to_notes(nonstudent)
     else:
         form = NonStudentForm()
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
+
+@requires_role(['ADVS', 'ADVM'])
+@transaction.atomic
+def edit_nonstudent(request: HttpRequest, nonstudent_slug: str) -> HttpResponse:
+    """
+    View to edit a non-student
+    """
+    nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug, unit__in=request.units)
+    unit_choices = [(u.id, str(u)) for u in request.units]
+    if request.POST:
+        form = NonStudentForm(request.POST, instance=nonstudent)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            nonstudent = form.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited nonstudent %s by %s") % (nonstudent, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Prospective Student "%s" edited.' % nonstudent)
+            return _redirect_to_notes(nonstudent)
+    else:
+        form = NonStudentForm(instance=nonstudent)
+        form.fields['unit'].choices = unit_choices
+    return render(request, 'advisornotes/edit_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
+
+@requires_role(['ADVS', 'ADVM'])
+def download_nonstudents(request: HttpRequest) -> HttpResponse:
+    """
+    View to download nonstudents
+    """
+    start = datetime.datetime.now() - datetime.timedelta(days=365)
+    nonstudents = NonStudent.objects.filter(unit__in=request.units, created_at__isnull=False, created_at__gte=start)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="prospective-students-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+
+    writer.writerow(['First Name', 'Last Name', 'Middle Name', 'Gender', 'Email Address', 
+                     'High School', 'College', 'Start Year', 'Potential Program', 'Preferred Campus', 'Unit', 'Created At'])
+    for ns in nonstudents:
+        writer.writerow([ns.first_name, ns.last_name, ns.middle_name, ns.gender, ns.email_address,
+                        ns.high_school, ns.college, ns.start_year, ns.program, ns.campus, ns.unit, ns.created_at.date()])
+
+    return response
 
 
 @requires_role(['ADVS', 'ADVM'])
@@ -1184,8 +1243,7 @@ def merge_nonstudent(request, nonstudent_slug):
                 student.set_nonstudent_hs(nonstudent.high_school)
             if nonstudent.college:
                 student.set_nonstudent_colg(nonstudent.college)
-            if nonstudent.notes:
-                student.set_nonstudent_notes(nonstudent.notes)
+            student.set_nonstudent_notes("Previously a prospective student, merged on " + str(datetime.datetime.today().date()) + ". " + nonstudent.notes)
             # If we had an email address for this nonstudent, store it in the application email address, like
             # for a grad student.  We really don't have a better place to store this.  The other option would be
             # to drop it altogether.

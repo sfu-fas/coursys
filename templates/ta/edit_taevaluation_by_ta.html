@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ta-tug-noprint.css' %}" media="all" />
+<link rel="stylesheet" href="{% static 'style/ta-tug-print.css' %}" media="print" />
+<script nonce="{{ CSP_NONCE }}">
+	$(document).ready(function() {
+		$("#id_ta_signdate").datepicker({'dateFormat': 'yy-mm-dd'});
+		$('#print-tug').click(function(){
+			print();
+			return false;
+		});
+	});
+</script>
+ 
+{% endblock %}
+
+{% block subbreadcrumbs %}
+	<li>{{ta.name}}'s TA Evaluation</li>    
+{% endblock %}
+
+{% block title %}TA Evaluation for {{ ta.name }}{% endblock %}
+{% block h1 %}TA Evaluation for {{ ta.name }}{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div id="messages" class="info"> You have a TA evaluation by instructor. Please review and complete section E.</div>
+<div>
+    <ul>
+    <li>1. You must review this Evaluation Form and Evaluative Criteria with your TA at the beginning of the semester (ref. Art. 20 A).</li> 
+    <li>2. Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this Evaluation Form (ref. Art. 20 I).</li>
+    <li>3. This form is to be completed by you at the conclusion of the semester. Your assessment of the TA's teaching abilities will become part of the TA's employment record. This feedback is intended to enhance teaching performance.</li>
+    </ul>
+</div> 
+<div class="table_container">    
+    <h2>Section A: Teaching Assistant Information</h2>    
+    <table class="info">
+      <tr><th>TA Name:</th><td>{{ta.name}}</td><th>Department/Semester/Course:</th><td> {{course.owner}}<br> {{course.semester}}  {{course.name}} </td></tr>
+      <tr><th>Course Title:</th><td>{{course.title}}</td><th>Instructor:</th><td> {{course.instructors_str }}</td></tr>
+    </table>
+    <fieldset>
+        TA's First Appointment: {{ eval.first_appoint|yesno }}       
+    </fieldset>
+</div>
+
+<div class="table_container">
+    <h2>Section B: Evaluation Criteria</h2>    
+    <div>        
+        <ul>            
+            <li><small>1. Meets Job Requirements- Good</small></li>
+            <li><small>2. Meets Job Requirements- Satisfactory</small></li>
+            <li><small>3. Does not meet job requirements - Requires some improvement</small></li>
+            <li><small>4. Does not meet job requirements - Requires major improvement*</small></li>
+            <li><small>N/A. No opportunity to evaluate or criterion is not applicable.</small></li>
+        </ul>
+    </div> 
+    <table class="info">
+        <tr><td scope="row" style="width:70%">Preparation of Lab/Tutorial Material: </td><td> {% if eval.criteria_lab_prep == 5 %} N/A {% else %} {{ eval.criteria_lab_prep }}{% endif %}</td></tr>
+        <tr><td scope="row" >Meets Deadlines:</td><td>{% if eval.criteria_meet_deadline == 5 %} N/A {% else %} {{ eval.criteria_meet_deadline }} {% endif %}</td></tr>
+        <tr><td scope="row">Maintains Office Hours:</td><td> {% if eval.criteria_maintain_hour == 5 %} N/A {% else %} {{ eval.criteria_maintain_hour }} {% endif %}</td></tr>
+        <tr><td scope="row">Attendance at Planning/Coordinating Meetings:</td><td> {% if eval.criteria_attend_plan == 5 %} N/A {% else %} {{ eval.criteria_attend_plan }}{% endif %}</td></tr>
+        <tr><td scope="row">Attendance at Lectures: </td><td>{% if eval.criteria_attend_lec == 5 %} N/A {% else %} {{ eval.criteria_attend_lec }} {% endif %}</td></tr>
+        <tr><td scope="row">Grading Fair/Consistent: </td><td>{% if eval.criteria_grading_fair == 5 %} N/A {% else %} {{ eval.criteria_grading_fair }} {% endif %}</td></tr>
+        <tr><td scope="row">Performance in Lab/Tutorial: </td><td>{% if eval.criteria_lab_performance == 5 %} N/A {% else %} {{ eval.criteria_lab_performance }} {% endif %}</td></tr>
+        <tr><td scope="row">Quality of Feedback: </td><td>{% if eval.criteria_quality_of_feedback == 5 %} N/A {% else %} {{ eval.criteria_quality_of_feedback }} {% endif %}</td></tr>
+        <tr><td scope="row">Quiz Preparation/Assist in Exam Preparation : </td><td>{% if eval.criteria_quiz_prep == 5 %} N/A {% else %} {{ eval.criteria_quiz_prep }} {% endif %}</td></tr>
+        <tr><td scope="row">Instructional Content:</td><td> {% if eval.criteria_instr_content == 5 %} N/A {% else %} {{ eval.criteria_instr_content }} {% endif %}</td></tr>
+        <tr><td scope="row">Other Job Requirements: </td><td>{% if eval.criteria_others == 5 %} N/A {% else %} {{ eval.criteria_others }} {% endif %}</td></tr>
+        <tr><td scope="row"> Comments: <br> </td><td> {% if eval.criteria_other_comment == 5 %} N/A {% else %} {{ eval.criteria_other_comment }} {% endif %}</td></tr>
+        </table>
+</div>
+
+<div class="table_container">
+    <h2>Section C: Evaluation Commentary</h2>   
+    <table class="inlineform">
+    <tr><td scope="row"> Please comment on the TA's positive contributions to instruction (e.g. teching methods, grading, ability to lead discussion) - or other noteworthy strengths   </td></tr>
+    <tr><td>{{ eval.positive_comment}} </td></tr>
+    <tr><td scope="row"> Please comment on those duties which you noted as not meeting job requirements and suggest ways in which the TA's performance could be improved </td></tr>
+    <tr><td>{{ eval.improve_comment}}</td></tr>
+    </table>
+</div>
+
+<div class="table_container">
+    <h2>Section D: Summary/Overall Evaluation</h2>    
+    <table class="inlineform">
+        <tr><td scope="row" style="width:70%"> Overall Meets Jobs Requirements:</td><td>  {{ eval.overall_evalation|yesno }} </td></tr>
+        <tr><td scope="row"> Would you recommend this TA for reappointment?:</td><td>{{ eval.recommend_TA|yesno }} </td></tr>
+        <tr><td scope="row" colspan="2"> If No, explain briefly</td></tr>
+        <tr><td colspan="2"> {{ eval.no_recommend_comment }}</td></tr>
+        <tr><td scope="row"> Instruction's Signature:</td><td> {{ eval.instructor_sign }}</td></tr>
+        <tr><td scope="row"> Evaluation Date: </td><td>{{ eval.instructor_signdate }}</td></tr>
+    </table>
+</div>
+
+<form action="" method="post" id="edit-ta-evaluation">{% csrf_token %}
+<div class="table_container">
+    <h2>Section E: Teaching Assistant's Comments</h2>    
+    <fieldset>
+    {{ form.ta_comment.label }} 
+    {{ form.ta_comment }}        
+    <br>
+    {{ form.ta_sign.label }} 
+    {{ form.ta_sign }}
+    <br>
+    {{ form.ta_signdate.label }} 
+    {{ form.ta_signdate }}
+    </fieldset>
+
+    <p><input type="submit" class="submit" value="Submit TA Evaluation" /></p>
+</div>
+</form>
+
+{% endblock %}

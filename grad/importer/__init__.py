@@ -30,6 +30,7 @@ from django.db import transaction
 from coredata.models import Unit
 import itertools
 from collections import defaultdict
+from django.core.mail import mail_admins
 
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 # TODO: adjust LEAV statuses depending on the NWD/WRD status from ps_stdnt_car_term?
@@ -150,17 +151,21 @@ def build_timeline(emplid, data):
     return timeline
 
 def import_timeline(timeline, dry_run, verbosity):
-    with transaction.atomic(): # all or nothing for each person
-        timeline.split_careers(verbosity=verbosity)
-        for c in timeline.careers:
-            c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
-            if not c.gradstudent:
-                # we gave up on this because it's too old
-                continue
-            c.update_local_data(verbosity=verbosity, dry_run=dry_run)
-            #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+    try:
+        with transaction.atomic(): # all or nothing for each person
+            timeline.split_careers(verbosity=verbosity)
+            for c in timeline.careers:
+                c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
+                if not c.gradstudent:
+                    # we gave up on this because it's too old
+                    continue
+                c.update_local_data(verbosity=verbosity, dry_run=dry_run)
+                #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
-        #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+            #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+    except Exception as e:
+        message='%s has error %s' % (timeline.emplid, str(e))
+        mail_admins(subject='task failure in grad.import_timeline', message=message)
 
 
 def import_timelines(timeline_data, dry_run, verbosity):

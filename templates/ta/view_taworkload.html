@@ -16,13 +16,13 @@
  
 {% endblock %}
 
-{% block title %}TA Workload Review{% endblock %}
-{% block h1 %}<div class="noprint">TA Workload Review</div>{% endblock %}
+{% block title %}Workload Review{% endblock %}
+{% block h1 %}<div class="noprint">Workload Review</div>{% endblock %}
 
 {% block subbreadcrumbs %}
     {% if user_role == "ADMN" %}
     <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
-	<li>{{tug.member.person}}</li>
+	<li>{{tug.person}}</li>
     {% else %}{% if user_role != "TA" %}
     <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
     <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
@@ -36,11 +36,14 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if user_role == "ADMN" %}
-<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.person.userid %}">Edit TA Workload Review</a></li>
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
+<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.userid %}">Edit TA Workload Review</a></li>
 {% else %}{% if user_role != "TA" %}
-<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.person.userid %}">Edit TA Workload Review</a></li>
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
+<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.userid %}">Edit TA Workload Review</a></li>
 {% endif %}{% endif %}
-<li><a href="#" id="print-tug">Print Workload</a></li>
+<li><a href="#" id="print-tug">Print TA Workload Review</a></li>
+<li><a href="{% url "offering:download_ta_workload" course_slug=course.slug userid=ta.userid %}">Download TA Workload Review</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -50,7 +53,7 @@
 <table>
   <tr>
       <td><b>Instructors:</b> {{ course.instructors_str }}</td>
-      <td><b>TA:</b> {{ta.person.name}}</td>
+      <td><b>TA:</b> {{ta.name}}</td>
   </tr>
   <tr>
   <td><b>Semester/Course:</b> {{course}}</td>
@@ -82,7 +85,7 @@
             </tr>
             <tr style="height: 20px">
                 <td style="width: 66%; border-bottom: 1px solid;">{{course.instructors_str}}</p> </td>
-                <td style="width: 33%; border-bottom: 1px solid;">{{ta.person.name}}</td>
+                <td style="width: 33%; border-bottom: 1px solid;">{{ta.name}}</td>
             </tr>
         </table>
 

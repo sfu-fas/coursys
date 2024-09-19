@@ -1,0 +1,7 @@
+Dear {{ instructor }},  
+
+Your TA {{ person.name }} has completed the TA's Comments section of the TA Evaluation. You can view the comments in here: 
+{{ url }}
+Thank you.
+
+{{ offering.owner.name }}

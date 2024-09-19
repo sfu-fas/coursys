@@ -4,7 +4,7 @@
 
 Create a VM.
 ```sh
-wget https://packages.chef.io/files/stable/chef-workstation/0.2.43/ubuntu/18.04/chef-workstation_0.2.43-1_amd64.deb
+wget https://packages.chef.io/files/stable/chef-workstation/21.10.640/ubuntu/20.04/chef-workstation_21.10.640-1_amd64.deb
 sudo dpkg -i chef-workstation*.deb
 git clone https://github.com/sfu-fas/coursys.git
 cd coursys/
@@ -15,6 +15,7 @@ sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json # will fail at ngin
 
 That last step will fail because the certificate is missing. Either copy `/etc/letsencrypt` from an old server, or comment-out all SSL server sections from the `/etc/nginx` config and:
 ```shell
+sudo snap install --classic certbot
 sudo certbot --nginx
 make chef
 cd
@@ -91,3 +92,12 @@ make rebuild-hardcore
 ./manage.py rebuild_index
 ```
 
+And patch up the nginx+ssh config:
+```sh
+sudo openssl dhparam -out /etc/nginx/dhparams.pem 2048
+sudo grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf
+sudo cp /tmp/nginx.conf /etc/nginx/nginx.conf
+sudo cp /coursys/deploy/demo-deploy/nginx-default.conf /etc/nginx/sites-available/default
+sudo cp /coursys/deploy/demo-deploy/nginx-site.conf coursys-demo.selfip.net.conf
+sudo systemctl restart nginx gunicorn celery celerybeat
+```

@@ -115,7 +115,9 @@ class HiringSemester(models.Model):
     # .config['comments']: default comment for contract
 
     comments = config_property('comments', default='')
-    
+    contact = config_property('contact', default='')
+    tssu_link = config_property('tssu_link', default='https://www.sfu.ca/human-resources/tssu.html')
+
     class Meta:
         unique_together = (('semester', 'unit'),)
     

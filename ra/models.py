@@ -196,8 +196,7 @@ DEFAULT_LETTERS = {
 
 DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus 4 percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
-DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
-DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
+DEFAULT_LETTER_NCLS_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be provided to you as a lump sum payment of $%(total_pay)s (inclusive of 4 percent vacation pay in lieu of vacation time) and will be made to you at the end of your term of appointment. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
 DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
@@ -234,12 +233,15 @@ DEFAULT_LETTER_NCBW = '\n\n'.join([
     """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
 
-
-DEFAULT_LETTER_RA = '\n\n'.join([
-    """This agreement exists solely between you as a Research Assistant and myself as the recipient of research funding or manager of this project. This does not constitute as an offer of employment from Simon Fraser University.""",
-    """Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).""",
-    """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
-    """Hours of work: I expect these hours will not exceed 40 hours per week.\n\n"""
+DEFAULT_LETTER_NCLS = '\n\n'.join([
+    """There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 80 hours bi-weekly.""",
+    """<u>Employment Standards Act</u>""",
+    """Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
+    """<u>Policies</u>""",
+    """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
+    """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
+    """<u>Mandatory SFU Safety Orientation Training</u>""",
+    """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
 
 DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
@@ -249,11 +251,27 @@ DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, pleas
 
 DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NCH + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NCBW + DEFAULT_LETTER_CONCLUDE_NC
-DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
-DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_NCLS = DEFAULT_LETTER_NCLS_INTRO + DEFAULT_LETTER_NCLS + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 
+DEFAULT_LETTER_SCIENCE_ALIVE_INTRO = '\n\n'.join([
+    """We are pleased to offer you a temporary appointment with Applied Sciences Outreach (with Science AL!VE). Please find enclosed your appointment letter along with the General Privacy and Confidentiality form. Please review and sign where applicable.""",
+    """Name: %(name)s (“Employee”)\nPosition Title: %(position)s\nReports to: Coordinator, Outreach Programs\nDuration: %(start_date)s to %(end_date)s\nRemuneration: $%(gross_hourly)s per hour + 4 percent in lieu of vacation time\nHours of work: We expect these hours not to exceed %(biweekly_hours)s hours bi-weekly. Work hours will be assigned and confirmed as needed by Coordinator, Outreach programs. Employees must report total number of work hours to their supervisor/delegate on a bi-weekly basis. No overtime hours may be worked without express pre-approval in writing from your supervisor.\nWork Location: [ENTER WORK LOCATION HERE]""",
+    """<u>About the position</u>\n[ENTER POSITION DETAILS HERE]""",
+    """Responsibilities include, but are not limited to:\n\u2022 %(duties)s""",
+    """<u>Terms of Contract</u>\n\u2022 You will be provided with vacation pay of four (4) percent (equivalent to 10 days vacation per annum) that will be automatically added to the above hourly rate in each bi-weekly pay period.
+    \u2022 Termination of this appointment may be initiated by either party giving two (2) week notice, except in the case of termination for cause.
+    \u2022 You are expected to adhere to the employer's policies and procedures at all times while performing your “Duties”.""",
+    """<u>Right to Work in Canada</u>\nIf you are not a Canadian citizen or a permanent resident of Canada, you will need to apply to Immigration, Refugee and Citizenship Canada (“IRCC”) for authorization to enter and work in Canada. It is your responsibility to ensure that you are legally entitled, pursuant to IRCC’s requirements, to work at SFU. You are responsible for complying with the Immigration and Refugees Protection Act (“IRPA”) and with the conditions imposed on your study or work permit by IRCC.""",
+    """<u>Employment Standards Act</u>\nAny terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
+    """<u>Policies</u>\nYou are subject to and must comply with all applicable University policies and procedures including but not limited to:\nGP 18 Human Rights Policy\nGP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
+    """<u>Mandatory Training</u>\nSFU Safety Orientation Training - WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material. \n\n"""
+    """SFU Respectful Working and Learning Environments Training - Simon Fraser University is committed to creating a diverse, equitable and inclusive community where all feel welcome, accepted and appreciated. It will take all of us, working together to maintain an environment of inclusive excellence that we can be proud to be part of. To learn more please visit SFU Inclusive Excellence: https://www.sfu.ca/edi/actions/inclusive-excellence.html. To support this, a training module has been developed for SFU community members to remind us all about our responsibilities in contributing to respectful learning, research and work environments, help us understand what bullying and harassment behaviours are, and ensure we know where to turn for help. The training supports SFU's Bullying & Harassment policy (GP 47) and is aligned with WorkSafeBC requirements. You can access the module here: https://canvas.sfu.ca/enroll/DLXJPD.\n\n"""
+    """You shall be informed if any additional training is required.\n\n"""
+])
+
+DEFAULT_LETTER_SCIENCE_ALIVE = DEFAULT_LETTER_SCIENCE_ALIVE_INTRO + DEFAULT_LETTER_CONCLUDE
 
 BOOL_CHOICES = ((True, 'Yes'), (False, 'No'))
 
@@ -279,14 +297,16 @@ RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
     ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
-    ' timesheets in order for the Appointee to be paid.)')
+    ' timesheets in order for the Appointee to be paid.)'),
+    ('LS', 'Lump Sum Amount')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
     ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
-    ' timesheets in order for the Appointee to be paid.)')
+    ' timesheets in order for the Appointee to be paid.)'),
+    ('LS', 'Lump Sum Amount')
 )
 
 RA_VACATION_DAYS_CHOICES = (
@@ -547,6 +567,10 @@ class RARequest(models.Model):
     vacation_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     vacation_pay = models.DecimalField(max_digits=8, decimal_places=1, default=0)
 
+    # lump sum appointments 
+    lump_sum_hours = config_property('lump_sum_hours', default=0)
+    lump_sum_reason = config_property('lump_sum_reason', default='')
+
     # for backdated appointments
     backdated = models.BooleanField(default=False)
     backdate_lump_sum = config_property('backdate_lump_sum', default=0)
@@ -698,75 +722,75 @@ class RARequest(models.Model):
         substitutions = {}
         text = ''
 
-        if self.hiring_category == "RA":
-            if self.ra_payment_method == "H":
-                substitutions = {
-                'start_date': self.start_date.strftime("%B %d, %Y"),
-                'end_date': self.end_date.strftime("%B %d, %Y"),
-                'gross_hourly': self.gross_hourly,
-                'vacation_pay': self.vacation_pay
-                }
-                text = DEFAULT_LETTER_RAH % substitutions
-            elif self.ra_payment_method == "BW":
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'position': self.position,
-                    'biweekly_salary': self.biweekly_salary,
-                    'total_pay': self.total_pay,
-                    'vacation_hours': self.get_vacation_hours(),
-                    'weeks_vacation': self.weeks_vacation
-                }
-                text = DEFAULT_LETTER_RABW % substitutions
-        elif self.hiring_category == "NC":
-            if self.nc_payment_method == "H":
-                substitutions = {
+        if self.science_alive: 
+            substitutions = {
+                    'name': self.get_name(),
                     'start_date': self.start_date.strftime("%B %d, %Y"),
                     'end_date': self.end_date.strftime("%B %d, %Y"),
                     'position': self.position,
                     'gross_hourly': self.gross_hourly,
                     'biweekly_hours': self.biweekly_hours,
-                    'vacation_pay': self.vacation_pay,
-                    'nc_duties': self.nc_duties
+                    'duties': self.nc_duties
                 }
-                text = DEFAULT_LETTER_NCH % substitutions
-            elif self.nc_payment_method == "BW":
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'position': self.position,
-                    'biweekly_salary': self.biweekly_salary,
-                    'biweekly_hours': self.biweekly_hours,
-                    'weeks_vacation': self.weeks_vacation,
-                    'vacation_hours': self.vacation_hours,
-                    'vacation_hours_formatted': self.get_vacation_hours(),
-                    'total_pay': self.total_pay,
-                    'nc_duties': self.nc_duties
-                }
-                text = DEFAULT_LETTER_NCBW % substitutions
-        elif self.hiring_category == "GRAS":
-            if self.gras_payment_method == "LE" or self.gras_payment_method == "LS":
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'total_gross': self.total_gross
-                }
-                text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
-            elif self.gras_payment_method == "BW":
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'biweekly_salary': self.biweekly_salary,
-                    'total_pay': self.total_pay,
-                }
-                text = DEFAULT_LETTER_GRASBW % substitutions
-            elif self.backdated: 
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'total_gross': '%.2f' % self.backdate_lump_sum
-                }
-                text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
+            text = DEFAULT_LETTER_SCIENCE_ALIVE % substitutions
+        else:
+            if self.hiring_category == "NC":
+                if self.nc_payment_method == "H":
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'position': self.position,
+                        'gross_hourly': self.gross_hourly,
+                        'biweekly_hours': self.biweekly_hours,
+                        'vacation_pay': self.vacation_pay,
+                        'nc_duties': self.nc_duties
+                    }
+                    text = DEFAULT_LETTER_NCH % substitutions
+                elif self.nc_payment_method == "BW":
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'position': self.position,
+                        'biweekly_salary': self.biweekly_salary,
+                        'biweekly_hours': self.biweekly_hours,
+                        'weeks_vacation': self.weeks_vacation,
+                        'vacation_hours': self.vacation_hours,
+                        'vacation_hours_formatted': self.get_vacation_hours(),
+                        'total_pay': self.total_pay,
+                        'nc_duties': self.nc_duties
+                    }
+                    text = DEFAULT_LETTER_NCBW % substitutions
+                elif self.nc_payment_method == "LS":
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'position': self.position,
+                        'total_pay': self.total_pay,
+                    }
+                    text = DEFAULT_LETTER_NCLS % substitutions
+            elif self.hiring_category == "GRAS":
+                if self.gras_payment_method == "LE" or self.gras_payment_method == "LS":
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'total_gross': self.total_gross
+                    }
+                    text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
+                elif self.gras_payment_method == "BW":
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'biweekly_salary': self.biweekly_salary,
+                        'total_pay': self.total_pay,
+                    }
+                    text = DEFAULT_LETTER_GRASBW % substitutions
+                elif self.backdated: 
+                    substitutions = {
+                        'start_date': self.start_date.strftime("%B %d, %Y"),
+                        'end_date': self.end_date.strftime("%B %d, %Y"),
+                        'total_gross': '%.2f' % self.backdate_lump_sum
+                    }
+                    text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
                 
         letter_text = text % substitutions
 

@@ -27,7 +27,7 @@
 <div class="datatable_container">
 <table class="display" id="tas_table">
 <thead>
-<tr><th scope="col">Name</th><th scope="col">Userid</th><th scope="col">TUG</th><th scope="col">TA Workload Review</th><th scope="col">Actions</th></tr>
+    <tr><th scope="col">Name</th><th scope="col">Userid</th><th scope="col">TUG</th><th scope="col">TA Workload Review</th><th scope="col">TA Evaluation</th><th scope="col">Actions</th></tr>
 </thead>
 <tbody>
 {% for m in tas %}
@@ -35,24 +35,38 @@
 {% with tug=m.get_tug %}    
 <td>    
     {% if tug %}
-    <a href="{% url "offering:view_tug" course_slug=course.slug userid=m.person.userid %}">View TUG</a>
+    <a href="{% url "offering:view_tug" course_slug=course.slug userid=m.person.userid %}">View TUG {% if tug.draft %} (DRAFT) {% endif %}</a>
     {% else %}
     <a href="{% url "offering:new_tug" course_slug=course.slug userid=m.person.userid %}">Create TUG</a>
     {% endif %}
     
 </td>
 <td>
-    {% if tug and course.owner.label == 'CMPT' %}
-        {% with tawr=m.get_tawr %}
-        {% if tawr %}
+    {% with tawr=m.get_tawr %}
+    {% if tawr %}
         <a href="{% url "offering:view_ta_workload" course_slug=course.slug userid=m.person.userid %}">View WR</a>
-        {% else %}
-        <a href="{% url "offering:new_ta_workload" course_slug=course.slug userid=m.person.userid %}">Create WR</a>
-        {% endif %}
-        {% endwith %} 
     {% else %}
-    --
+        {% if tug and not tug.draft %}
+            <a href="{% url "offering:new_ta_workload" course_slug=course.slug userid=m.person.userid %}">Create WR</a>
+        {% else %}
+            --
+        {% endif %}
     {% endif %}
+    {% endwith %} 
+
+</td>
+<td>
+    {% with taeval=m.get_taeval %}
+    {% if taeval %}
+        <a href="{% url "offering:view_ta_evaluation" course_slug=course.slug userid=m.person.userid %}">View Eval {% if taeval.draft %} (DRAFT) {% endif %}</a>
+    {% else %}
+        {% if tug and not tug.draft %}
+            <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=course.slug userid=m.person.userid %}">Create Eval</a>
+        {% else %}
+            --
+        {% endif %}            
+    {% endif %}
+    {% endwith %}    
 </td>
 <td class="miniaction">
 {% if m.added_reason == "TAIN" %}

@@ -1,0 +1,5 @@
+Dear admin,  
+
+See attached TA Evaluation for {{ person.name }} in {{ offering }}.
+
+You can also view it here: {{ url }}
