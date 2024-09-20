@@ -8,6 +8,10 @@ class CMPTTACoursesReport(Report):
     title = "CMPT TAs and Courses for the Current Semester"
     description = "A report of all accepted/signed CMPT TA contracts with courses in the current semester"
     
+    def __init__(self, logger):
+        self.artifacts = []
+        self.logger = logger
+    
     def run(self):
         semester = Semester.current()
         units = Unit.objects.filter(label__in=['CMPT'])
@@ -34,6 +38,6 @@ class CMPTTACoursesReport(Report):
             results.append_row([ta.contract.application.person.name_with_pref(), ta.contract.application.person.emplid, ta.contract.application.person.userid, ta.course.name(), ta.course.maillist(), ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
 
         for ta in tacontracts:
-            results.append_row([ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.course.name(), ta.course.maillist(), ta.course.title, ta.course.instructors_str()])
+            results.append_row([ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.course.name(), ta.course.maillist(), ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
 
         self.artifacts.append(results)
