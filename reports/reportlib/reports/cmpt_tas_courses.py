@@ -8,10 +8,6 @@ class CMPTTACoursesReport(Report):
     title = "CMPT TAs and Courses for the Current Semester"
     description = "A report of all accepted/signed CMPT TA contracts with courses in the current semester"
     
-    def __init__(self, logger):
-        self.artifacts = []
-        self.logger = logger
-    
     def run(self):
         semester = Semester.current()
         units = Unit.objects.filter(label__in=['CMPT'])
