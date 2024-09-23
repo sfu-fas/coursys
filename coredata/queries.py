@@ -1332,7 +1332,7 @@ def get_supervisory_committee(emplid, min_date=None, max_date=None):
             MEM.EMPLID,
             COM.EFFDT
         FROM 
-            PS_STDNT_ADVR_HIST ST, 
+            PS_SFU_STDNT_CMTTE ST, 
             PS_COMMITTEE COM, 
             PS_COMMITTEE_MEMBR MEM, 
             PS_COMMITTEE_TBL COMTBL, 
