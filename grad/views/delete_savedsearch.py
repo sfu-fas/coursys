@@ -18,4 +18,4 @@ def delete_savedsearch(request):
     savedsearch = savedsearches[0]
     savedsearch.delete()
     messages.add_message(request, messages.SUCCESS, "Saved Search '%s' was successfully deleted." % savedsearch.name())
-    return HttpResponseRedirect(reverse('grad:search_index'))
+    return HttpResponseRedirect(reverse('grad:index'))

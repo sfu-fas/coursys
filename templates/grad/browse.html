@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "grad:index" %}">Grad</a></li>
-<li>Configuration</li>
+<li>Browse All Students</li>
 {% endblock %}
 
 {% block headextra %}
@@ -25,9 +25,9 @@ $(document).ready(function() {
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
     <a class="btn" href="{% url "grad:reports" %}">Reports</a>
-    <a class="btn" href="{% url "grad:search_index" %}">Search</a>
+    <a class="btn" href="{% url "grad:index" %}">Search</a>
     <div class="btn pressed">Browse All Students</div>
-    <a class="btn" href="{% url "grad:index" %}">Active Students</a>
+    <a class="btn" href="{% url "grad:active_students" %}">Active Students</a>
 </div>
 
 <form action="" id="filterform">

@@ -24,7 +24,7 @@ def save_search(request):
         ss.set_created_at(datetime.datetime.now().date())
         ss.save()
         messages.add_message(request, messages.SUCCESS, 'Search Saved as "%s".' % (name))
-        return HttpResponseRedirect(reverse('grad:search_index'))
+        return HttpResponseRedirect(reverse('grad:index'))
     else:
         messages.add_message(request, messages.ERROR, saveform.errors.as_text())
         if 'query' in saveform.data:

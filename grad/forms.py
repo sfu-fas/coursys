@@ -1,6 +1,6 @@
 from django.forms.models import ModelForm
 from django import forms
-from django.db.models import Q, F
+from django.db.models import Q
 from django.db.models.query import QuerySet
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, \

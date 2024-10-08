@@ -96,13 +96,13 @@ def _generate_excel(response, columns, headers, grads):
     book.save(response)
 
 @requires_role("GRAD", get_only=["GRPD"])
-def search_index(request):
+def index(request):
     form = QuickSearchForm()
     other_gradadmin = [r['person_id'] for r in Role.objects_fresh.filter(role="GRAD", unit__in=request.units).values('person_id')]
     savedsearches = SavedSearch.objects.filter(Q(person__in=other_gradadmin) | Q(person__userid=(request.user.username))) 
     num_grads_missing_supervisors = _get_grads_missing_supervisors(request.units).count()
     context = {'units': request.units, 'form': form, 'savedsearches': savedsearches, 'num_grads_missing_supervisors': num_grads_missing_supervisors }
-    return render(request, 'grad/search_index.html', context)
+    return render(request, 'grad/index.html', context)
 
 @requires_role("GRAD", get_only=["GRPD"])
 def search(request):

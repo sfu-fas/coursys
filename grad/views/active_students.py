@@ -4,7 +4,7 @@ from grad.models import GradStudent, STATUS_ACTIVE
 from grad.views.add_supervisors import _get_grads_missing_supervisors
 
 @requires_role("GRAD", get_only=["GRPD"])
-def index(request):
+def active_students(request):
     grads = GradStudent.objects.filter(program__unit__in=request.units, current_status__in=STATUS_ACTIVE).select_related('person', 'program').distinct()
     masters_grads = grads.filter(program__grad_category="MA")
     doctoral_grads = grads.filter(program__grad_category="DR")
@@ -16,14 +16,4 @@ def index(request):
         'other_grads': other_grads,
         'num_grads_missing_supervisors': num_grads_missing_supervisors
     }
-    return render(request, 'grad/index.html', context)
-
-@requires_role("GRAD")
-def config(request):
-    context = {}
-    return render(request, 'grad/config.html', context)
-
-@requires_role("GRAD")
-def reports(request):
-    context = {}
-    return render(request, 'grad/reports.html', context)
+    return render(request, 'grad/active_students.html', context)
