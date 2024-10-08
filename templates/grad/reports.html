@@ -25,22 +25,22 @@
 <table id="masters" class="display">
     <thead>
       <tr>
-        <th scope="col">Link</th>
+        <th scope="col" style="width: 20%;">Link</th>
         <th scope="col">Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
             <td><a href="{% url "grad:all_promises" %}">Ending Promises</a></td>
-            <td>Manage Ending Promises Here...</td>
+            <td>A term summary of students whose promised funding is ending. The report is by student name, program, start semester, status, amount promised, amount received and the difference between promised and received funding. </td>
         </tr>
         <tr>
             <td><a href="{% url "grad:funding_report" %}">Funding Report</a></td>
-            <td>Manage Funding Report Here...</td>
+            <td>A term summary of the amount of funding (TA, RA, Scholarship and other) disbursed to students. The report is by program and funding type. </td>
         </tr>
         <tr>
             <td><a href="{% url "grad:financials_report" %}">Finanical Summary Report</a></td>
-            <td>View Financial Summary Report Here...</td>
+            <td>A list of active students by program type. Data is a year 1 to 4 breakdown of promised funding, received funding and the difference between the two. </td>
         </tr>
     </tbody>
 </table>

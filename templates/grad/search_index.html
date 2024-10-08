@@ -52,6 +52,8 @@
 {% endblock %}
 
 {% block content %}
+{% include "grad/notifications.html" %}
+
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
     <a class="btn" href="{% url "grad:reports" %}">Reports</a>

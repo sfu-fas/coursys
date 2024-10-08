@@ -6,6 +6,7 @@ from grad.forms import GradFilterForm
 from coredata.models import Unit, Semester, Person
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from haystack.query import SearchQuerySet
+from grad.views.add_supervisors import _get_grads_missing_supervisors
 import ast
 
 @requires_role("GRAD")
@@ -15,7 +16,8 @@ def browse(request):
     units = Unit.sub_units(request.units)
     programs = GradProgram.objects.filter(unit__in=request.units)
     form = GradFilterForm(units, programs)
-    context = {'form': form}
+    num_grads_missing_supervisors = _get_grads_missing_supervisors(request.units).count()
+    context = {'form': form, 'num_grads_missing_supervisors': num_grads_missing_supervisors}
     return render(request, 'grad/browse.html', context)
 
 class GradDataJson(BaseDatatableView):
