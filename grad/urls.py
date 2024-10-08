@@ -37,6 +37,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^funding/(?P<semester_name>\d{4})/download_scholarships', grad_views.funding_report_download, kwargs={'type': 'scholarships'}, name='funding_report_scholarships'),
     url(r'^funding/(?P<semester_name>\d{4})/download_other', grad_views.funding_report_download, kwargs={'type': 'other'}, name='funding_report_other'),
     url(r'^financials_report', grad_views.financials_report, name='financials_report'),
+    url(r'^add_supervisors', grad_views.add_supervisors, name='add_supervisors'),
     
     url(r'^' + GRAD_SLUG + '/$', grad_views.view, name='view'),
     url(r'^' + GRAD_SLUG + '/update_note$', grad_views.update_note, name='update_note'),

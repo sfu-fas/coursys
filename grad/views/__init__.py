@@ -8,6 +8,7 @@ from .view import view
 from .grad_more_info import grad_more_info
 from .get_form import get_form
 from .manage_supervisors import manage_supervisors
+from .add_supervisors import add_supervisors
 from .remove_supervisor import remove_supervisor
 from .manage_financialcomments import manage_financialcomments
 from .remove_financialcomment import remove_financialcomment

@@ -516,14 +516,17 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         return bool(res)
     
     def _get_supervisors(self):
-        supervisors = Supervisor.objects.filter(student=self, removed=False)
+        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=['SEN', 'COM', 'COS'], removed=False)
         return supervisors
+
+    def has_supervisor(self):
+        supervisors = self._get_supervisors().count()
+        return supervisors > 0
 
     def list_supervisors(self):
         supervisors = list(dict.fromkeys([str(s.sortname()) for s in self._get_supervisors()]))
         supervisors = ", ".join(supervisors)
         return supervisors
-
 
     def active_semesters_display(self):
         """

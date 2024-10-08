@@ -180,7 +180,7 @@ filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
   justify-content: space-evenly;
 }
 
-form select {
+#filterform select {
   height: 2.25em;
   padding: .4em;
   border: 1px solid #DDD;
@@ -202,4 +202,31 @@ abbr .title {
   left: 50%;
   margin-left: -50px;
   font-weight: 100;
+}
+
+.add_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 0 4px;
+  display: inline;
+  width: 75px;
+}
+
+.remove_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 0 4px;
+  display: inline;
+  width: 75px;
+}
+
+.max_forms p {
+  transform: translateX(0);
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.submit_button {
+  padding-top: 50px;
 }
