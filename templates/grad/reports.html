@@ -42,6 +42,10 @@
             <td><a href="{% url "grad:financials_report" %}">Finanical Summary Report</a></td>
             <td>A list of active students by program type. Data is a year 1 to 4 breakdown of promised funding, received funding and the difference between the two. </td>
         </tr>
+        <tr>
+            <td><a href="{% url "grad:add_supervisors" %}">Bulk Add Committee Members</a></td>
+            <td>A list of Active Graduate Students that do not have either a Senior Supervisor, Supervisor, or Co-Supervisor. May add Committee Members in bulk. </td>
+        </tr>
     </tbody>
 </table>
 {% endblock %}

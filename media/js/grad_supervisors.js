@@ -32,10 +32,7 @@ function addForm(slug, maxForms) {
             $(this).attr({'name': name, 'id': id}).val('');
         }
     });
-    // hide student info for subsequent forms
-    newForm.find('.grad_info').each(function() {
-        $(this)[0].innerText = "";
-    });
+    newForm[0].classList = 'row_' + slug + ' subsequent';
     formIndex++;
     checkRemoveAdd(slug, formIndex, maxForms);
     $('#id_' + slug + '-TOTAL_FORMS').val(formIndex);

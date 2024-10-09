@@ -54,7 +54,7 @@ def add_supervisors(request):
                         updated_rows.append({'grad': grad, 'formset': formset})
             num_updated_rows = len(updated_rows)
             if num_updated_rows > 0:
-                messages.add_message(request, messages.SUCCESS, "Added Committee Members for %s Graduate Students" % (num_updated_rows))
+                messages.add_message(request, messages.SUCCESS, "Added %s Committee Members" % (num_updated_rows ))
                 for row in updated_rows:
                     if row in rows:
                         rows.remove(row)

@@ -14,11 +14,13 @@ $(document).ready(function() {
         "ordering": false,
         "searching": false,
 		"bInfo" : false,
+		"stripeClasses": [],
         "columnDefs": [
             { "width": "25%", "targets": 0 },
-			{ "width": "15%", "targets": 2},
             { "width": "10%", "targets": [1, 3] },
             { "width": "30%", "targets": 4 },
+			{ "width": "15%", "targets": [2, 5] },
+			{ "width": "10%", "targets": 6 },
         ]
     });
 });
@@ -66,7 +68,19 @@ $(document).ready(function() {
 		<td>&nbsp;</td>
 		</tr>
 		{% for form in formset %}
-			<tr class='row_{{grad.slug}}'>
+			{% if forloop.first %}
+				{% if formset|length == 5 %}
+					<tr class='row_{{grad.slug}} initial max'>
+				{% else %}
+					<tr class='row_{{grad.slug}} initial continue'>
+				{% endif %}
+			{% else %}
+				{% if forloop.last %}
+					<tr class='row_{{grad.slug}} subsequent last'>
+				{% else %}
+					<tr class='row_{{grad.slug}} subsequent middle'>
+				{% endif %}
+			{% endif %}
 			<td scope="col"><div class="grad_info"><a href="{% url "grad:view" grad_slug=grad.slug %}">{{grad.person.sortname}}</a></div></td>
 			<td><div class="grad_info">{{grad.person.emplid}}</div></td>
 			<td><div class="grad_info">{{grad.program.unit.label}}, {{grad.program}}</div></td>
@@ -74,9 +88,9 @@ $(document).ready(function() {
 			<td>{{form.supervisor}}{{ form.supervisor.errors}}</td>
 			<td>{{form.supervisor_type}}{{ form.supervisor_type.errors}}</td>
 			<td>
-				<div class="max_forms" style="display: none;"><p>Max {{max_forms_per_grad}}!</p></div>
-				<div class="add_button"><button type="button" class="btn" id="{{grad.slug}}" onClick="addForm(this.id, {{max_forms_per_grad}})">Add</button></div>
-				<div class="remove_button" style="display: none;"><button type="button" class="btn" id="{{grad.slug}}" onClick="removeForm(this.id, {{max_forms_per_grad}})">Remove</button></div>
+				<div class="max_forms"><p>Max {{max_forms_per_grad}}!</p></div>
+				<div class="add_button"><button type="button" class="btn" id="{{grad.slug}}" onClick="addForm(this.id, {{max_forms_per_grad}})"><span class="fa fa-plus"></span></button></div>
+				<div class="remove_button"><button type="button" class="btn" id="{{grad.slug}}" onClick="removeForm(this.id, {{max_forms_per_grad}})"><span class="fa fa-minus"></span></button></div>
 			</td>
 			</tr>
 		{% endfor %}
