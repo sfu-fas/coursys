@@ -6,6 +6,10 @@
 {% block headextra %}
 <style type="text/css">
 .over { color: #d00; font-weight: bold; }
+.bottom_admin {
+    border: 12px solid #eee;
+    padding-bottom: 30px; 
+}
 </style>
 <script nonce="{{ CSP_NONCE }}">
   $(function() {
@@ -51,7 +55,7 @@
 <ul class="fa-ul">
 There are three TA-related processes that course instructors need to complete as per the TSSU Collective Agreement: 
 <li>a.	the Time Use Guidelines (TUG) is due by the end of week 1 of the term.</li>
-<li>b.	the Workload Review is due by the end of week 6 of the term.</li>
+<li>b.	the Workload Review is available in week 6 of the term and is due in a timely manner after that.</li>
 <li>c.	the TA Evaluation is due by the end of the term.</li>
 </ul>
 {% if admin %}
@@ -69,7 +73,7 @@ There are three TA-related processes that course instructors need to complete as
         <th scope="col">Time Use Guidelines (TUG) due week 1</th>
         <th scope="col">Base Units (BU)</th>
         <th scope="col">Hours</th>
-        <th scope="col">Workload Review due week 6</th>  
+        <th scope="col">Workload Review available in week 6</th>  
         <th scope="col">TA evaluation due by end of term</th>
         {% if admin %}
         <th scope="col" title="The evaluations are sent to TAs automatically on the first day of the following term. This function can can be used to remind TAs who have not completed Section E yet.">Select to action &nbsp;<input type="checkbox" id="select_tog"></th>  
@@ -159,23 +163,39 @@ There are three TA-related processes that course instructors need to complete as
 </tbody>
 </table>
 </div>
-{% if admin %}
-  {% if is_past_nextsemstart %}     
-    <div>
-      <input id="send" class="submit" name="send_instr_reminders" type="submit" value="Send Reminders to selected Instructors"/> 
-    </div>    
-    <div>
-    <input id="send" class="submit" name="sendrelease" type="submit" value="Send Release Message to selected TAs"/> 
-    </div>    
-    <div>
-    <input id="send" class="submit" name="sendreminders" type="submit" value="Send Reminders Message to selected TAs"/> 
-    </div>
-    <div>
-    <input id="send" class="submit" name="sendincomplete" type="submit" value="Send selected Incomplete Evals To Admin"/>
-    </div>
+{% if admin %}  
+  <div class = "bottom_admin infomessage">
+  {% if is_past_nextsemstart %}    
+      Select forms and click:
+      {% if not is_cutoff %}
+      <input id="send" class="submit btn" name="send_instr_reminders" type="submit" value="Send Reminders to Instructors"/>
+      <input id="send" class="submit btn" name="sendrelease" type="submit" value="Send Release to TAs"/> 
+      <input id="send" class="submit btn" name="sendreminders" type="submit" value="Send Reminders to TAs"/>
+      {% endif %}      
+      <input id="send" class="submit btn" name="sendincomplete" type="submit" value="Send Incomplete Evals To Admin"/>
   {% else%}
-    <p class="infomessage">You can send 'reminders to TA' and 'incompleted evals to admin' only after {{ nextsemstart }}  </p>
+      Admin buttons will be available on/after {{ nextsemstart }}.
   {% endif %}
+  </div>
+  <p class="infomessage">Below are the automatic notifications that have been set up.</p>      
+  <ul class="fa-ul">
+    Time Use Guidelines
+    <li> - Once instructors submit the TUG, the TA and Admin receive a pdf copy in their emails</li>
+  </ul>         
+  <ul class="fa-ul"> 
+    Workload Review    
+    <li> - No automatic notifications</li>
+  </ul>
+  <ul class="fa-ul">
+    TA Evaluation
+    <li> - Day 1 of next term: Instructors with TA Evaluations in draft are reminded to submit them (on {{ nextsemstart }})</li>
+    <li> - Day 1 of next term: TAs receive TA Evaluations (on {{ nextsemstart }})</li>
+    <li> - Ongoing: Once TAs complete their part of the TA Evaluation, Admin receives a pdf copy in their email</li>
+    <li> - Day 7 of next term: TAs who have not completed their part of the TA Evaluation receive a first reminder (on {{ nextsem7day }})</li>
+    <li> - Day 14 of next term: TAs who have not completed their part of the TA Evaluation receive a second reminder (on {{ nextsem14day }})</li>
+    <li> - Day 28 of next term: Admin receives pdf copies of all TA Evaluations for which the TAs have not completed their part on ({{ nextsem28day }})</li>
+  </ul>
+  </div>
 {% endif %}
 </form>
 

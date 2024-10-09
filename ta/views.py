@@ -207,9 +207,18 @@ def all_tugs_admin(request, semester_name=None):
     try:
         nextsemstart = semester.next_semester().start
         is_past_nextsemstart = date.today() > nextsemstart
+        nextsem7day = nextsemstart + datetime.timedelta(days=7) 
+        nextsem14day = nextsemstart + datetime.timedelta(days=14) 
+        nextsem28day = nextsemstart + datetime.timedelta(days=28) 
+        is_cutoff = date.today() > nextsem28day
+             
     except:
         nextsemstart = None
         is_past_nextsemstart = False
+        nextsem7day = None
+        nextsem14day = None
+        nextsem28day = None
+        is_cutoff = None
 
     tas_with_tugs = [
         {
@@ -227,7 +236,11 @@ def all_tugs_admin(request, semester_name=None):
             'tas_with_tugs': tas_with_tugs,
             'is_wr_visible': is_wr_visible,
             'nextsemstart': nextsemstart,
-            'is_past_nextsemstart': is_past_nextsemstart
+            'nextsem7day': nextsem7day,
+            'nextsem14day': nextsem14day,
+            'nextsem28day': nextsem28day,
+            'is_past_nextsemstart': is_past_nextsemstart,
+            'is_cutoff': is_cutoff
             }
 
     return render(request, 'ta/all_tugs_admin.html', context)

@@ -34,23 +34,12 @@ width: 120px;
 </style>
 {% endblock %}
 
-{% block title %}Financial Summary Report{% endblock %}
-{% block h1 %}Financial Summary Report{% endblock %}
+{% block title %}Promised and Received Funding by Students{% endblock %}
+{% block h1 %}Promised and Received Funding by Students{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "grad:index" %}">Grad</a></li>
-<li>Financial Summary Report</li>
-{% endblock %}
-
-{% block actions %}
-{% comment %}
-<div id="actions">
-  <h2>Actions</h2>
-  <ul>
-     <li><a href="{% url "grad:financials_report" %}?excel=yes" id="excellink">Export as Excel</a></li>
-    </ul>
-</div>
-{% endcomment %}
+<li>Promised and Received Funding by Students</li>
 {% endblock %}
 
 {% block content %}
@@ -64,8 +53,8 @@ width: 120px;
 
 {% if export %}
 <p>
-  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&csv=yes" id="excellink">Export as CSV</a> |
-  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&excel=yes" id="excellink">Export as Excel</a>
+  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&csv=yes" id="excellink">Export for {{ querystr }} as CSV</a> |
+  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&excel=yes" id="excellink">Export for {{ querystr }} as Excel</a>
 </p>
 
  {% endif %}
