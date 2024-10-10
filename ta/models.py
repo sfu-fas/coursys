@@ -448,7 +448,7 @@ class TAEvaluation(models.Model):
             from_email = settings.DEFAULT_FROM_EMAIL
 
             # Send email notification to each TA
-            subject = 'Your have not completed your part of the TA Evaluation for %s. Please review and provide your comment.' % released_semester
+            subject = 'You have not completed your part of the TA Evaluation for %s. Please review and provide your comment.' % released_semester
             plaintext = get_template('ta/emails/notify_tocomplete_ta_eval_for_ta.txt')
             url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
             email_context = {'person': taeval.member.person, 'semester': released_semester, 'unit': taeval.member.offering.owner, 'url': url}
@@ -488,7 +488,7 @@ class TAEvaluation(models.Model):
             except:
                 posting = None
             if posting:
-                to_email = posting.contact().email()
+                to_email.append(posting.contact().email())
                 
             #/tacontracts
             try: 
@@ -516,7 +516,7 @@ class TAEvaluation(models.Model):
 
                 l = LogEntry(userid='sysadmin',
                         description=("automatically sending incomplete TA Eval for %s on %s") % (
-                        taeval.member.person, released_semester),
+                        taeval.member.person, released_semester.name),
                         related_object=taeval)
                 l.save()      
 
