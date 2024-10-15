@@ -83,7 +83,7 @@
                 {{ form }}
             {% endfor %}
         {% else %}
-            {{ wizard.form|as_dl_excludefields:"swpp,ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_excludefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
           <div class="biweekly_info">
             <p><div class="important_info">
               <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
@@ -102,7 +102,7 @@
             <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
             <div class="helptext"><span class="total_pay_calc"></span></div>
           </div></p>
-            {{ wizard.form|as_dl_includefields:"swpp,ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
         {% endif %} 
       </div>
     </fieldset>
