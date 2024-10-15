@@ -37,7 +37,8 @@ $(document).ready(function() {
 
 {% block content %}
 <div class="helptext">
-    There are {{grads.count}} Active Graduate Students that do not have either a Senior Supervisor, Supervisor, or Co-Supervisor. A maximum of {{ max_forms_per_grad }} Committee Members may be added to each Graduate Student at a time. 
+<p>There are {{grads.count}} Active Graduate Students that do not have either a Senior Supervisor, Supervisor, or Co-Supervisor. A maximum of {{ max_forms_per_grad }} Committee Members may be added to each Graduate Student at a time. </p>
+<p>Click <a href="{% url "grad:committee_info" %}">here</a> for information on committee types.</p> 
 </div>
 
 <form id="grads_form" class="subtle close-warn" action="{% url "grad:add_supervisors" %}" method="post">{% csrf_token %}

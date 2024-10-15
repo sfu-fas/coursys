@@ -27,6 +27,7 @@
 		<fieldset>
 			<legend>Add Committee Member</legend>
 			<p>Enter only an internal or an external person.</p>
+			<p>Click <a href="{% url "grad:committee_info" %}">here</a> for information on committee types.</p> 
 			{{ form|as_dl }}
 			<p><input class="submit" type="submit" value="Add" /></p>
 		</fieldset>

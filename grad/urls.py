@@ -17,6 +17,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^search/delete$', grad_views.delete_savedsearch, name='delete_savedsearch'),
     url(r'^qs', grad_views.quick_search, name='quick_search'),
     url(r'^add_supervisors', grad_views.add_supervisors, name='add_supervisors'),
+    url(r'^committee_info', grad_views.committee_info, name='committee_info'),
 
     url(r'^program/new$', grad_views.new_program, name='new_program'),
     url(r'^program/(?P<program_id>\d+)/edit', grad_views.edit_program, name='edit_program'),

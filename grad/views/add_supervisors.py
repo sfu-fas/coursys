@@ -60,3 +60,8 @@ def add_supervisors(request):
                         rows.remove(row)
             return HttpResponseRedirect(reverse('grad:add_supervisors'))
     return render(request, 'grad/add_supervisors.html', {'grads': grads, 'rows': rows, 'max_forms_per_grad': max_forms_per_grad})
+
+@requires_role(["GRAD", "GRPD"])
+def committee_info(request):
+    context = {}
+    return render(request, "grad/committee_info.html", context)
