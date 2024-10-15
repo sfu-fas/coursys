@@ -9,10 +9,9 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('#masters').dataTable( {
-    'bPaginate': false,
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[3, 'asc']],
     'scrollY': false, 
@@ -25,10 +24,9 @@ $(document).ready(function() {
     	]
     } );
     $('#doctoral').dataTable( {
-    'bPaginate': false,
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[3, 'asc']],
     'scrollY': false, 
@@ -41,10 +39,9 @@ $(document).ready(function() {
     	]
     } );
     $('#other').dataTable( {
-    'bPaginate': false,
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[3, 'asc']],
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
