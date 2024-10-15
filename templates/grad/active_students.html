@@ -17,12 +17,12 @@ $(document).ready(function() {
     'aaSorting': [[3, 'asc']],
     'scrollY': false, 
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
-		"columnDefs": [
+    "columnDefs": [
       { "width": "20%", "targets": 0 },
       { "width": "10%", "targets": 1 },
       { "width": "15%", "targets": [2,3] },
-      { "width": "12%", "targets": [4,5] },
-      ]
+      { "width": "14%", "targets": [4,5] },
+    	]
     } );
     $('#doctoral').dataTable( {
     'bPaginate': false,
@@ -49,11 +49,11 @@ $(document).ready(function() {
     'aaSorting': [[3, 'asc']],
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
     'scrollY': false, 
-			"columnDefs": [
-        { "width": "20%", "targets": 0 },
-        { "width": "10%", "targets": 1 },
-        { "width": "15%", "targets": [2,3] },
-        { "width": "12%", "targets": [4,5] },
+    "columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "14%", "targets": [4,5] },
     	]
     } );
 } );
@@ -87,6 +87,7 @@ $(document).ready(function() {
         <th scope="col">Start Semester</th>
         <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
         <th scope="col">Requirements</th>
+        <th scope="col">Supervisor</th>
       </tr>
     </thead>
     <tbody>
@@ -98,6 +99,7 @@ $(document).ready(function() {
             <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
             <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
             <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -145,6 +147,7 @@ $(document).ready(function() {
         <th scope="col">Start Semester</th>
         <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
         <th scope="col">Requirements</th>
+        <th scope="col">Supervisor</th>
       </tr>
     </thead>
     <tbody>
@@ -156,6 +159,7 @@ $(document).ready(function() {
             <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
             <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
             <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
         </tr>
       {% endfor %}
     </tbody>
