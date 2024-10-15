@@ -456,8 +456,11 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
         m.official_grade = None
 
     # record sched_print_instr status for instructors
-    if role=='INST' and sched_print_instr:
-        m.config['sched_print_instr'] = sched_print_instr == 'Y'
+    # if role=='INST' and sched_print_instr:
+    #     m.config['sched_print_instr'] = sched_print_instr == 'Y'
+    if role=='INST' and not sched_print_instr:
+        # convert non-printing instructors to grade approvers in our parlance
+        m.role = 'APPR'
 
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
