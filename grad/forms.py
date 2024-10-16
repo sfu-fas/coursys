@@ -35,7 +35,7 @@ class SupervisorWidget(forms.MultiWidget):
     "Widget for entering supervisor by choices or userid"
     template_name = 'grad/_supervisor_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [forms.Select(), forms.TextInput(attrs={'size': 8, 'maxlength': 8})]
+        widgets = [forms.Select(attrs={'style': 'width:40%'}), forms.TextInput(attrs={'style': 'width:25%','size': 8, 'maxlength': 8})]
         kwargs['widgets'] = widgets
         super(SupervisorWidget, self).__init__(*args, **kwargs)
     
@@ -112,6 +112,36 @@ class SupervisorForm(ModelForm):
         model = Supervisor
         exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
         
+class BulkSupervisorForm(SupervisorForm):
+    class Meta:
+        model = Supervisor
+        exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position', 'external')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkSupervisorForm, self).__init__(*args, **kwargs)
+        self.fields['supervisor_type'].required = False
+
+    def set_supervisor_choices(self, choices):
+        """
+        Set choices for the supervisor
+        """
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
+
+    def clean(self):
+        data = self.cleaned_data
+        supervisor_entered = 'supervisor' in data and not data['supervisor'] == None
+        supervisor_type_entered = 'supervisor_type' in data and not data['supervisor_type'] == ""
+        data['empty'] = not supervisor_entered and not supervisor_type_entered
+
+        if not data['empty']:
+            if supervisor_entered and not supervisor_type_entered:
+                self.add_error('supervisor_type', "Please fill out supervisor type.")
+            elif supervisor_type_entered and not supervisor_entered:
+                self.add_error('supervisor', "Please enter supervisor information.")
+
+        return data
+
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
         self.fields['supervisor'].choices = choices

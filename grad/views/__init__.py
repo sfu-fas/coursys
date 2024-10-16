@@ -8,6 +8,7 @@ from .view import view
 from .grad_more_info import grad_more_info
 from .get_form import get_form
 from .manage_supervisors import manage_supervisors
+from .add_supervisors import add_supervisors, committee_info
 from .remove_supervisor import remove_supervisor
 from .manage_financialcomments import manage_financialcomments
 from .remove_financialcomment import remove_financialcomment
@@ -25,6 +26,7 @@ from .manage_promises import manage_promises
 from .remove_promise import remove_promise
 #from new import new
 from .new_program import new_program
+from .edit_program import edit_program
 from .programs import programs
 from .requirements import requirements, toggle_requirement
 from .new_requirement import new_requirement

@@ -14,12 +14,21 @@ import coredata.queries
 from django.conf import settings
 import django.db.transaction
 import math
+from django.urls import reverse
+
+CATEGORY_CHOICES = (
+    ("MA", "Masters"),
+    ("DR", "Doctoral"),
+    ("OT", "Other")
+)
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     label = models.CharField(max_length=20, null=False)
     description = models.CharField(max_length=100, blank=True)
-    
+    grad_category = models.CharField(max_length=2, choices=CATEGORY_CHOICES, default="OT")
+    expected_completion_terms = models.PositiveIntegerField(default=0)
+    requires_supervisor = models.BooleanField(null=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Program created by.')
@@ -499,6 +508,14 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             cache.set(key, res)
 
         return bool(res)
+    
+    def _get_supervisors(self):
+        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=['SEN', 'COM', 'COS'], removed=False)
+        return supervisors
+
+    def has_supervisor(self):
+        supervisors = self._get_supervisors().count()
+        return supervisors > 0
 
     def active_semesters_display(self):
         """

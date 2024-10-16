@@ -153,3 +153,93 @@ transform: rotate(90deg);
 /* Internet Explorer */
 filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1); 
 }
+
+.actionlist {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.actionlist .btn{
+  display: inline-block;
+  padding: 8px;
+  margin-right: 5px;
+  margin-left: 0px;
+  width: 175px;
+  text-align: center;
+}
+
+.add_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 0 4px;
+  display: inline;
+  width: 30px;
+  height: 30px; 
+}
+
+.remove_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 2px 2px;
+  display: inline;
+  width: 30px;
+  height: 30px;
+}
+
+.max_forms p {
+  transform: translateX(0);
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.submit_button {
+  padding-top: 50px;
+}
+
+#grads tr[class~="initial"] {
+  background-color: #eee;
+}
+
+#grads tr[class~="subsequent"] {
+  background-color: #fff;
+}
+
+#grads tr[class~="subsequent"] td .grad_info {
+  color: #888;
+}
+
+#grads tr[class~="subsequent"] td .grad_info a {
+  color: #888;
+  pointer-events: none;
+  cursor: default;
+}
+
+#grads tr:not([class~="max"]) td .max_forms {
+  display: none;
+}
+
+#grads tr[class~="initial"] td .remove_button {
+  display: none;
+}
+
+#grads tr[class~="last"] td .add_button {
+  display: none;
+}
+
+#grads tr[class$="max"] td .add_button {
+  display: none;
+}
+
+#grads tr[class~="middle"] td .add_button{
+  display: none;
+}
+
+#grads tr[class~="middle"] td .remove_button {
+  display: none;
+}
+
+.max_forms p {
+  padding: 0;
+  margin: 0;
+}
