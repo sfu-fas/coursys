@@ -1,0 +1,105 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/grad.css" %}" type="text/css" />
+<script type="text/javascript" src="{{STATIC_URL}}js/grad_supervisors.js"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#grads').dataTable({
+        "bJQueryUI" : true,
+        "bPaginate": false,
+        "scrollY": false, 
+        "ordering": false,
+        "searching": false,
+		"bInfo" : false,
+		"stripeClasses": [],
+        "columnDefs": [
+            { "width": "25%", "targets": 0 },
+            { "width": "10%", "targets": [1, 3] },
+            { "width": "30%", "targets": 4 },
+			{ "width": "15%", "targets": [2, 5] },
+			{ "width": "10%", "targets": 6 },
+        ]
+    });
+});
+</script>
+{% endblock %}
+
+{% block title %}Bulk Add Committee Members{% endblock %}
+{% block h1 %}Bulk Add Committee Members{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Bulk Add Committee Members</li>
+{% endblock %}
+
+{% block content %}
+<div class="helptext">
+<p>There are {{grads.count}} Active Graduate Students that do not have either a Senior Supervisor, Supervisor, or Co-Supervisor. A maximum of {{ max_forms_per_grad }} Committee Members may be added to each Graduate Student at a time. </p>
+<p>Click <a href="{% url "grad:committee_info" %}">here</a> for information on committee types.</p> 
+</div>
+
+<form id="grads_form" class="subtle close-warn" action="{% url "grad:add_supervisors" %}" method="post">{% csrf_token %}
+<table class="display" id="grads">
+	<thead>
+		<tr>
+		<th scope="col">Student Name</th>
+		<th scope="col">ID</th>		
+		<th scope="col">Program</th>
+		<th scope="col">Start Semester</th>
+		<th scope="col">Supervisor(s)</th>
+		<th scope="col">Supervisor Type</th>
+		<th scope="col">&nbsp;</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for row in rows %}
+	{% with row.grad as grad %}
+	{% with row.formset as formset %}
+		<!-- row for management form -->
+		<tr style="display:none;">
+		<td>{{ formset.management_form }}</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		</tr>
+		{% for form in formset %}
+			{% if forloop.first %}
+				{% if formset|length == 5 %}
+					<tr class='row_{{grad.slug}} initial max'>
+				{% else %}
+					<tr class='row_{{grad.slug}} initial continue'>
+				{% endif %}
+			{% else %}
+				{% if forloop.last %}
+					<tr class='row_{{grad.slug}} subsequent last'>
+				{% else %}
+					<tr class='row_{{grad.slug}} subsequent middle'>
+				{% endif %}
+			{% endif %}
+			<td scope="col"><div class="grad_info"><a href="{% url "grad:view" grad_slug=grad.slug %}">{{grad.person.sortname}}</a></div></td>
+			<td><div class="grad_info">{{grad.person.emplid}}</div></td>
+			<td><div class="grad_info">{{grad.program.unit.label}}, {{grad.program}}</div></td>
+			<td><div class="grad_info">{{grad.start_semester}}</div></td>
+			<td>{{form.supervisor}}{{ form.supervisor.errors}}</td>
+			<td>{{form.supervisor_type}}{{ form.supervisor_type.errors}}</td>
+			<td>
+				<div class="max_forms"><p>Max {{max_forms_per_grad}}!</p></div>
+				<div class="add_button"><button type="button" class="btn" id="{{grad.slug}}" onClick="addForm(this.id, {{max_forms_per_grad}})"><span class="fa fa-plus"></span></button></div>
+				<div class="remove_button"><button type="button" class="btn" id="{{grad.slug}}" onClick="removeForm(this.id, {{max_forms_per_grad}})"><span class="fa fa-minus"></span></button></div>
+			</td>
+			</tr>
+		{% endfor %}
+	{% endwith %}
+	{% endwith %}		
+	{% endfor %}
+	</tbody>
+</table>
+<div class="submit_button"><input onclick="return confirmSubmit();" class="submit" type="submit" value="Add Committee Members" /></div>
+</form>
+{% endblock %} 
