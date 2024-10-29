@@ -2,7 +2,7 @@
 <section class="post author-{{ post.author.role.lower }}{% if extra_class %} {{ extra_class }}{% endif %}" id="post-{{ post.number }}">
 <div class="post-header" data-datetime="{{ post.created_at.isoformat }}">
     {% avatar_image post=post viewer=viewer %}
-    By <span class="author">{{ post|visible_author:viewer }}</span>,
+    By {% if instr_editing and post.author.role == 'STUD' %}<a href="{{ post.author.get_absolute_url }}">{% endif %}<span class="author">{{ post|visible_author:viewer }}</span>{% if instr_editing and post.author.role == 'STUD' %}</a>{% endif %},
     {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
     [<a href="{{ post.get_absolute_url }}">Post&nbsp;#{{ post.number}}</a>]
     {% if post|editable_by:viewer and not thread_locked %}[<a href="{% url 'offering:forum:edit_post' course_slug=offering.slug post_number=post.number %}" data-target="main-panel">Edit</a>]{% endif %}
