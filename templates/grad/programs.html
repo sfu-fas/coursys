@@ -8,6 +8,7 @@
 			"bJQueryUI" : true,
 			'bPaginate': true,
     		'lengthMenu': [[25, -1], [25, 'All']],
+			"bPaginate": false,
 			"bFilter": false,
 			"bInfo": false,
 			"aaSorting" : [[1, "asc"]],
@@ -19,6 +20,7 @@
 			{ "width": "13%", "targets": [4,5] },
 			{ "width": "4%", "targets": 6 },
     		],
+			"aaSorting" : [[0, "asc"]],
 		});
 	});
 
@@ -39,7 +41,6 @@
 <div class="actionlist">
     <a class="btn" href="{% url "grad:new_program" %}">New Program</a>
 </div>
-
 <div class="datatable_container">
 	<table class="display" id="programs">
 		<thead>

@@ -111,12 +111,12 @@ class SupervisorForm(ModelForm):
     class Meta:
         model = Supervisor
         exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
-
+        
 class BulkSupervisorForm(SupervisorForm):
     class Meta:
         model = Supervisor
         exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position', 'external')
-    
+
     def __init__(self, *args, **kwargs):
         super(BulkSupervisorForm, self).__init__(*args, **kwargs)
         self.fields['supervisor_type'].required = False
@@ -139,7 +139,7 @@ class BulkSupervisorForm(SupervisorForm):
                 self.add_error('supervisor_type', "Please fill out supervisor type.")
             elif supervisor_type_entered and not supervisor_entered:
                 self.add_error('supervisor', "Please enter supervisor information.")
-    
+
         return data
 
 class PotentialSupervisorForm(ModelForm): 

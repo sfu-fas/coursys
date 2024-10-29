@@ -148,7 +148,7 @@ def _email_request_notification(req, url):
         elif req.unit.label == "MSE":
             email = MSE_CONTACT
         elif req.unit.label == "ENSC":
-            email = None
+            email = FAS_CONTACT
         elif req.unit.label == "SEE":
             email = SEE_CONTACT
         else:
@@ -357,14 +357,9 @@ class RANewRequestWizard(SessionWizardView):
         if req.file_attachment_2 == False:
             req.file_attachment_2 = ''
             req.file_mediatype_2 = ''
-
-        # ensure swpp is false if not applicable
-        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
-            req.swpp = False
         
-        # ensure swpp and ra_benefits are false if not applicable
+        # ensure ra_benefits are false if not applicable
         if req.usra == "True" or req.usra == True:
-            req.swpp = False
             req.ra_benefits = "N"
 
         # if user creates request as draft

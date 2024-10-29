@@ -26,7 +26,7 @@ def edit_program(request, program_id):
         form = GradProgramForm(instance=program)
         form.fields['unit'].disabled=True
         form.fields['label'].disabled=True  
-           
+
     page_title = 'Edit Program'  
     crumb = 'Edit Program' 
     context = {

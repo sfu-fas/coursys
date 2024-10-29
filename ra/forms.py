@@ -607,8 +607,6 @@ class RARequestNonContinuingForm(forms.ModelForm):
     backdate_reason = forms.CharField(required=False, label="Please provide the reason for this backdated appointment", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 500}))
     lump_sum_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     lump_sum_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this lump sum payment")
-    swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
-                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/coop/funding.html">Please click here for information about SWPP</a>'))
     nc_duties = forms.CharField(required=False, label="Duties", help_text="Please enter duties in a comma-separated list.", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 900}))
     
     nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
@@ -633,18 +631,15 @@ class RARequestNonContinuingForm(forms.ModelForm):
     def __init__(self, coop=False, *args, **kwargs):
         super(RARequestNonContinuingForm, self).__init__(*args, **kwargs) 
         
-        config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
+        config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
 
-        if not coop:
-            self.fields['swpp'].widget=forms.HiddenInput()
-
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['nc_duties', 'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
+        config_clean = ['nc_duties', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -714,12 +709,6 @@ class RARequestNonContinuingForm(forms.ModelForm):
                 if lump_sum_reason == '' or lump_sum_reason == None:
                     self.add_error('lump_sum_reason', error_message)
 
-        swpp = cleaned_data.get('swpp')
-        if swpp == "True":
-            self.cleaned_data["swpp"] = True
-        else:
-            self.cleaned_data["swpp"] = False
-
         # remove irrelevant fields
         if backdated:
             self.cleaned_data["nc_payment_method"] = ''
@@ -780,9 +769,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                                     label='Are you willing to provide extended health benefits?', 
                                     help_text=mark_safe('<a href="http://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/Research%20Benefit%20Summary%20-%20Summer%202024.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
-    swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
-                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/coop/funding.html">Please click here for information about SWPP</a>'))
-
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
     ra_duties_dc = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_DC, widget=forms.CheckboxSelectMultiple,
@@ -815,14 +801,12 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp',
+                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason',
                 'lump_sum_hours', 'lump_sum_reason']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
         
-        if not coop or usra:
-            self.fields['swpp'].widget=forms.HiddenInput()
         if usra: 
             self.fields['ra_benefits'].widget=forms.HiddenInput()
             self.fields['ra_benefits'].required=False
@@ -832,7 +816,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 
-                'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
+                'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -900,12 +884,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('lump_sum_hours', error_message)
                 if lump_sum_reason == '' or lump_sum_reason == None:
                     self.add_error('lump_sum_reason', error_message)
-
-        swpp = cleaned_data.get('swpp')
-        if swpp == "True":
-            self.cleaned_data["swpp"] = True
-        else:
-            self.cleaned_data["swpp"] = False
 
         # remove irrelevant fields
         if backdated:
