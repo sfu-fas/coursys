@@ -21,21 +21,12 @@ CATEGORY_CHOICES = (
     ("DR", "Doctoral"),
     ("OT", "Other")
 )
-from django.urls import reverse
-
-CATEGORY_CHOICES = (
-    ("MA", "Masters"),
-    ("DR", "Doctoral"),
-    ("OT", "Other")
-)
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     label = models.CharField(max_length=20, null=False)
     description = models.CharField(max_length=100, blank=True)
     grad_category = models.CharField(max_length=2, choices=CATEGORY_CHOICES, default="OT")
-    expected_completion_terms = models.PositiveIntegerField(default=0)
-    requires_supervisor = models.BooleanField(null=False, default=False)grad_category = models.CharField(max_length=2, choices=CATEGORY_CHOICES, default="OT")
     expected_completion_terms = models.PositiveIntegerField(default=0)
     requires_supervisor = models.BooleanField(null=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -524,16 +515,20 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         return bool(res)
     
-    def _get_supervisors(self):
-        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=['SEN', 'COM', 'COS'], removed=False)
+    def _get_supervisors(self, senior_only=False):
+        if senior_only:
+            types = ['SEN', 'COS']
+        else:
+            types = ['SEN', 'COM', 'COS']
+        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=types, removed=False)
         return supervisors
 
-    def has_supervisor(self):
-        supervisors = self._get_supervisors().count()
+    def has_supervisor(self, senior_only=False):
+        supervisors = self._get_supervisors(senior_only).count()
         return supervisors > 0
 
-    def list_supervisors(self):
-        supervisors = list(dict.fromkeys([str(s.sortname()) for s in self._get_supervisors()]))
+    def list_supervisors(self, senior_only=True):
+        supervisors = list(dict.fromkeys([str(s.sortname()) for s in self._get_supervisors(senior_only)]))
         supervisors = ", ".join(supervisors)
         return supervisors
 

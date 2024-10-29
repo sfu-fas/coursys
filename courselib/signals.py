@@ -98,7 +98,7 @@ class DISABLED_SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         elif cls == 'GradStudent':
-            #logger.debug('Reindexing RARequest %s' % (instance))
+            #logger.debug('Reindexing GradStudent %s' % (instance))
             if instance.deleted:
                 # deleted request
                 self.handle_delete(sender=sender, instance=instance, **kwargs)

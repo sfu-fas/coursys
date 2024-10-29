@@ -330,16 +330,6 @@ function grad_browser_setup(my_url) {
   ],
     'sAjaxSource': my_url + '?tabledata=yes',
     'fnServerData': function ( sSource, aoData, fnCallback ) {
-      /*if ( $('#id_type').val() != 'all' ) {
-        aoData.push( { "name": "type", "value": $('#id_type').val() } );
-      }
-      if ( $('#id_start_date').val() != '' ) {
-        aoData.push( { "name": "start_date", "value": $('#id_start_date').val() } );
-      }
-      if ( $('input:radio[name=hide_expired]:checked').val() != '' ) {
-        aoData.push( { "name": "hide_expired", "value": $('input:radio[name=hide_expired]:checked').val() } );
-      }
-	  */
       if ( $('#id_unit').val() != 'all' ) {
         aoData.push( { "name": "unit", "value": $('#id_unit').val() } );
       }
