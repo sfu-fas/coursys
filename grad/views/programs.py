@@ -8,7 +8,7 @@ def programs(request):
     
     # set frontend defaults
     page_title = 'Graduate Programs'
-    crumb = 'Grad Programs' 
+    crumb = 'Programs' 
     context = {
                'page_title' : page_title,
                'crumb' : crumb,
