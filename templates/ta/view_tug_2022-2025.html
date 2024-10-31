@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ta-tug-noprint.css' %}" media="all" />
+<link rel="stylesheet" href="{% static 'style/ta-tug-print.css' %}" media="print" />
+<script nonce="{{ CSP_NONCE }}">
+	$(document).ready(function() {
+		$('#print-tug').click(function(){
+			print();
+			return false;
+		});
+	});
+</script>
+{% endblock %}
+
+{% block title %}{{course.name}} TUG for {{ta.name}} {% endblock %}
+{% block h1 %}{{course.name}} TUG for {{ta.name}} {% endblock %}
+
+{% block subbreadcrumbs %}
+    {% if user_role == "ADMN" %}
+    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
+	<li>{{tug.member.person}}</li>
+    {% else %}
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
+    <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+    <li>{{ta.name}}</li>
+    {% endif %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if user_role == "ADMN" %}
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.userid %}">Edit TUG</a></li>
+{% else %}{% if user_role != "TA" %}
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.userid %}">Edit TUG</a></li>
+{% endif %}{% endif %}
+<li><a href="#" id="print-tug">Print TUG</a></li>
+<li><a href="{% url "offering:download_tug" course_slug=course.slug userid=ta.userid %}">Download TUG</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div id="tugPrintHeader">
+    Simon Fraser University<br/>
+    Teaching Assistant Time Use Guideline
+</div>
+{% if tug.draft %}<h2>DRAFT</h2> {% endif %}
+<div id="tugHeader">
+	<div id="taName">TA Name: 
+		<span class="tugField">{{tug.member.person}}</span>
+	</div> 
+	<div id="Instructor">Instructor: 
+		<span class="tugField">
+		{% for instructor in course.instructors %}
+			{{instructor.name}} {% if not forloop.last %}, {% endif %}
+		{% endfor %}
+		</span>
+	</div>
+	<div id="courses">Course:
+		<span class="tugField">{{course.name}}, {{course.semester.label}}</span>
+	</div>
+	<div id="assignBU"> Base Units Assigned*:
+		<span class="tugField"><u>{{ bu }} </u> x {{ hours_per_bu }} = Maximum Hours: <u>{{ max_hours }}</u>
+        {% if has_lab_or_tut %}
+            (+ {{ lab_bonus }} for prep = {{ total_bu }})
+        {% endif %}
+        </span>
+	</div>
+</div>
+
+<div id="tugBody">
+	<p class="smallprint">
+		Teaching Assistant total workload for the semester should approach but not exceed the 
+		maximum hours over the term of the semester (normally 17 weeks).		
+	</p>
+	<p class="smallprint"><em>
+		The following summary is an approximation of the length of time expected 
+		to be devoted to  the major activities.  There may be shifts between 
+		activities, but the total hours required over the semester cannot exceed the
+		maximum hours set out above.
+	</em></p>
+	<table>
+		<tbody>
+			<tr>
+				<th colspan="2">Duties and Responsibilities</th>
+				<th>Average hrs/week </th>
+				<th>Total hrs/semester</th>
+			</tr>
+			<tr class="firstrow">
+				<td class="numeral">1.</td>
+				<td> Preparation for labs/tutorials/workshops</td>
+				<td class="tugField">{{tug.config.prep.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.prep.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">2.</td>
+				<td> Attendance at orientation and planning/coordinating meetings with instructor</td>
+				<td class="tugField">{{tug.config.meetings.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.meetings.total}}</td>
+			</tr>
+            <tr>
+				<td class="numeral">3.</td>
+				<td> Preparation for lectures</td>
+				<td class="tugField">{{tug.config.prep_lectures.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.prep_lectures.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">4.</td>
+				<td> Attendance at lectures, including breakout groups</td>
+				<td class="tugField">{{tug.config.lectures.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.lectures.total}}</td>
+			</tr>
+            <tr>
+				<td class="numeral">5.</td>
+				<td> Support classroom course delivery, including technical support</td>
+				<td class="tugField">{{tug.config.support.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.support.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">6.</td>
+				<td> Attendance at labs/tutorials/workshops</td>
+				<td class="tugField">{{tug.config.tutorials.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.tutorials.total}}</td>
+			</tr>
+            <tr>
+				<td class="numeral">7.</td>
+				<td> Leading dicussions</td>
+				<td class="tugField">{{tug.config.leading.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.leading.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">8.</td>
+				<td> Office hours/student consultation</td>
+				<td class="tugField">{{tug.config.office_hours.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.office_hours.total}}</td>
+			</tr>
+            <tr>
+				<td class="numeral">9.</td>
+				<td> Electronic communication</td>
+				<td class="tugField">{{tug.config.e_communication.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.e_communication.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">10.</td>
+				<td> Grading **</td>
+				<td class="tugField">{{tug.config.grading.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.grading.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">11.</td>
+				<td> Quiz preparation/assist in exam preparation/Invigilation of exams</td>
+				<td class="tugField">{{tug.config.test_prep.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.test_prep.total}}</td>
+			</tr>
+			<tr>
+				<td class="numeral">12.</td>
+				<td> Statutory Holiday Compensation - <br />
+					To compensate for all statutory holidays which 
+					may occur in a semester, the total workload required will be reduced by {{holiday_hours_per_bu}} hour(s)
+					for each base unit assigned excluding the additional {{lab_bonus}} B.U. for preparation,
+					e.g. 4.4 hours reduction for {{lab_bonus_4}} B.U. appointment.
+ 				</td>
+				<td class="tugField">{{tug.config.holiday.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.holiday.total}}</td>
+			</tr>
+			<tr class="subsectionHeader">
+				<td class="numeral">13.</td>
+				<td>Other – specify*** </td><td></td><td></td>
+			</tr>
+			{% for other in tug.others %} 
+			<tr>
+				<td class="numeral" />
+				<td class="tugField">{{other.label}}</td>
+				<td class="tugField">{{other.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{other.total}}</td>
+			</tr>
+			{% endfor %}
+			<tr>
+				<td colspan="2">
+					Required Total Hours =
+				</td>
+				<td></td>
+				<td>{{total_hours}}</td>
+			</tr>
+		</tbody>
+	</table> 
+	<p class="smallprint">
+		Teaching Assistants and course instructors should familiarize themselves with the general 
+		working conditions set out in Article 13C, assignment and compensation in Article 13D, 
+		and workload review mechanisms in Article 13E.
+	</p>
+	<p class="smallprint">
+		*There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
+		Article 13D. 2 b.  See Appendix B for calculation of hours.
+		<br/>
+		**  Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards. 
+		<br/>
+		*** Attendance at a TA/TM Day/and other required Training
+	</p>
+</div>
+
+<div class="printonly">
+    <table style="width: 100%;">
+        <tr><td style="width: 50%;">Instructor Signature:</td><td style="width: 50%;">TA Signature:</td></tr>
+        <tr><td>Date:</td><td>Date:</td></tr>
+    </table>
+    <div class="noprint">
+        <div>TUG Con't - page 2</div>
+        <div class="centre ul bigtopgap bigbottomgap">Workload Review</div>
+        <table style="width: 100%" class="bigtopgap">
+            <tr>
+                <td style="width: 66%;">Instructor:</td>
+                <td style="width: 33%;">TA/TM:</td>
+            </tr>
+            <tr style="height: 20px">
+                <td style="width: 66%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>
+
+        <table style="width: 100%">
+            <tr>
+                <td style="width: 33%;">Semester:</td>
+                <td style="width: 33%;">Course #:</td>
+                <td style="width: 33%;">Original hrs Assigned:</td>
+            </tr>
+                <tr style="height: 20px">
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>
+        <div class="centre ul topgap">Will the number of hours required exceed the number of hours assigned?</div>
+        <div class="centre topgap">YES &nbsp;&nbsp;&nbsp;NO</div>
+        <table style="width: 100%">
+            <tr>
+                <td style="width: 33%;" class="centre">Signature of Instructor:</td>
+                <td style="width: 33%;"></td>
+                <td style="width: 33%;" class="centre">Date of Review</td>
+            </tr>
+            <tr style="height: 20px">
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>
+        <div class="centre topgap">Decision if number of hours required exceeds the number or hours assigned:</div>
+        <table style="width: 100%">
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>
+        <table style="width: 100%">
+            <tr style="height: 30px">
+                <td style="width: 40%; border-bottom: 2px solid;"></td>
+                <td style="width: 40%;">"Signature of Authorized person in the Department"</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

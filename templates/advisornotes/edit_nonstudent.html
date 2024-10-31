@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Prospective Student {{ nonstudent.name }}{% endblock %}
+{% block h1 %}Edit Prospective Student {{ nonstudent.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "advising:advising" %}">Advising</a></li>
+    <li><a href="{% url "advising:view_nonstudents" %}">Prospective Students</a></li>
+    <li>Edit Prospective Student</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "advising:edit_nonstudent" nonstudent_slug=nonstudent.slug %}" method="post" class="close-warn">
+        {% csrf_token %}
+        {{ form|as_dl }}
+        <p><input type="submit" class="submit" value="Update" /></p>
+    </form>
+</div>
+{% endblock %}

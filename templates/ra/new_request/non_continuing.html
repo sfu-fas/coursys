@@ -83,7 +83,7 @@
                 {{ form }}
             {% endfor %}
         {% else %}
-            {{ wizard.form|as_dl_excludefields:"swpp,nc_duties" }}
+            {{ wizard.form|as_dl_excludefields:"nc_duties" }}
             <div class="biweekly_info">
               <p><div class="important_info">
                 <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
@@ -102,7 +102,7 @@
               <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
               <div class="helptext"><span class="total_pay_calc"></span></div>
             </div></p>
-            {{ wizard.form|as_dl_includefields:"swpp,nc_duties" }}
+            {{ wizard.form|as_dl_includefields:"nc_duties" }}
           {% endif %} 
       </div>
     </fieldset>

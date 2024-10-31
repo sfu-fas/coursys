@@ -102,10 +102,10 @@ email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <e
                   {% if course.taemail %}<a href="mailto:{{ course.taemail }}">{{ course.taemail }}</a>
                   {% else %}<a href="{{ course.contact_url }}">{{ course.contact_url }}</a>
                   {% endif %}
-                  ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
+                  ({% for ta in course.tas %}{{ ta.name_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
                 {% else %}
                   {% for ta in course.tas %}
-                    {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
+                    {{ ta.name_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
                   {% endfor %}
                 {% endif %}
                 </td>

@@ -9,26 +9,29 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('#gras').dataTable( {
-    'bPaginate': false,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[4, 'desc']],
     } );
     $('#ra').dataTable( {
-    'bPaginate': false,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[4, 'desc']],
     } );
     $('#nc').dataTable( {
-    'bPaginate': false,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
     'bInfo': true,
     'bFilter': true,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
     'aaSorting': [[4, 'desc']],
     } );

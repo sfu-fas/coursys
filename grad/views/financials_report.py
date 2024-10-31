@@ -25,20 +25,18 @@ def financials_report(request):
                    }
     else:    
         if 'csv' in request.GET:            
-            end_date = datetime.date.today()
-            start_date = datetime.date(end_date.year, 1, 1)
-            filename = 'financials_report_{}-{}.csv'.format(start_date.isoformat(), end_date.isoformat())            
+            today = datetime.date.today()      
             grads = _financials_report_promise(request.units, request.GET['finrpt'])
+            filename = 'promised_received_funding_report_{}-{}.csv'.format(request.GET['finrpt'], today.isoformat()) 
 
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
             _generate_csv(request, response, grads)
             return response
         if 'excel' in request.GET:            
-            end_date = datetime.date.today()
-            start_date = datetime.date(end_date.year, 1, 1)
-            filename = 'financials_report_{}-{}.xls'.format(start_date.isoformat(), end_date.isoformat()) 
+            today = datetime.date.today()                  
             grads = _financials_report_promise(request.units, request.GET['finrpt'])
+            filename = 'promised_received_funding_report_{}-{}.xls'.format(request.GET['finrpt'], today.isoformat()) 
 
             response = HttpResponse(content_type='application/vnd.ms-excel')
             response['Content-Disposition'] = 'inline; filename="{}"'.format(filename)
@@ -158,7 +156,7 @@ def _generate_excel(request, response, grads, finrpt):
     boldstyle = xlwt.easyxf('font: bold on;')
 
     # header row
-    sheet.write(0, 0, 'Financial Summary Report (Active '+finrpt+')' , xlwt.easyxf('font: bold on, height 220'))
+    sheet.write(0, 0, 'Promised and Received Funding by Students (Active '+finrpt+')' , xlwt.easyxf('font: bold on, height 220'))
     sheet.row(0).height = 400
     sheet.write(1, 1, 'Employee ID', hdrstyle)
     sheet.write(1, 2, 'Last Name', hdrstyle)

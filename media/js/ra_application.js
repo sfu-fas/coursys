@@ -7,8 +7,10 @@ var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end
 
 var rabw_fields = ['research_assistant-total_gross', 'research_assistant-weeks_vacation', 'research_assistant-biweekly_hours']
 var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacation_pay', 'research_assistant-biweekly_hours']
+var rals_fields = ['research_assistant-total_gross', 'research_assistant-lump_sum_hours', 'research_assistant-lump_sum_reason']
 var ncbw_fields = ['non_continuing-total_gross', 'non_continuing-weeks_vacation', 'non_continuing-biweekly_hours']
 var nch_fields = ['non_continuing-gross_hourly', 'non_continuing-vacation_pay', 'non_continuing-biweekly_hours']
+var ncls_fields = ['non_continuing-total_gross', 'non_continuing-lump_sum_hours', 'non_continuing-lump_sum_reason']
 var grasls_fields = ['graduate_research_assistant-total_gross']
 var grasbw_fields = ['graduate_research_assistant-total_gross']
 
@@ -261,16 +263,25 @@ function raPaymentMethod() {
     if (raPaymentMethod.val() === 'H') {
         $('.biweekly_info').hide()
         hide(rabw_fields)
+        hide(rals_fields)
         show(rah_fields)
         raH()
     } else if (raPaymentMethod.val() === 'BW') {
         $('.biweekly_info').show()
         hide(rah_fields)
+        hide(rals_fields)
         show(rabw_fields)
         raBW()
+    } else if (raPaymentMethod.val() === 'LS') {
+        $('.biweekly_info').hide()
+        hide(rah_fields)
+        hide(rabw_fields)
+        show(rals_fields)
+        raLS()
     } else {
         hide(rah_fields)
         hide(rabw_fields)
+        hide(rals_fields)
     }
 }
 
@@ -279,16 +290,25 @@ function ncPaymentMethod() {
     if (ncPaymentMethod.val() === 'H') {
         $('.biweekly_info').hide()
         hide(ncbw_fields)
+        hide(ncls_fields)
         show(nch_fields)
         ncH()
     } else if (ncPaymentMethod.val() === 'BW') {
         $('.biweekly_info').show()
         hide(nch_fields)
+        hide(ncls_fields)
         show(ncbw_fields)
         ncBW()
+    } else if (ncPaymentMethod.val() === 'LS') {
+        $('.biweekly_info').hide()
+        hide(nch_fields)
+        hide(ncbw_fields)
+        show(ncls_fields)
+        ncLS()
     } else {
         hide(nch_fields)
         hide(ncbw_fields)
+        hide(ncls_fields)
     }
 }
 
@@ -394,6 +414,13 @@ function raH () {
     $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
 }
 
+function raLS() {
+    totalPay = $('#id_research_assistant-total_gross').val()
+    $('#id_research_assistant-total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+}
+
 function ncBW () {
     totalPay = $('#id_non_continuing-total_gross').val()
     biweeklyHours = $('#id_non_continuing-biweekly_hours').val()
@@ -444,6 +471,13 @@ function ncH () {
     $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
 }
 
+function ncLS() {
+    totalPay = $('#id_non_continuing-total_gross').val()
+    $('#id_non_continuing-total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+}
+
 // for any hiring category, if it is backdated, show relevant fields for backdating an appointment
 function backDatedPaymentMethod () {
     nc_backdated = $('#id_non_continuing-backdated').val()
@@ -453,6 +487,7 @@ function backDatedPaymentMethod () {
     if (ra_backdated === 'True') {
         hide(rabw_fields)
         hide(rah_fields)
+        hide(rals_fields)
         hide(['research_assistant-ra_payment_method'])
         $('.biweekly_info').hide()
         show(ra_backdated_fields)
@@ -460,6 +495,7 @@ function backDatedPaymentMethod () {
     } else if (nc_backdated === 'True') {
         hide(ncbw_fields)
         hide(nch_fields)
+        hide(ncls_fields)
         hide(['non_continuing-nc_payment_method'])
         $('.biweekly_info').hide()
         show(nc_backdated_fields)

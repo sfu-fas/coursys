@@ -14,8 +14,8 @@
 </script>
 {% endblock %}
 
-{% block title %}{{course.name}} TUG for {{ta.person}} {% endblock %}
-{% block h1 %}{{course.name}} TUG for {{ta.person}} {% endblock %}
+{% block title %}{{course.name}} TUG for {{ta.name}} {% endblock %}
+{% block h1 %}{{course.name}} TUG for {{ta.name}} {% endblock %}
 
 {% block subbreadcrumbs %}
     {% if user_role == "ADMN" %}
@@ -25,7 +25,7 @@
     <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
     <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
     <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
-    <li>{{ta.person.name}}</li>
+    <li>{{ta.name}}</li>
     {% endif %}
 {% endblock %}
 
@@ -35,11 +35,12 @@
 <ul>
 {% if user_role == "ADMN" %}
 <li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
-<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.userid %}">Edit TUG</a></li>
 {% else %}{% if user_role != "TA" %}
-<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.userid %}">Edit TUG</a></li>
 {% endif %}{% endif %}
 <li><a href="#" id="print-tug">Print TUG</a></li>
+<li><a href="{% url "offering:download_tug" course_slug=course.slug userid=ta.userid %}">Download TUG</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -50,32 +51,32 @@
     Simon Fraser University<br/>
     Teaching Assistant Time Use Guideline
 </div>
-
+{% if tug.draft %}<h2>DRAFT</h2> {% endif %}
 <div id="tugHeader">
-	<span id="taName">TA Name: 
+	<div id="taName">TA Name: 
 		<span class="tugField">{{tug.member.person}}</span>
-	</span> 
-	<span id="Instructor">Instructor: 
+	</div> 
+	<div id="Instructor">Instructor: 
 		<span class="tugField">
 		{% for instructor in course.instructors %}
 			{{instructor.name}} {% if not forloop.last %}, {% endif %}
 		{% endfor %}
 		</span>
-	</span>
+	</div>
 	<br />
-	<span id="courses">Course:
+	<div id="courses">Course:
 		<span class="tugField">{{course.name}}, {{course.semester.label}}</span>
-	</span>
-	<span id="maxHours"> Maximum Hours to be Assigned: 
+	</div>
+	<div id="maxHours"> Maximum Hours to be Assigned: 
 		<span class="tugField">{{ max_hours }}</span>
-	</span>
-	<span id="assignBU"> Assigned BUs:
+	</div>
+	<div id="assignBU"> Assigned BUs:
 		<span class="tugField">{{ bu }}
         {% if has_lab_or_tut %}
             (+ {{ lab_bonus }} for prep = {{ total_bu }})
         {% endif %}
         </span>
-	</span>
+	</div>
 </div>
 
 <div id="tugBody">
@@ -173,12 +174,12 @@
 	</table> 
 	<p class="smallprint">
 		Teaching Assistants and course instructors should familiarize themselves with the general 
-		working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
-		and workload review mechanisms in Article XIII E.
+		working conditions set out in Article 13C, assignment and compensation in Article 13D, 
+		and workload review mechanisms in Article 13E.
 	</p>
 	<p class="smallprint">
 		*There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
-		Article XIII D. 2 b.  See Appendix B for calculation of hours.
+		Article 13D. 2 b.  See Appendix B for calculation of hours.
 		<br/>
 		**  Includes grading of all assignments, reports and examinations. 
 		<br/>
@@ -190,9 +191,9 @@
 <h3>Conducting Teaching Assistant Workload Reviews:</h3>
 <ul>
   <li>
-  Course Supervisors are required to conduct a workload review if the size of a tutorial is
+  Course Instructors are required to conduct a workload review if the size of a tutorial is
 over 24 or where the student to TA ratio is over 26:1 in a scheduled lab. Also, Course
-Supervisors are required to conduct a workload review if two or more of the following
+Instructors are required to conduct a workload review if two or more of the following
 factors affecting workload occur:
 <ol><li>the average size of tutorials, labs or workshops for the Teaching Assistant is over
    fifteen (15), or where the enrollment in any tutorial, lab or workshop assigned
@@ -208,19 +209,19 @@ factors affecting workload occur:
   </ol>
   </li>
   <li>
-    The Course Supervisor and T.A. should conduct the review as soon as reasonably
+    The Course Instructor and T.A. should conduct the review as soon as reasonably
     possible after the week three enrollment data is available.
   <li>
-    In conducting the review, the Course Supervisor is expected to contact the T.A. and
+    In conducting the review, the Course Instructor is expected to contact the T.A. and
     discuss the workload factors.
   </li>
   <li>
-    Where the Course Supervisor concludes that the workload required will, by semester
+    Where the Course Instructor concludes that the workload required will, by semester
     end, exceed the total workload hours of the appointment, then it will be necessary to
     either reduce the workload, where possible, or provide additional compensation.
   </li>
   <li>
-    The Course Supervisor should review these options with the T.A., but the option of
+    The Course Instructor should review these options with the T.A., but the option of
     additional compensation must be approved by the Department Chair.
   </li>
   <li>
@@ -236,7 +237,7 @@ factors affecting workload occur:
         <tr><td style="width: 50%;">Instructor Signature:</td><td style="width: 50%;">TA Signature:</td></tr>
         <tr><td>Date:</td><td>Date:</td></tr>
     </table>
-    <div class="newpage bigtopgap">
+    <div class="noprint">
         <div>TUG Con't - page 2</div>
         <div class="centre ul bigtopgap bigbottomgap">Workload Review</div>
         <table style="width: 100%" class="bigtopgap">

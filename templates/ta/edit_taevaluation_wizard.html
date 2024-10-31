@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ta.css' %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $("#id_0-ta_signdate").datepicker({'dateFormat': 'yy-mm-dd'});
+  $("#id_0-instructor_signdate").datepicker({'dateFormat': 'yy-mm-dd'});
+
+  if ($("#id_0-instructor_signdate").val().length == 0)
+    $("#id_0-instructor_signdate").datepicker('setDate', new Date());
+
+   $('input[name=criteria_lab_prep]').click(function() {     
+     $("#id_0-criteria_lab_prep").prop("value", $('input[name=criteria_lab_prep]:checked').val());
+    });
+
+    $('input[name=criteria_meet_deadline]').click(function() {     
+     $("#id_0-criteria_meet_deadline").prop("value", $('input[name=criteria_meet_deadline]:checked').val());
+    });
+
+    $('input[name=criteria_maintain_hour]').click(function() {     
+     $("#id_0-criteria_maintain_hour").prop("value", $('input[name=criteria_maintain_hour]:checked').val());
+    });
+
+    $('input[name=criteria_attend_plan]').click(function() {     
+     $("#id_0-criteria_attend_plan").prop("value", $('input[name=criteria_attend_plan]:checked').val());
+    });
+
+    $('input[name=criteria_attend_lec]').click(function() {     
+     $("#id_0-criteria_attend_lec").prop("value", $('input[name=criteria_attend_lec]:checked').val());
+    });
+
+    $('input[name=criteria_grading_fair]').click(function() {     
+     $("#id_0-criteria_grading_fair").prop("value", $('input[name=criteria_grading_fair]:checked').val());
+    });
+
+    $('input[name=criteria_lab_performance]').click(function() {     
+     $("#id_0-criteria_lab_performance").prop("value", $('input[name=criteria_lab_performance]:checked').val());
+    });
+
+    $('input[name=criteria_quality_of_feedback]').click(function() {     
+     $("#id_0-criteria_quality_of_feedback").prop("value", $('input[name=criteria_quality_of_feedback]:checked').val());
+    });
+
+    $('input[name=criteria_quiz_prep]').click(function() {     
+     $("#id_0-criteria_quiz_prep").prop("value", $('input[name=criteria_quiz_prep]:checked').val());
+    });
+
+    $('input[name=criteria_instr_content]').click(function() {     
+     $("#id_0-criteria_instr_content").prop("value", $('input[name=criteria_instr_content]:checked').val());
+    });
+
+    $('input[name=criteria_others]').click(function() {     
+     $("#id_0-criteria_others").prop("value", $('input[name=criteria_others]:checked').val());
+    });
+
+});
+
+</script>
+{% endblock %}
+
+{% block title %}TA Evaluation{% endblock %}
+{% block h1 %}TA Evaluation{% endblock %}
+
+
+{% block content %}
+<div>
+    <ul>
+    <li>1. You must review this Evaluation Form and Evaluative Criteria with your TA at the beginning of the semester (ref. Art. 20 A).</li> 
+    <li>2. Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this Evaluation Form (ref. Art. 20 I).</li>
+    <li>3. This form is to be completed by you at the conclusion of the semester. Your assessment of the TA's teaching abilities will become part of the TA's employment record. This feedback is intended to enhance teaching performance.</li>
+    </ul>
+</div>    
+{% if wizard.form.draft.value %}<h2>DRAFT</h2> {% endif %}
+<form action="" method="post" id="edit-ta-evaluation">{% csrf_token %}   
+{{ wizard.management_form }}
+<div class="table_container">    
+    <h2>Section A: Teaching Assistant Information</h2>    
+    <table class="shortinfo">
+      <tr><th>TA Name:</th><td>{{wizard.form.initial.ta.person.name}}</td><th>Department/Semester/Course:</th><td> {{wizard.form.initial.course.owner}}<br> {{wizard.form.initial.course.semester}}  {{wizard.form.initial.course.name}} </td></tr>
+      <tr><th>Course Title:</th><td>{{wizard.form.initial.course.title}}</td><th>Instructor:</th><td> {{wizard.form.initial.course.instructors_str }}</td></tr>
+    </table>
+    <fieldset>
+        TA's First Appointment: {{ wizard.form.first_appoint }} 
+        {% if wizard.form.draft.value %}
+        <p><input type="submit" name="save_draft" class="submit" value="Save to Draft" /></p>
+        {% endif %}
+    </fieldset>
+</div>
+<br>
+<div class="table_container">
+    <h2>Section B: Evaluative Criteria</h2>    
+        Using the evaluative criteria below, indicate whether the TA's performance:
+    <ul class="fa-ul">                
+        <li>1. Meets Job Requirements- Good</li>
+        <li>2. Meets Job Requirements- Satisfactory</li>
+        <li>3. Does not meet job requirements - Requires some improvement</li>
+        <li>4. Does not meet job requirements - Requires major improvement*</li>
+        <li>N/A. No opportunity to evaluate or criterion is not applicable.</li>
+    </ul>
+    <br>
+    * Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this Evaluation Form (ref. Art. 20 I).            
+        
+    <div class ="form_section" >
+        <table class="info">
+            <tr><th>
+            <b>{{ wizard.form.criteria_lab_prep.label }}: </b><br>
+            </th>            
+            <td>
+            <input type="radio" name="criteria_lab_prep" value="5" {% if wizard.form.criteria_lab_prep.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_lab_prep" value="1" {% if wizard.form.criteria_lab_prep.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_prep" value="2" {% if wizard.form.criteria_lab_prep.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_prep" value="3" {% if wizard.form.criteria_lab_prep.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_prep" value="4" {% if wizard.form.criteria_lab_prep.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>
+            </td>            
+            </tr>
+
+            <tr><th>
+            <b>{{ wizard.form.criteria_meet_deadline.label }}: </b><br>            
+            </th>
+            <td>
+            <input type="radio" name="criteria_meet_deadline" value="5" {% if wizard.form.criteria_meet_deadline.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_meet_deadline" value="1" {% if wizard.form.criteria_meet_deadline.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_meet_deadline" value="2" {% if wizard.form.criteria_meet_deadline.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_meet_deadline" value="3" {% if wizard.form.criteria_meet_deadline.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_meet_deadline" value="4" {% if wizard.form.criteria_meet_deadline.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>
+            </td>
+            </tr>
+            
+            <tr><th>
+            <b>{{ wizard.form.criteria_maintain_hour.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_maintain_hour" value="5" {% if wizard.form.criteria_maintain_hour.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_maintain_hour" value="1" {% if wizard.form.criteria_maintain_hour.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_maintain_hour" value="2" {% if wizard.form.criteria_maintain_hour.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_maintain_hour" value="3" {% if wizard.form.criteria_maintain_hour.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_maintain_hour" value="4" {% if wizard.form.criteria_maintain_hour.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small> 
+            </td>
+            </tr>
+
+            <tr><th>
+            <b>{{ wizard.form.criteria_attend_plan.label }}: </b><br>
+            </th>
+            <td>
+            <input type="radio" name="criteria_attend_plan" value="5" {% if wizard.form.criteria_attend_plan.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_attend_plan" value="1" {% if wizard.form.criteria_attend_plan.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_plan" value="2" {% if wizard.form.criteria_attend_plan.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_plan" value="3" {% if wizard.form.criteria_attend_plan.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_plan" value="4" {% if wizard.form.criteria_attend_plan.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_attend_lec.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_attend_lec" value="5" {% if wizard.form.criteria_attend_lec.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_attend_lec" value="1" {% if wizard.form.criteria_attend_lec.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_lec" value="2" {% if wizard.form.criteria_attend_lec.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_lec" value="3" {% if wizard.form.criteria_attend_lec.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_attend_lec" value="4" {% if wizard.form.criteria_attend_lec.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_grading_fair.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_grading_fair" value="5" {% if wizard.form.criteria_grading_fair.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_grading_fair" value="1" {% if wizard.form.criteria_grading_fair.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_grading_fair" value="2" {% if wizard.form.criteria_grading_fair.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_grading_fair" value="3" {% if wizard.form.criteria_grading_fair.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_grading_fair" value="4" {% if wizard.form.criteria_grading_fair.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_lab_performance.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_lab_performance" value="5" {% if wizard.form.criteria_lab_performance.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_lab_performance" value="1" {% if wizard.form.criteria_lab_performance.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_performance" value="2" {% if wizard.form.criteria_lab_performance.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_performance" value="3" {% if wizard.form.criteria_lab_performance.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_lab_performance" value="4" {% if wizard.form.criteria_lab_performance.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_quality_of_feedback.label }}: </b><br>
+            </th>
+            <td>
+            <input type="radio" name="criteria_quality_of_feedback" value="5" {% if wizard.form.criteria_quality_of_feedback.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_quality_of_feedback" value="1" {% if wizard.form.criteria_quality_of_feedback.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quality_of_feedback" value="2" {% if wizard.form.criteria_quality_of_feedback.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quality_of_feedback" value="3" {% if wizard.form.criteria_quality_of_feedback.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quality_of_feedback" value="4" {% if wizard.form.criteria_quality_of_feedback.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_quiz_prep.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_quiz_prep" value="5" {% if wizard.form.criteria_quiz_prep.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>            
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_quiz_prep" value="1" {% if wizard.form.criteria_quiz_prep.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quiz_prep" value="2" {% if wizard.form.criteria_quiz_prep.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quiz_prep" value="3" {% if wizard.form.criteria_quiz_prep.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_quiz_prep" value="4" {% if wizard.form.criteria_quiz_prep.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_instr_content.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_instr_content" value="5" {% if wizard.form.criteria_instr_content.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_instr_content" value="1" {% if wizard.form.criteria_instr_content.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_instr_content" value="2" {% if wizard.form.criteria_instr_content.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_instr_content" value="3" {% if wizard.form.criteria_instr_content.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_instr_content" value="4" {% if wizard.form.criteria_instr_content.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+            <tr><th>
+            <b>{{ wizard.form.criteria_others.label }}: </b><br>
+            </th>
+            <td>            
+            <input type="radio" name="criteria_others" value="5" {% if wizard.form.criteria_others.value == 5 %} checked {% endif %}/> <label>N/A</label><span>&nbsp;&nbsp;</span>
+            </td><td><small>Good&nbsp;</small>
+            <input type="radio" name="criteria_others" value="1" {% if wizard.form.criteria_others.value == 1 %} checked {% endif %}/> <label>1</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_others" value="2" {% if wizard.form.criteria_others.value == 2 %} checked {% endif %}/> <label>2</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_others" value="3" {% if wizard.form.criteria_others.value == 3 %} checked {% endif %}/> <label>3</label><span>&nbsp;&nbsp;</span>
+            <input type="radio" name="criteria_others" value="4" {% if wizard.form.criteria_others.value == 4 %} checked {% endif %}/> <label>4</label><span>&nbsp;&nbsp;</span>
+            <small>Poor</small>            
+            </td>
+            </tr>
+           <tr><th><b>{{ wizard.form.criteria_other_comment.label }}</b></th>
+            <td colspan="2">{{ wizard.form|as_dl_includefields:"criteria_other_comment" }}</td></tr>
+        </table>    
+        {% if wizard.form.draft.value %}
+        <div class ="form_section">            
+            <p><input type="submit" name="save_draft" class="submit" value="Save to Draft" /></p>
+        </div>
+        {% endif %}
+        <div class ="form_section" style="display: none;">
+            {{ wizard.form|as_dl_includefields:"criteria_lab_prep,criteria_meet_deadline,criteria_maintain_hour,criteria_attend_plan,criteria_attend_lec,criteria_grading_fair,criteria_lab_performance,criteria_quality_of_feedback,criteria_quiz_prep,criteria_instr_content,criteria_others" }}
+        </div>  
+    </div>
+    <br>
+    <div class="table_container">
+    <h2>Section C: Evaluation Commentary</h2>     
+    <div class ="form_section">
+        {{ wizard.form|as_dl_includefields:"positive_comment,improve_comment" }}
+        {% if wizard.form.draft.value %}
+            <p><input type="submit" name="save_draft" class="submit" value="Save to Draft" /></p>            
+        {% endif %}
+    </div>          
+    </div>
+<br>
+<div class="table_container">
+    <h2>Section D: Summary/Overall Evaluation</h2> 
+    <div class ="form_section">
+        {{ wizard.form|as_dl_includefields:"overall_evalation,recommend_TA,no_recommend_comment,instructor_sign,instructor_signdate" }}
+        <p class="infomessage">The TA will receive the evaluation on the first day of the following term. </p>
+        <input type="submit" class="submit" value="Save and Submit TA Evaluation" title="The TA will receive the evaluation on the first day of the following term."/>
+        {% if wizard.form.draft.value %}
+            <p><input type="submit" name="save_draft" class="submit" value="Save to Draft"/></p>            
+        {% endif %}
+    </div>                  
+</div>
+<br>
+</div>
+</form>
+{% endblock %}
+

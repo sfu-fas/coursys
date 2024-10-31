@@ -23,6 +23,8 @@ from django.template.loader import get_template
 from grad.models import GradStudent, Supervisor, STATUS_REAL_PROGRAM
 from . import bu_rules
 from django.utils import timezone
+from tacontracts.models import HiringSemester
+from dashboard.letters import ta_evaluation_form
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
@@ -60,6 +62,7 @@ class TUG(models.Model):
     """	
     member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
+    draft = models.BooleanField(null=False, default=False)    
     last_update = models.DateField(auto_now=True)
     config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
@@ -79,6 +82,12 @@ class TUG(models.Model):
         # t.config['other1']
         # t.config['other2']
         # As the other fields, but adding 'label'.
+
+        ########### Four duties are added on 2024.06        
+        # t.config['prep_lectures']: Preparation for lectures
+        # t.config['support']: Support classroom course delivery, including technical support
+        # t.config['leading']: Leading dicussions
+        # t.config['e_communication']: Electronic communication
     
     prep = property(*getter_setter('prep'))
     meetings = property(*getter_setter('meetings'))
@@ -90,6 +99,11 @@ class TUG(models.Model):
     holiday = property(*getter_setter('holiday'))
     other1 = property(*getter_setter('other1'))
     other2 = property(*getter_setter('other2'))
+
+    prep_lectures = property(*getter_setter('prep_lectures'))
+    support = property(*getter_setter('support'))
+    leading = property(*getter_setter('leading'))
+    e_communication = property(*getter_setter('e_communication'))
     
     def iterothers(self):
         return (other for key, other in self.config.items() 
@@ -100,17 +114,24 @@ class TUG(models.Model):
     others = lambda self:list(self.iterothers())
     
     def iterfielditems(self):
-        return ((field, self.config[field]) for field in self.all_fields 
+        return ((field, self.config[field]) for field in self.new_all_fields 
                  if field in self.config)
-    
+        
     regular_fields = ['prep', 'meetings', 'lectures', 'tutorials',
             'office_hours', 'grading', 'test_prep', 'holiday']
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
 
-    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
-        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+    #defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
+    #    [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+
+    new_regular_fields = ['prep', 'meetings', 'prep_lectures', 'lectures', 'support', 'tutorials',
+            'leading', 'office_hours', 'e_communication', 'grading', 'test_prep', 'holiday']
+    new_all_fields = new_regular_fields + other_fields
     
+    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in new_regular_fields] +
+        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+
     # depicts the above comment in code
     config_meta = {'prep':{'label':'Preparation', 
                     'help':'1. Preparation for labs/tutorials'},
@@ -134,13 +155,45 @@ may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
+    # new version of TUG duties
+    new_config_meta = {
+            'prep':{'label':'Preparation for labs/tutorials/workshops', 
+                    'help':'1. Preparation for labs/tutorials/workshops'},
+            'meetings':{'label':'Attendance at orientation and planning/coodinating meetings with instructor', 
+                    'help':'2. Attendance at orientation and planning/coodinating meetings with instructor'}, 
+            'prep_lectures':{'label':'Preparation for lectures', 
+                    'help':'3. Preparation for lectures'}, 
+            'lectures':{'label':'Attendance at lectures, including breakout group', 
+                    'help':'4. Attendance at lectures, including breakout group'}, 
+            'support':{'label':'Support classroom course delivery, including technical support', 
+                    'help':'5. Support classroom course delivery, including technical support'}, 
+            'tutorials':{'label':'Attendance at labs/tutorials/workshops', 
+                    'help':'6. Attendance at labs/tutorials/workshops'}, 
+            'leading':{'label':'Leading dicussions', 
+                    'help':'7. Leading dicussions'}, 
+            'office_hours':{'label':'Office hours/student consultation', 
+                    'help':'8. Office hours/student consultation'}, 
+            'e_communication':{'label':'Electronic communication', 
+                    'help':'9. Electronic communication'}, 
+            'grading':{'label':'Grading', 
+                    'help':'10. Grading\u2020',
+                    'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
+            'test_prep':{'label':'Quiz/exam preparation and invigilation', 
+                    'help':'11. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
+            'holiday':{'label':'Holiday compensation', 
+                    'help':'12. Statutory Holiday Compensation\u2021',
+                    'extra':'''\u2021To compensate for all statutory holidays which  
+may occur in a semester, the total workload required will be reduced by %s
+hour(s) for each base unit assigned excluding the additional %s B.U. for
+preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
+    
     def __str__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
         for f in self.config:
             # if 'weekly' in False is invalid, so we have to check if self.config[f] is iterable
-            # before we check for 'weekly' or 'total' 
+            # before we check for 'weekly' or 'total'             
             if hasattr(self.config[f], '__iter__'):
                 if 'weekly' in self.config[f]:
                     self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
@@ -169,6 +222,306 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
         """
         return round(sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total'])), 2)
 
+class TAWorkloadReview(models.Model):
+    """
+    WR filled out by instructors
+    
+    Based on form in Appendix C (p. 73) of the collective agreement:
+    http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
+    """	
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)    
+    last_update = models.DateField(auto_now=True)
+    reviewhour= models.BooleanField(help_text='Choose "yes" if further review is required.')
+    reviewcomment = models.TextField(help_text='If No, explain briefly')
+    reviewsignature = models.CharField(max_length=100, help_text="Instruction's Signature")
+    reviewdate = models.DateField(help_text='Year/Month/Day')
+    
+
+    def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):      
+        super(TAWorkloadReview, self).save(*args, **kwargs)
+        if newsitem:
+            n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
+                    source_app='ta', title='%s TA Workload Review Changed' % (self.member.offering.name()),
+                    content='Your TA Workload Review for %s has been changed. If you have not already, please review it with the instructor.' % (self.member.offering.name()),
+                    url=self.get_absolute_url())
+            n.save()
+        if self.reviewhour:
+            self.send_notify()
+
+    def get_absolute_url(self):
+        return reverse('offering:view_ta_workload', kwargs={
+                'course_slug': self.member.offering.slug, 
+                'userid':self.member.person.userid})    
+
+    def send_notify(self):
+        subject = "Needs action: TA %s Workload Review for %s (%s) needs action." % (self.member.person.name(), self.member.offering.name(), self.member.offering.semester)
+        content = "Needs action: TA %s Workload Review for %s (%s) needs action.\nFor more information, see %s" \
+            % (self.member.person.name(), self.member.offering.name(),  self.member.offering.semester, settings.BASE_ABS_URL + self.get_absolute_url())
+        
+        to_email = []
+
+        #/ta
+        try:
+            posting = TAPosting.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
+        except:
+            posting = None
+        if posting: 
+            to_email.append(posting.contact().email())
+
+        #/tacontracts
+        try: 
+            hiring_semester = HiringSemester.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
+        except: 
+            hiring_semester = None
+        if hiring_semester:
+            to_email.append(hiring_semester.contact)
+
+        if to_email:
+            from_email = settings.DEFAULT_FROM_EMAIL
+            msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
+                                        to=to_email, headers={'X-coursys-topic': 'ta'})        
+            msg.send()
+
+class TAEvaluation(models.Model):
+    """
+    TA Evaluation filled out by instructors with TA's comments
+    
+    """	
+    # Section A
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
+    first_appoint = models.BooleanField(help_text="TA's First Appoint?", blank=True, null=True)
+    draft = models.BooleanField(null=False, default=False)
+    """ 
+    Evaluation criteria
+    Score - 1 meeting job requirements - good
+            2 meeting job requirements - satisfactory
+            3 does not meet job requirements - require more improvement
+            4 does not meet job requirements - require major improvement
+            N/A No opportunity to evaluate or criterion is not applicable
+
+    """
+    # Section B
+    criteria_lab_prep = models.IntegerField(verbose_name='Preparation of Lab/Tutorial Material', blank=True, null=True)
+    criteria_meet_deadline = models.IntegerField(verbose_name='Meets Deadlines', blank=True, null=True)
+    criteria_maintain_hour = models.IntegerField(verbose_name='Maintains Office Hours', blank=True, null=True)
+    criteria_attend_plan = models.IntegerField(verbose_name='Attendance at Planning/Coordinating Meetings', blank=True, null=True)
+    criteria_attend_lec = models.IntegerField(verbose_name='Attendance at Lectures', blank=True, null=True)
+    criteria_grading_fair = models.IntegerField(verbose_name='Grading Fair/Consistent', blank=True, null=True)
+    criteria_lab_performance = models.IntegerField(verbose_name='Performance in Lab/Tutorial', blank=True, null=True)
+    criteria_quality_of_feedback = models.IntegerField(verbose_name='Quality of Feedback', blank=True, null=True)
+    criteria_quiz_prep = models.IntegerField(verbose_name='Quiz Preparation/Assist in Exam Preparation', blank=True, null=True)
+    criteria_instr_content = models.IntegerField(verbose_name='Instructional Content', blank=True, null=True)
+    criteria_others = models.IntegerField(verbose_name='Other Job Requirements', blank=True, null=True)
+    criteria_other_comment = models.TextField(verbose_name='Comments', blank=True, null=True)
+    # Section C
+    positive_comment = models.TextField(verbose_name="Please comment on the TA's positive contributions to instruction (e.g. teaching methods, grading, ability to lead discussion) - or other noteworthy strengths", blank=True, null=True)
+    improve_comment = models.TextField(verbose_name="Please comment on those duties which you noted as not meeting job requirements and suggest ways in which the TA's performance could be improved", blank=True, null=True)
+    # Section D
+    overall_evalation = models.BooleanField(verbose_name='Overall Meets Jobs Requirements', blank=True, null=True)
+    recommend_TA = models.BooleanField(verbose_name='Would you recommend this TA for reappointment?', blank=True, null=True)
+    no_recommend_comment = models.TextField(verbose_name='If No, explain briefly', blank=True, null=True)
+    instructor_sign = models.CharField(verbose_name="Instruction's Signature", max_length=200)
+    instructor_signdate = models.DateField(verbose_name='Evaluation Date', help_text='Year-Month-Day')
+    # Section E
+    ta_comment = models.TextField(verbose_name="TA's comment", blank=True, null=True)
+    ta_sign = models.CharField(verbose_name="TA's Signature", blank=True, null=True, max_length=200)
+    ta_signdate = models.DateField(verbose_name='TA Signed Date', help_text='Year-Month-Day', blank=True, null=True)
+    
+    last_update = models.DateField(auto_now=True)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
+    # 'released': indicate whether release sent to TA for TA comments
+    # 'reminded': indicate whether reminder sent to TA for TA comments
+    defaults = {'released': False, 'reminded': False}
+    reminded, set_reminded = getter_setter('reminded')
+    released, set_release = getter_setter('released')
+
+    def is_past_nextsemstart(self):
+        try:
+            nextsemstart = self.member.offering.semester.next_semester().start               
+            from datetime import date
+            is_past_nextsemstart = date.today() >= nextsemstart
+        except:
+            is_past_nextsemstart = False
+        return is_past_nextsemstart
+    
+    def is_past_nextsemend(self):
+        try:
+            nextsemend = self.member.offering.semester.next_semester().end            
+            from datetime import date
+            is_past_nextsemend = date.today() > nextsemend
+        except:
+            is_past_nextsemend = False
+        return is_past_nextsemend
+        
+    @classmethod
+    def send_reminders_for_draft_evals(cls):
+        """
+        Execute on day 0 of next term
+        Get the list of TA Evals that was in draft and send reminders to the instructors
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()        
+        all_lastsem_draft = TAEvaluation.objects.filter(draft=True,  
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for drafteval in all_lastsem_draft:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            # Send email notification to each instructor
+            subject = 'You have a draft TA Evaluation for your TA %s. Please review and submit it.' % drafteval.member.person
+            plaintext = get_template('ta/emails/notify_draft_ta_eval_for_instructor.txt')
+            url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_wizard', kwargs={'course_slug': drafteval.member.offering.slug, 'userid': drafteval.member.person.userid})
+            email_context = {'person': drafteval.member.person, 'offering': drafteval.member.offering, 'url': url, 'instructor': drafteval.member.offering.instructors_str()}
+    
+            instructors = Member.objects.filter(role='INST', offering=drafteval.member.offering) 
+            instructor_email_list = []   
+            for member in instructors:
+                instructor_email_list.append(member.person.email())    
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                         from_email=from_email, to=instructor_email_list, headers={'X-coursys-topic': 'ta'})
+            msg.send()
+            l = LogEntry(userid='sysadmin',
+                         description=("automatically email notification to instructor %s for drafted Eval for %s %s") % (
+                             drafteval.member.offering.instructors_str(), drafteval.member.offering, drafteval.member.person),
+                         related_object=drafteval)
+            l.save()
+       
+        return cls
+    
+    @classmethod
+    def release_ta_evals(cls):
+        """
+        Execute on day 1 of next term
+        Get the list of TA Evals that can be released so we can add a news item for the TA (and includes send them notification as well)
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()        
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for taeval in all_lastsem_taevals:
+            if not taeval.config.get('released'):
+                from_email = settings.DEFAULT_FROM_EMAIL
+
+                # create news item for each TA
+                ta_edit_url = reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                n = NewsItem(user=taeval.member.person, source_app="ta_evaluation", title="Your TA Evaluation Form is created. Please review and provide your comment.",
+                    url=ta_edit_url, author=taeval.member.person, content="Your TA Evaluation Form is released. Please review and provide your comment.")
+                n.save()
+                
+                # Send email notification to each TA (in case they turned off news notication)
+                subject = 'Your TA Evaluation for %s is released. Please review and provide your comment.' % released_semester
+                plaintext = get_template('ta/emails/notify_ta_eval_release_for_ta.txt')
+                url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                email_context = {'person': taeval.member.person, 'semester': released_semester, 'unit': taeval.member.offering.owner, 'url': url}
+
+                to_email = taeval.member.person.email()        
+                msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                    from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+                msg.send()
+            
+                taeval.config['released'] = True
+                taeval.save()
+
+                l = LogEntry(userid='sysadmin',
+                            description=("automatically TA Eval Release to TA %s for %s") % (
+                            taeval.member.person, released_semester),
+                            related_object=taeval)
+                l.save()
+        return cls
+    
+    @classmethod
+    def send_reminders_for_incomplete_evals(cls):
+        """
+        Execute on day 7, 14 of next term
+        Get the list of incomplete TA Evals so we can add a news item for the TA (and includes send them notification as well)
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()        
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for taeval in all_lastsem_taevals:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            # Send email notification to each TA
+            subject = 'You have not completed your part of the TA Evaluation for %s. Please review and provide your comment.' % released_semester
+            plaintext = get_template('ta/emails/notify_tocomplete_ta_eval_for_ta.txt')
+            url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+            email_context = {'person': taeval.member.person, 'semester': released_semester, 'unit': taeval.member.offering.owner, 'url': url}
+
+            to_email = taeval.member.person.email()        
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+            msg.send()
+            taeval.config['reminded'] = True
+            taeval.save()
+
+            l = LogEntry(userid='sysadmin',
+                        description=("automatically TA Eval Reminder to TA %s for %s") % (
+                        taeval.member.person, released_semester),
+                        related_object=taeval)
+            l.save()            
+        
+        return cls
+    
+    @classmethod
+    def send_incomplete_to_admin(cls):
+        """
+        On day 28 of next term
+        Get the list of TA Evals that didn't have TA comments and send the PDF to admin
+        """
+        from log.models import LogEntry        
+        semester = Semester.current()
+        released_semester = semester.previous_semester()        
+        all_lastsem_incomplete_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        for taeval in all_lastsem_incomplete_taevals:
+            to_email = []
+            # get TA contact person
+            # /ta
+            try:
+                posting = TAPosting.objects.filter(semester=released_semester, unit=taeval.member.offering.owner).first()
+            except:
+                posting = None
+            if posting:
+                to_email.append(posting.contact().email())
+                
+            #/tacontracts
+            try: 
+                hiring_semester = HiringSemester.objects.filter(semester=released_semester, unit=taeval.member.offering.owner).first()
+            except: 
+                hiring_semester = None
+            if hiring_semester:
+                to_email.append(hiring_semester.contact)
+
+            if to_email:
+                subject = 'An incompleted TA Evaluation Form for TA %s (%s) was sent to you for filing' % (taeval.member.person.name(), taeval.member.offering.semester)    
+                plaintext = get_template('ta/emails/notify_incomplete_ta_eval_for_admin.txt')
+                url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                email_context = {'person': taeval.member.person, 'posting': taeval.member.offering, 'url': url, 'status': 'an incompleted'}
+                    
+                response = HttpResponse(content_type="application/pdf")   
+                ta_evaluation_form(taeval, taeval.member, taeval.member.offering, response)
+                    
+                from_email = settings.DEFAULT_FROM_EMAIL
+                msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                            from_email=from_email, to=to_email, headers={'X-coursys-topic': 'ta'})
+                msg.attach(('%s-%s.pdf' % (taeval.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
+                            'application/pdf')
+                msg.send()  
+
+                l = LogEntry(userid='sysadmin',
+                        description=("automatically sending incomplete TA Eval for %s on %s") % (
+                        taeval.member.person, released_semester.name),
+                        related_object=taeval)
+                l.save()      
+
+        return cls
+    
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
         ('GTA2', 'PhD'),
@@ -207,6 +560,7 @@ class TAPosting(models.Model):
         # 'instructions': instructions for completing the TA Application
         # 'hide_campuses': whether or not to prompt for Campus
         # 'send_notify': send email notification to contact person when someone accepts or declines an offer (default True)
+        # 'tssu_link': URL showing on TUG for TSSU collective agreement
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -228,7 +582,8 @@ class TAPosting(models.Model):
             'extra_questions': [],
             'instructions': '',
             'hide_campuses': False,            
-            'send_notify': True
+            'send_notify': True,
+            'tssu_link': 'https://www.sfu.ca/human-resources/tssu.html'
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -248,6 +603,7 @@ class TAPosting(models.Model):
     instructions, set_instructions = getter_setter('instructions')
     hide_campuses, set_hide_campuses = getter_setter('hide_campuses')
     send_notify, set_send_notify = getter_setter('send_notify')
+    tssu_link, set_tssu_link = getter_setter('tssu_link')    
     _, set_contact = getter_setter('contact')
     
     class Meta:

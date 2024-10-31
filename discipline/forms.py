@@ -103,6 +103,10 @@ class NewAttachFileForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if 'case' not in cleaned_data:
+            raise forms.ValidationError("Problem with hidden field.")
+        if 'attachment' not in cleaned_data:
+            raise forms.ValidationError("The attachment is required.")
         case = cleaned_data['case']
         attach = cleaned_data['attachment']
         existing_attachments = CaseAttachment.objects.filter(case=case, public=True)

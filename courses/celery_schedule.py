@@ -70,4 +70,8 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'reports.tasks.run_regular_reports',
         'schedule': crontab(hour=9, minute=15),
     },
+    'ta.tasks.check_and_execute_reminders': {
+        'task': 'ta.tasks.check_and_execute_reminders',
+        'schedule': crontab(minute='00', hour='8'),
+    },    
 }

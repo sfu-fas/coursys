@@ -6,7 +6,7 @@ from coredata.queries import SIMSConn, get_reqmnt_designtn, import_person,\
     userid_to_emplid, cache_by_args, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, Holiday
 from coredata.models import CombinedOffering, EnrolmentHistory, CAMPUSES, COMPONENTS, INSTR_MODE
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
@@ -139,16 +139,18 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         section = 'G100' # fix different broken data somebody entered
     if section == '1':
         section = 'D100' # and another one
+    if section == '2':
+        section = 'D200' # yup
 
     owner = get_unit(acad_org, create=create_units)
 
-    # search for existing offerings both possible ways and make sure we're consistent
+    # search for existing offerings all possible ways and make sure we're internally consistent
     c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
     c_old2 = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
-    c_old = list(set(c_old1) | set(c_old2))
+    c_old3 = CourseOffering.objects.filter(semester=semester, crse_id=crse_id, section=section)
+    c_old = list(set(c_old1) | set(c_old2) | set(c_old3))
     
     if len(c_old)>1:
-        #raise KeyError("Already duplicate courses: %r %r" % (c_old1, c_old2))
         c1 = c_old[0]
         c2 = c_old[1]
         with transaction.atomic():
@@ -161,8 +163,8 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
             c2.save()
             c1.class_nbr = c2_nbr
             c1.save()
-        mail_admins('class_nbr re-use', 'Conflict between class numbers on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
-        c = c_old1[0]
+        mail_admins('class_nbr re-use', 'Conflict between unique keys on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
+        return  # update it properly on the next import when things are hopefully coherent
     elif len(c_old)==1:
         # already in DB: update things that might have changed
         c = c_old[0]
@@ -190,16 +192,20 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     for pos, key in enumerate(c.flags.keys()):
         c.flags.set_bit(pos, key in flags)
 
-    c.save_if_dirty()
-    
-    crs = c.course
-    if crs.title != c.title:
-        crs.title = c.title
-        crs.save()
+    try:
+        c.save_if_dirty()
+    except IntegrityError as e:
+        import_admin_email(source='coredata.importer.import_offering', message='DB integrity error in import. This likely points to incoherent CSRPT that should be fixed in SIMS:\n' + str(e))
+    else:
+        crs = c.course
+        if crs.title != c.title:
+            crs.title = c.title
+            crs.save()
 
-    EnrolmentHistory.from_offering(c, save=True)
+        EnrolmentHistory.from_offering(c, save=True)
 
-    return c
+        return c
+
 
 
 CLASS_TBL_FIELDS = 'CT.SUBJECT, CT.CATALOG_NBR, CT.CLASS_SECTION, CT.STRM, CT.CRSE_ID, CT.CLASS_NBR, ' \
@@ -450,8 +456,11 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
         m.official_grade = None
 
     # record sched_print_instr status for instructors
-    if role=='INST' and sched_print_instr:
-        m.config['sched_print_instr'] = sched_print_instr == 'Y'
+    # if role=='INST' and sched_print_instr:
+    #     m.config['sched_print_instr'] = sched_print_instr == 'Y'
+    if role=='INST' and not sched_print_instr:
+        # convert non-printing instructors to grade approvers in our parlance
+        m.role = 'APPR'
 
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.

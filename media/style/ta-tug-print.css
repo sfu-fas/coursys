@@ -24,7 +24,7 @@ div.breadcrumb {
 	padding: 2pt;
 }
 
-#taName, #Instructor{
+#taName, #maxHours{
     display:block;
     float: left;
 }
