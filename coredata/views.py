@@ -1369,11 +1369,6 @@ class OfferingDataJson(BaseDatatableView):
             qs = qs.filter(enrl_tot__lt=F('enrl_cap'))
         if 'nowait' in space_filters:
             qs = qs.filter(wait_tot=0)
-        
-        # crosslist
-        #xlist_filters = GET.getlist('xlist[]')
-        #if 'yes' in xlist_filters:
-        #    qs = qs.filter(config__contains='joint_with')
             
         return qs        
 
