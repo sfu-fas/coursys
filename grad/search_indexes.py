@@ -14,11 +14,17 @@ class GradIndex(indexes.SearchIndex, indexes.Indexable):
             .select_related('person', 'program')
 
     def prepare_text(self, grad):
+        if grad.start_semester:
+            start_semester_name = grad.start_semester.name
+            start_semester_label = grad.start_semester.label()
+        else:
+            start_semester_name = ""
+            start_semester_label = ""
         pieces = [
             grad.person.sortname(),
             str(grad.person.emplid),
             grad.program.label, grad.program.unit.label,
-            grad.start_semester.name, grad.start_semester.label(),
+            start_semester_name, start_semester_label,
         ]
         return '\n'.join(pieces)
 
