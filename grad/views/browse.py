@@ -99,7 +99,10 @@ class GradDataJson(BaseDatatableView):
         elif column == 'program':
             return grad.program.unit.label + ", " + grad.program.label
         elif column == 'start_semester':
-            return grad.start_semester.name + " (" + grad.start_semester.label() + ")"
+            if grad.start_semester:
+                return grad.start_semester.name + " (" + grad.start_semester.label() + ")"
+            else: 
+                return None
         elif column == 'completion_progress':
             active_semesters = grad.active_semesters()[0]
             return str(active_semesters) + "/" + str(grad.program.expected_completion_terms)
