@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.forms import formset_factory
 
 def _get_grads_missing_supervisors(units):
-    grads = GradStudent.objects.filter(program__requires_supervisor=True, current_status__in=STATUS_ACTIVE, program__unit__in=units).order_by("start_semester")
+    grads = GradStudent.objects.filter(program__requires_supervisor=True, current_status__in=STATUS_ACTIVE, program__unit__in=units).order_by("start_semester", "person__sortname", "program__unit", "program__label")
     # list of students with supervisors
     ids_with_supervisors = [grad.id for grad in grads if grad.has_supervisor()]
     grads = grads.exclude(id__in=ids_with_supervisors)

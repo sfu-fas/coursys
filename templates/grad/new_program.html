@@ -4,8 +4,19 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grad:index" %}">Grad</a></li><li>{{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:config" %}">Configuration</a></li>
+<li><a href="{% url "grad:programs" %}">Programs</a></li>
+<li>{{crumb}}</li>
+{% endblock %}
+
 {% block content %}
+<div class="helptext">
+<p>In addition to creating a new program on this page, please contact a System Administrator to have your program added to our SIMS importer. </p>
+<p><b>Note:</b> Unit and Label cannot be changed after the creation of a new program.</p>
+</div>
+
 <div class="form_container">
     <form action="{% url "grad:new_program" %}" method="post">{% csrf_token %}
     	<fieldset>

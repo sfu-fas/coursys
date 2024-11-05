@@ -1,0 +1,5 @@
+{% if num_grads_missing_supervisors > 0 %}
+<div class="supervisor_notification">
+  <p>There are <a href="{% url "grad:add_supervisors" %}">({{num_grads_missing_supervisors}}) Active Graduate Students</a> missing Supervisors <i class="fa fa-group"></i></p>
+</div>
+{% endif %}
