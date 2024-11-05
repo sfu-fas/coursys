@@ -604,6 +604,7 @@ class OfferingFilterForm(forms.Form):
                                     widget=CheckboxSelectTerse())
     mode = forms.ChoiceField(label='Mode/Time', choices=[('', 'all'), ('dist', 'Distance'), ('on', 'On-Campus'), ('day', 'On-Campus, day'), ('eve', 'On-Campus, evening')])
     space = forms.MultipleChoiceField(label=mark_safe('<span title="Filter either enrollment not at capacity, or no waiting list">Free Space [?]</span>'), choices=[('seats', 'seats'), ('nowait', 'no waitlist')], widget=CheckboxSelectTerse())
+    xlist = forms.MultipleChoiceField(label=mark_safe('<span title="Show crosslisted in SIMS">Crosslisted [?]</span>'), choices=[('yes', '')], widget=CheckboxSelectTerse())
     
     @classmethod
     @cached(6*3600)
