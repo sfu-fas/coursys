@@ -1230,10 +1230,10 @@ class GradFilterForm(forms.Form):
 
     @classmethod
     def grad_supervisors(self, units):
-        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units)
-        externals = grad_supervisors.filter(external__isnull=False)
+        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units, supervisor_type__in=['SEN'], removed=False)
+        #externals = grad_supervisors.filter(external__isnull=False)
         users = grad_supervisors.filter(supervisor__isnull=False)
-        return (externals, users)
+        return users
 
     def __init__(self, units, programs, *args, **kwargs):
         super(GradFilterForm, self).__init__(*args, **kwargs)
@@ -1254,7 +1254,7 @@ class GradFilterForm(forms.Form):
         self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
 
         # supervisors
-        externals, users = self.grad_supervisors(units)
-        externals = list(dict.fromkeys([(str(s.external), str(s.sortname())) for s in externals]))
+        users = self.grad_supervisors(units)
+        #externals = list(dict.fromkeys([(str(s.external), str(s.sortname())) for s in externals]))
         users = list(dict.fromkeys([(s.supervisor.userid, str(s.sortname())) for s in users]))
-        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + users + externals
+        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + users
