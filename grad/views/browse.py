@@ -42,6 +42,8 @@ class GradDataJson(BaseDatatableView):
     def filter_queryset(self, qs):
         GET = self.request.GET
 
+        qs = qs.filter(program__unit__in=self.request.units)
+
         # search box
         srch = GET.get('sSearch', None)
         if srch:
@@ -75,9 +77,9 @@ class GradDataJson(BaseDatatableView):
         if supervisor:
             try:
                 person = Person.objects.get(userid=supervisor)
-                supervisors = Supervisor.objects.filter(supervisor=person).values('student')
+                supervisors = Supervisor.objects.filter(supervisor=person, supervisor_type__in=['SEN', 'COS']).values('student')
             except Person.DoesNotExist:
-                supervisors = Supervisor.objects.filter(external=supervisor).values('student')
+                supervisors = Supervisor.objects.filter(external=supervisor, supervisor_type__in=['SEN', 'COS']).values('student')
             except:
                 supervisors = []
             if supervisors: 
@@ -107,7 +109,7 @@ class GradDataJson(BaseDatatableView):
             active_semesters = grad.active_semesters()[0]
             return str(active_semesters) + "/" + str(grad.program.expected_completion_terms)
         elif column == 'supervisor':
-            return grad.list_supervisors()
+            return grad.list_supervisors(senior_only=True)
         elif column == 'status':
             return grad.get_current_status_display()
 
