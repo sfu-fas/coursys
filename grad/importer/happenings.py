@@ -618,7 +618,7 @@ class GradSemester(GradHappening):
 
 class CommitteeMembership(GradHappening):
     found_people = None
-    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role):
+    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role, max_effdt):
         # argument order must match committee_members query
         self.emplid = emplid
         self.adm_appl_nbr = None
@@ -629,6 +629,7 @@ class CommitteeMembership(GradHappening):
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role
+        self.max_effdt = max_effdt
 
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
@@ -672,6 +673,12 @@ class CommitteeMembership(GradHappening):
         matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
         if matches:
             member = matches[0]
+            if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
+                # if we have a match that has been found in SIMS previously, has not been removed already, and is not included in the most recent commitee version, 'delete' it
+                if verbosity > 2:
+                    print("We should delete committee member: %s is a %s for %s/%s", (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                    #member.updated_at = self.max_effdt
+                    #member.removed = True
         else:
             similar = [m for m in local_committee if m.supervisor == p]
             if len(similar) > 0:

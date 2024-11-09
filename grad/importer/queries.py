@@ -72,7 +72,8 @@ def committee_members(emplids):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'CommitteeMembership', SC.EMPLID, SC.COMMITTEE_ID, AP.ACAD_PROG, COM.EFFDT, COM.COMMITTEE_TYPE, MEM.EMPLID, MEM.COMMITTEE_ROLE
+        SELECT 'CommitteeMembership', SC.EMPLID, SC.COMMITTEE_ID, AP.ACAD_PROG, COM.EFFDT, COM.COMMITTEE_TYPE, MEM.EMPLID, MEM.COMMITTEE_ROLE,
+        MAX(COM.EFFDT) OVER (PARTITION BY AP.ACAD_PROG, SC.EMPLID) AS 'MAX_EFFDT'
         FROM
             PS_SFU_STDNT_CMTTE SC
             JOIN (SELECT * FROM (
