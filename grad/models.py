@@ -44,6 +44,9 @@ class GradProgram(models.Model):
     def __str__ (self):
         return "%s" % (self.label)
     
+    def num_grad_requirements(self):
+        return GradRequirement.objects.filter(program=self, hidden=False).count()
+
     def cmpt_program_type(self):
         """
         REJEck for CMPT progress reports system export.
@@ -316,6 +319,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         super(GradStudent, self).save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('grad:view', kwargs={'grad_slug': self.slug})
+
     def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester.
 
@@ -509,13 +515,22 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         return bool(res)
     
-    def _get_supervisors(self):
-        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=['SEN', 'COM', 'COS'], removed=False)
+    def _get_supervisors(self, senior_only=False):
+        if senior_only:
+            types = ['SEN', 'COS']
+        else:
+            types = ['SEN', 'COM', 'COS']
+        supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=types, removed=False)
         return supervisors
 
-    def has_supervisor(self):
-        supervisors = self._get_supervisors().count()
+    def has_supervisor(self, senior_only=False):
+        supervisors = self._get_supervisors(senior_only).count()
         return supervisors > 0
+
+    def list_supervisors(self, senior_only=True):
+        supervisors = list(dict.fromkeys([str(s.sortname()) for s in self._get_supervisors(senior_only)]))
+        supervisors = ", ".join(supervisors)
+        return supervisors
 
     def active_semesters_display(self):
         """
@@ -534,6 +549,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         """
         return _program_start_end_semesters_display(self.pk)
 
+    def num_completed_requirements(self):
+        return CompletedRequirement.objects.filter(student=self, removed=False).count()
 
     def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:
@@ -1802,7 +1819,7 @@ class GradFlagValue(models.Model):
         return "%s: %s" % (self.flag.label, self.value)
 
 class SavedSearch(models.Model):
-    person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT) # created_by
     query = models.TextField()
     config = JSONField(null=False, blank=False, default=dict)
     
@@ -1810,8 +1827,9 @@ class SavedSearch(models.Model):
         #unique_together = (('person', 'query'),)
         pass
         
-    defaults = {'name': ''}
+    defaults = {'name': '', 'created_at': None}
     name, set_name = getter_setter('name')
+    created_at, set_created_at = getter_setter('created_at')
 
 
 class ProgressReport(models.Model):

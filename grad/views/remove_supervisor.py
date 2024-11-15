@@ -13,7 +13,7 @@ def remove_supervisor(request, grad_slug, sup_id):
     if request.method == 'POST':
         supervisor.removed = True
         supervisor.save()
-        messages.success(request, "Removed committe member %s." % (supervisor.supervisor or supervisor.external))
+        messages.success(request, "Removed committee member %s." % (supervisor.supervisor or supervisor.external))
         l = LogEntry(userid=request.user.username,
               description="Removed committee member %s for %s." % (supervisor.supervisor or supervisor.external, grad.person.userid),
               related_object=supervisor)

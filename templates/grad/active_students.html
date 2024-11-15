@@ -1,0 +1,169 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Records{% endblock %}
+{% block h1 %}Graduate Student Records{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#masters').dataTable( {
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'aaSorting': [[3, 'asc']],
+    'scrollY': false, 
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    "columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "14%", "targets": [4,5] },
+      { "orderable": false, "targets": [4,5] },
+    	]
+    } );
+    $('#doctoral').dataTable( {
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'aaSorting': [[3, 'asc']],
+    'scrollY': false, 
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    "columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "14%", "targets": [4,5] },
+      { "orderable": false, "targets": [4,5] },
+    	]
+    } );
+    $('#other').dataTable( {
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'aaSorting': [[3, 'asc']],
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    'scrollY': false, 
+    "columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "14%", "targets": [4,5] },
+      { "orderable": false, "targets": [4,5] },
+    	]
+    } );
+} );
+</script>
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Active Students</li>
+{% endblock %}
+
+{% block content %}
+{% include "grad/notifications.html" %}
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:config" %}">Configuration</a>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <a class="btn" href="{% url "grad:index" %}">Search</a>
+    <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
+    <div class="btn pressed">Active Students</div>
+</div>
+
+<h3>Master's Graduate Students</h3>
+<div class="datatable_container">
+  <table id="masters" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
+        <th scope="col">Requirements</th>
+        <th scope="col">Senior Supervisor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grad in masters_grads %}
+        <tr>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Doctoral Graduate Students</h3>
+<div class="datatable_container">
+  <table id="doctoral" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
+        <th scope="col">Requirements</th>
+        <th scope="col">Senior Supervisor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grad in doctoral_grads %}
+        <tr>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Other Graduate Students</h3>
+<div class="datatable_container">
+  <table id="other" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
+        <th scope="col">Requirements</th>
+        <th scope="col">Senior Supervisor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grad in other_grads %}
+        <tr>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %} 

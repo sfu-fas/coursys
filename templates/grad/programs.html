@@ -32,12 +32,9 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	<a href="{% url "grad:index" %}">Grad</a>
-</li>
-<li>
-	{{crumb}}
-</li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:config" %}">Configuration</a></li>
+<li>{{crumb}}</li>
 {% endblock %}
 
 {% block content %}

@@ -1,0 +1,51 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Records Resports{% endblock %}
+{% block h1 %}Graduate Student Records Reports{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:config" %}">Configuration</a>
+    <div class="btn pressed">Reports</div>
+    <a class="btn" href="{% url "grad:index" %}">Search</a>
+    <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
+    <a class="btn" href="{% url "grad:active_students" %}">Active Students</a>
+</div>
+<table id="masters" class="display">
+    <thead>
+      <tr>
+        <th scope="col" style="width: 20%;">Link</th>
+        <th scope="col">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="{% url "grad:all_promises" %}">Ending Promises</a></td>
+            <td>A term summary of students whose promised funding is ending. The report is by student name, program, start semester, status, amount promised, amount received and the difference between promised and received funding. </td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:funding_report" %}">Funding Report</a></td>
+            <td>A term summary of the amount of funding (TA, RA, Scholarship and other) disbursed to students. The report is by program and funding type. </td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:financials_report" %}">Finanical Summary Report</a></td>
+            <td>A list of active students by program type. Data is a year 1 to 4 breakdown of promised funding, received funding and the difference between the two. </td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:add_supervisors" %}">Bulk Add Committee Members</a></td>
+            <td>A list of Active Graduate Students that do not have either a Senior Supervisor, Supervisor, or Co-Supervisor. May add Committee Members in bulk. </td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}
