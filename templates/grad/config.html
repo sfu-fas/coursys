@@ -1,0 +1,52 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Records Configuration{% endblock %}
+{% block h1 %}Graduate Student Records Configuration{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Configuration</li>
+{% endblock %}
+
+{% block content %}
+<div class="actionlist">
+    <div class="btn pressed">Configuration</div>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <a class="btn" href="{% url "grad:index" %}">Search</a>
+    <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
+    <a class="btn" href="{% url "grad:active_students" %}">Active Students</a>
+</div>
+<table id="masters" class="display">
+    <thead>
+      <tr>
+        <th scope="col" style="width: 20%;">Link</th>
+        <th scope="col">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="{% url "grad:programs" %}">Manage Programs</a></td>
+            <td>A space to add new programs or modify existing programs.</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:requirements" %}">Manage Requirements</a></td>
+            <td>A space to add new or modify existing program requirements.</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:letter_templates" %}">View Letter Templates</a></td>
+            <td>A space to view and edit letter templates.</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:manage_scholarshiptypes" %}">Manage Scholarship Types</a></td>
+            <td>A space to add new or modify existing scholarship types and indicate if the funding should be included in the amount promised. </td>
+        </tr>
+
+    </tbody>
+</table>
+{% endblock %}

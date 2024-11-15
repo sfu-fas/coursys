@@ -16,8 +16,6 @@ def delete_savedsearch(request):
     if not savedsearches:
         return NotFoundResponse(request, "This Saved Search doesn't exist.")
     savedsearch = savedsearches[0]
-    if current_user != savedsearch.person:
-        return ForbiddenResponse(request, "You cannot delete this Saved Search.")
     savedsearch.delete()
     messages.add_message(request, messages.SUCCESS, "Saved Search '%s' was successfully deleted." % savedsearch.name())
     return HttpResponseRedirect(reverse('grad:index'))

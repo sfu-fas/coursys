@@ -168,6 +168,42 @@ filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
   text-align: center;
 }
 
+.actionlist .pressed {
+  background-color: #777777;
+  border-bottom: 3px solid #464646;
+  cursor: default;
+}
+
+#filterform {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#filterform select {
+  height: 2.25em;
+  padding: .4em;
+  border: 1px solid #DDD;
+  border-radius: 4px;
+  box-shadow: 0 0 5px -2px #777;
+}
+
+form label {
+  padding: 5px;
+}
+
+abbr .title {
+  background-color: #777777;
+  color: white;
+  text-align: center;
+  border-radius: 10px;
+  padding: 5px 0;
+  top: 100%;
+  left: 50%;
+  margin-left: -50px;
+  font-weight: 100;
+}
+
 .add_button .btn{
   margin: 0;
   margin-left: 10px;
@@ -195,6 +231,16 @@ filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
 
 .submit_button {
   padding-top: 50px;
+}
+
+.supervisor_notification {
+  color: #777;
+  font-size: 1em;
+  font-family: sans-serif;
+  background-color: #eee;
+  padding-left: 15px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
 }
 
 #grads tr[class~="initial"] {

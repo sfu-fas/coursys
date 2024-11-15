@@ -1,8 +1,13 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Search{% endblock %}
+{% block h1 %}Graduate Student Search{% endblock %}
 
 {% block headextra %}
-  <link rel="stylesheet" href="{% static "style/grad_quicksearch.css" %}" />
+<script nonce="{{ CSP_NONCE }}"></script>
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
 
 <script nonce="{{ CSP_NONCE }}">
     $.widget("custom.alteredcomplete", $.ui.autocomplete, {
@@ -16,70 +21,89 @@
             .appendTo( ul );
         }
     });
-    
+
 	$(document).ready(function() {
 	    $("#id_search").focus();
 	    $("#id_search").alteredcomplete({
             source: '{% url "grad:quick_search" %}',
             minLength: 2
         });
+        $('#saved_searches').dataTable( {
+            'bPaginate': false,
+            'bInfo': true,
+            'bFilter': true,
+            'bLengthChange': false,
+            "bJQueryUI": true,
+            'aaSorting': [[2, 'asc']],
+            'scrollY': false, 
+            "columnDefs": [
+                { "orderable": false, "targets": 3 },
+                { "width": "45%", "targets": 0 },
+                { "width": "30%", "targets": 1 },
+                { "width": "15%", "targets": 2 },
+                { "width": "5%", "targets": 3 },
+                ]
+        } );
 	});
 </script>
-
-{% endblock %}
-
-{% block title %}Graduate Student Records{% endblock %}
-{% block h1 %}Graduate Student Records{% endblock %}
-
-{% block actions %}
-<div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url "grad:programs" %}">Manage Programs</a></li>
-<li><a href="{% url "grad:requirements" %}">Manage Requirements</a></li>
-<li><a href="{% url "grad:letter_templates" %}">View Letter Templates</a></li>
-<li><a href="{% url "grad:manage_scholarshiptypes" %}">Manage Scholarship Types</a></li>
-<li class="newsec"><a href="{% url "grad:search" %}">Advanced Search</a></li>
-<li><a href="{% url "grad:all_promises" %}">Ending Promises</a></li>
-<li><a href="{% url "grad:funding_report" %}">Funding Report</a></li>
-<li><a href="{% url "grad:financials_report" %}">Promised and Received Funding by Students</a></li>	
-</ul>
-
-</div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>Grads</li>
+<li>Grad</li>
 {% endblock %}
 
 {% block content %}
-<p>You can view grad student records for {{units|pluralize:"this unit,these units"}}: 
-{% for u in units %}{{u.name}}{% if not forloop.last %}, {% endif %}{% endfor %}.
-</p>
+{% include "grad/notifications.html" %}
 
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:config" %}">Configuration</a>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <div class="btn pressed">Search</div>
+    <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
+    <a class="btn" href="{% url "grad:active_students" %}">Active Students</a>
+</div>
+
+<h2>Search by Student</h2>
 <form action="{% url "grad:quick_search" %}" method="get">
-<p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
-<p><input class="submit" type="submit" class="submit" value="Go" /></p>
+    <p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
+    <p><input class="submit" type="submit" class="submit" value="Go" /></p>
 </form>
 
-{% if savedsearches %}
-<h2 id="saved" style="clear: right;">My Saved Searches</h2>
-<ul>
-{% for s in savedsearches %}
-<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
+<h2>Search by Advanced Fields</h2>
+<form action="{% url "grad:search" %}">
+  <input class="submit" type="submit" class="submit" value="Go" /></p>
+</form>
 
-{% if other_savedsearches %}
-<h2 id="saved" style="clear: right;">All Saved Searches</h2>
-<ul>
-{% for s in other_savedsearches %}
-<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
-
-
-
+<h2>Saved Advanced Searches</h2>
+<div class="datatable_container">
+    <table id="saved_searches" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Created By</th>
+          <th scope="col">Date</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in savedsearches %}
+          <tr>
+              <td><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></td>
+              <td>{{s.person.name_pref}}</td>
+              <td>{{s.created_at}}</td>
+              <td>
+                <form class="lineform" method="POST" action="{% url "grad:delete_savedsearch" %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="person" value="{{ s.person.pk }}" id="id_person">
+                    <input type="hidden" name="query" value="{{ s.query }}" id="id_query">
+                    <button type='submit' class='btn confirm-submit' title="Delete" data-submit-action="delete this saved search">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+              </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
 {% endblock %} 
