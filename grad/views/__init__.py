@@ -1,4 +1,5 @@
-from .index import index
+from .config import reports, config
+from .active_students import active_students
 from .quick_search import quick_search
 from .not_found import not_found
 from .supervisor_index import supervisor_index, download_my_grads_csv
@@ -8,6 +9,7 @@ from .view import view
 from .grad_more_info import grad_more_info
 from .get_form import get_form
 from .manage_supervisors import manage_supervisors
+from .add_supervisors import add_supervisors, committee_info
 from .remove_supervisor import remove_supervisor
 from .manage_financialcomments import manage_financialcomments
 from .remove_financialcomment import remove_financialcomment
@@ -25,6 +27,7 @@ from .manage_promises import manage_promises
 from .remove_promise import remove_promise
 #from new import new
 from .new_program import new_program
+from .edit_program import edit_program
 from .programs import programs
 from .requirements import requirements, toggle_requirement
 from .new_requirement import new_requirement
@@ -42,7 +45,7 @@ from .get_addresses import get_addresses
 from .get_letter import get_letter
 from .view_letter import view_letter
 from .copy_letter import copy_letter
-from .search import search
+from .search import search, index
 from .save_search import save_search
 from .delete_savedsearch import delete_savedsearch
 from .student_financials import student_financials
@@ -58,3 +61,4 @@ from .manage_documents import manage_documents
 from .remove_document import remove_document
 from .download_file import download_file
 from .notes import update_note
+from .browse import browse

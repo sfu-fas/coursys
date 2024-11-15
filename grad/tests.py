@@ -88,11 +88,14 @@ class GradTest(TestCase):
                 ['programs', 'new_program', 'requirements', 'new_requirement', 
                     'letter_templates', 'new_letter_template', 
                     'manage_scholarshiptypes', 'search', 'funding_report',
-                    'all_promises', 'new_scholarshiptype'],
+                    'all_promises', 'new_scholarshiptype',
+                    'browse', 'config', 'reports', 'committee_info',
+                    'add_supervisors', 'active_students'],
                 {})
         test_views(self, client, 'grad:', ['manage_letter_template'], {'letter_template_slug': lt.slug})
         test_views(self, client, 'grad:', ['edit_scholarshiptype'], {'st_id': 1})
         test_views(self, client, 'grad:', ['not_found'], {}, qs='search=grad')
+        test_views(self, client, 'grad:', ['edit_program'], {'program_id': prog.id })
 
 
     def __make_test_grad(self):

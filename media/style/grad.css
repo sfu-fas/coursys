@@ -153,3 +153,139 @@ transform: rotate(90deg);
 /* Internet Explorer */
 filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1); 
 }
+
+.actionlist {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.actionlist .btn{
+  display: inline-block;
+  padding: 8px;
+  margin-right: 5px;
+  margin-left: 0px;
+  width: 175px;
+  text-align: center;
+}
+
+.actionlist .pressed {
+  background-color: #777777;
+  border-bottom: 3px solid #464646;
+  cursor: default;
+}
+
+#filterform {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#filterform select {
+  height: 2.25em;
+  padding: .4em;
+  border: 1px solid #DDD;
+  border-radius: 4px;
+  box-shadow: 0 0 5px -2px #777;
+}
+
+form label {
+  padding: 5px;
+}
+
+abbr .title {
+  background-color: #777777;
+  color: white;
+  text-align: center;
+  border-radius: 10px;
+  padding: 5px 0;
+  top: 100%;
+  left: 50%;
+  margin-left: -50px;
+  font-weight: 100;
+}
+
+.add_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 0 4px;
+  display: inline;
+  width: 30px;
+  height: 30px; 
+}
+
+.remove_button .btn{
+  margin: 0;
+  margin-left: 10px;
+  padding: 2px 2px;
+  display: inline;
+  width: 30px;
+  height: 30px;
+}
+
+.max_forms p {
+  transform: translateX(0);
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.submit_button {
+  padding-top: 50px;
+}
+
+.supervisor_notification {
+  color: #777;
+  font-size: 1em;
+  font-family: sans-serif;
+  background-color: #eee;
+  padding-left: 15px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+}
+
+#grads tr[class~="initial"] {
+  background-color: #eee;
+}
+
+#grads tr[class~="subsequent"] {
+  background-color: #fff;
+}
+
+#grads tr[class~="subsequent"] td .grad_info {
+  color: #888;
+}
+
+#grads tr[class~="subsequent"] td .grad_info a {
+  color: #888;
+  pointer-events: none;
+  cursor: default;
+}
+
+#grads tr:not([class~="max"]) td .max_forms {
+  display: none;
+}
+
+#grads tr[class~="initial"] td .remove_button {
+  display: none;
+}
+
+#grads tr[class~="last"] td .add_button {
+  display: none;
+}
+
+#grads tr[class$="max"] td .add_button {
+  display: none;
+}
+
+#grads tr[class~="middle"] td .add_button{
+  display: none;
+}
+
+#grads tr[class~="middle"] td .remove_button {
+  display: none;
+}
+
+.max_forms p {
+  padding: 0;
+  margin: 0;
+}

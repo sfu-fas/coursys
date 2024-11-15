@@ -6,14 +6,21 @@ ST_ID = '(?P<st_id>' + ID_RE + ')'
 
 grad_patterns = [ # prefix /grad/
     url(r'^$', grad_views.index, name='index'),
+    url(r'^active$', grad_views.active_students, name='active_students'),
+    url(r'^browse$', grad_views.browse, name='browse'),
+    url(r'^config$', grad_views.config, name='config'),
+    url(r'^reports$', grad_views.reports, name='reports'),
     #url(r'^import$', grad_views.import_applic, name='import_applic'),
     url(r'^progress_reports', grad_views.progress_reports, name='progress_reports'),
     url(r'^search$', grad_views.search, name='search'),
     url(r'^search/save$', grad_views.save_search, name='save_search'),
     url(r'^search/delete$', grad_views.delete_savedsearch, name='delete_savedsearch'),
     url(r'^qs', grad_views.quick_search, name='quick_search'),
+    url(r'^add_supervisors', grad_views.add_supervisors, name='add_supervisors'),
+    url(r'^committee_info', grad_views.committee_info, name='committee_info'),
 
     url(r'^program/new$', grad_views.new_program, name='new_program'),
+    url(r'^program/(?P<program_id>\d+)/edit', grad_views.edit_program, name='edit_program'),
     url(r'^program/$', grad_views.programs, name='programs'),
     url(r'^requirement/$', grad_views.requirements, name='requirements'),
     url(r'^requirement/new$', grad_views.new_requirement, name='new_requirement'),

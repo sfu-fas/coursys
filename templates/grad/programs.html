@@ -1,56 +1,75 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
+{% load static %}
+
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		$('#programs').dataTable({
 			"bJQueryUI" : true,
+			'bPaginate': true,
+    		'lengthMenu': [[25, -1], [25, 'All']],
 			"bPaginate": false,
 			"bFilter": false,
 			"bInfo": false,
+			"aaSorting" : [[1, "asc"]],
+			'scrollY': false, 
+			"columnDefs": [
+			{ "orderable": false, "targets": 6 },
+			{ "width": "8%", "targets": 0 },
+			{ "width": "17%", "targets": 3 },
+			{ "width": "13%", "targets": [4,5] },
+			{ "width": "4%", "targets": 6 },
+    		],
 			"aaSorting" : [[0, "asc"]],
 		});
 	});
 
 </script>
-{% endblock %}
-{% block actions %}
-<div id="actions">
-	<h2>Actions</h2>
-	<ul>
-		<li>
-			<a href="{% url "grad:new_program" %}">New Program</a>
-		</li>
-	</ul>
-</div>
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
 {% endblock %}
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	<a href="{% url "grad:index" %}">Grad</a>
-</li>
-<li>
-	{{crumb}}
-</li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:config" %}">Configuration</a></li>
+<li>{{crumb}}</li>
 {% endblock %}
 
 {% block content %}
-
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:new_program" %}">New Program</a>
+</div>
 <div class="datatable_container">
 	<table class="display" id="programs">
 		<thead>
 			<tr>
+				<th scope="col">Unit</th>
 				<th scope="col">Program Name</th>
 				<th scope="col">Description</th>
+				<th scope="col">Expected Completion Terms</th>
+				<th scope="col">Requires Supervisor</th>
+				<th scope="col">Graduate Category</th>
+				<th>Action</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for s in programs %}
 			<tr>
+				<td>{{s.unit.label}}</td>
 				<td>{{s.label}}</td>
 				<td>{{s.description}}</td>
+				<td>{{s.expected_completion_terms}}</td>
+				<td>{{s.requires_supervisor|yesno|capfirst}}</td>
+				<td>{{s.get_grad_category_display}}</td>
+				<td>
+					<a class="lineform" href="{% url "grad:edit_program" program_id=s.id %}">
+						<button type='submit' class='btn' title="Edit Program">
+							<i class='fa fa-edit'></i>
+						</button>
+					</a>
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>

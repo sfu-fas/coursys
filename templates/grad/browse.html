@@ -1,0 +1,52 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}All Grad Student Records{% endblock %}
+{% block h1 %}All Grad Student Records{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Browse All Students</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/grad.css" %}" type="text/css">
+<script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    var url = "{% url 'grad:browse' %}"
+    grad_browser_setup(url);
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+{% include "grad/notifications.html" %}
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:config" %}">Configuration</a>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <a class="btn" href="{% url "grad:index" %}">Search</a>
+    <div class="btn pressed">Browse All Students</div>
+    <a class="btn" href="{% url "grad:active_students" %}">Active Students</a>
+</div>
+
+<form action="" id="filterform">
+    {{ form.as_ul }}
+</form>
+<table class="display" id="grad_table">
+<thead>
+    <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th scope="col"><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
+        <th scope="col">Senior Supervisor</th>
+        <th scope="col">Current Status</th>
+    </tr>
+</thead>
+<tbody></tbody>
+</table>
+
+{% endblock %}
+

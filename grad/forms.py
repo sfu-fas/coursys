@@ -35,7 +35,7 @@ class SupervisorWidget(forms.MultiWidget):
     "Widget for entering supervisor by choices or userid"
     template_name = 'grad/_supervisor_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [forms.Select(), forms.TextInput(attrs={'size': 8, 'maxlength': 8})]
+        widgets = [forms.Select(attrs={'style': 'width:40%'}), forms.TextInput(attrs={'style': 'width:25%','size': 8, 'maxlength': 8})]
         kwargs['widgets'] = widgets
         super(SupervisorWidget, self).__init__(*args, **kwargs)
     
@@ -112,6 +112,36 @@ class SupervisorForm(ModelForm):
         model = Supervisor
         exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
         
+class BulkSupervisorForm(SupervisorForm):
+    class Meta:
+        model = Supervisor
+        exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position', 'external')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkSupervisorForm, self).__init__(*args, **kwargs)
+        self.fields['supervisor_type'].required = False
+
+    def set_supervisor_choices(self, choices):
+        """
+        Set choices for the supervisor
+        """
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
+
+    def clean(self):
+        data = self.cleaned_data
+        supervisor_entered = 'supervisor' in data and not data['supervisor'] == None
+        supervisor_type_entered = 'supervisor_type' in data and not data['supervisor_type'] == ""
+        data['empty'] = not supervisor_entered and not supervisor_type_entered
+
+        if not data['empty']:
+            if supervisor_entered and not supervisor_type_entered:
+                self.add_error('supervisor_type', "Please fill out supervisor type.")
+            elif supervisor_type_entered and not supervisor_entered:
+                self.add_error('supervisor', "Please enter supervisor information.")
+
+        return data
+
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
         self.fields['supervisor'].choices = choices
@@ -144,7 +174,7 @@ def possible_supervisors(units, extras=[], null=False):
     people |= set(extras)
     people = list(people)
     people.sort()
-    supervisors = [(p.id, p.name()) for p in people]
+    supervisors = [(p.id, p.sortname()) for p in people]
     if null:
         return [(-1, '\u2014')] + supervisors
     else:
@@ -670,7 +700,6 @@ class SearchForm(forms.Form):
     # status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
 
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
-    program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
             label='Program Options', required=False)
     campus = forms.MultipleChoiceField(choices=GRAD_CAMPUS_CHOICES, required=False)
@@ -727,7 +756,6 @@ class SearchForm(forms.Form):
             ]
     program_fields = [
             'program',
-            'program_asof',
             'grad_flags',
             'campus',
             'supervisor',
@@ -785,14 +813,10 @@ class SearchForm(forms.Form):
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
                 ('scholarshiptype', 'scholarship__scholarship_type__in'),
+                ('program','program__in'),
                 ]
 
         manual_queries = []
-
-        if not self.cleaned_data.get('program_asof', None):
-            # current program: is in table
-            auto_queries.append(('program','program__in'))
-        # else:  selected semester so must calculate. Handled in secondary_filter
 
         if not self.cleaned_data.get('status_asof', None):
             # current status: is in table
@@ -892,12 +916,6 @@ class SearchForm(forms.Form):
                 (gradstudent.person.visa() in self.cleaned_data['visa']
                 if _is_not_empty(self.cleaned_data.get('visa', None))
                 else True)
-                and
-
-                (
-                    not self.cleaned_data.get('program_asof', None) or not self.cleaned_data.get('program', None)
-                    or gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
-                )
                 and
                 (
                     not self.cleaned_data.get('status_asof', None) or not self.cleaned_data.get('student_status', None)
@@ -1197,3 +1215,47 @@ def process_pcs_export(csvdata, unit_id, semester_id, user):
 
     return message
         
+class GradFilterForm(forms.Form):
+    unit = forms.ChoiceField(initial = 'all')
+    program = forms.ChoiceField(initial = 'all')
+    started_by = forms.ChoiceField(initial = 'all', label = 'Start Semester Begins')
+    supervisor = forms.ChoiceField(initial = 'all', label = 'Supervisor Emplid')
+    status = forms.ChoiceField(choices = (('all', 'All Statuses'),) + gradmodels.STATUS_CHOICES, initial='all')
+
+    @classmethod
+    def grad_semesters(self, units):
+        today = datetime.date.today()
+        grad_semesters = GradStudent.objects.filter(program__unit__in=units).order_by().values('start_semester').distinct()
+        semesters = Semester.objects.filter(id__in=grad_semesters, name__gte='1101', start__lte=today+datetime.timedelta(days=730)).order_by('-name')
+        return semesters
+
+    @classmethod
+    def grad_supervisors(self, units):
+        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units, supervisor_type__in=['SEN'], removed=False)
+        #externals = grad_supervisors.filter(external__isnull=False)
+        users = grad_supervisors.filter(supervisor__isnull=False)
+        return users
+
+    def __init__(self, units, programs, *args, **kwargs):
+        super(GradFilterForm, self).__init__(*args, **kwargs)
+        # units
+        if len(units) == 1:
+            self.fields['unit'].choices = [('all', units[0].informal_name())]
+        else:
+            unit_choices = [(str(u.label), str(u.informal_name())) for u in units]
+            self.fields['unit'].choices = [('all', 'All Units')] + unit_choices
+        # programs
+        if len(programs) == 1:
+            self.fields['program'].choices = [('all', programs[0].label)]
+        else:
+            programs = [([str(p.label), str(p.unit.label)], str(p.unit.label) + ", " + str(p.label) ) for p in programs]
+            self.fields['program'].choices = [('all', 'All Programs')] + programs
+        # semesters
+        semesters = [(str(s.name), str(s.label())) for s in self.grad_semesters(units)]
+        self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
+
+        # supervisors
+        users = self.grad_supervisors(units)
+        #externals = list(dict.fromkeys([(str(s.external), str(s.sortname())) for s in externals]))
+        users = list(dict.fromkeys([(s.supervisor.userid, str(s.sortname())) for s in users]))
+        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + users

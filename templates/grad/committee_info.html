@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Definition of Supervisor Types{% endblock %}
+{% block h1 %}Definition of Supervisor Types{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Committee Info</li>
+{% endblock %}
+
+{% block content %}
+<h2>Supervisory Committee</h2>
+
+<p><b>Potential Supervisor:</b> An interim senior supervisor.</p>
+<p><b>Senior Supervisor:</b> The primary or lead supervisor. The senior supervisor is also a member of the examining committee and provides financial support.</p>
+<p><b>Co-Supervisor:</b> The co-supervisors jointly act as the senior supervisor. When a co-supervision arrangement is created, all documentation must be approved by both co-supervisors. The co-supervisors are also members of the examining committee and provide financial support.</p>
+<p><b>Supervisor:</b> Member of both the supervisory and examining committee.</p>
+
+<h2>Examining Committee</h2>
+
+<p><b>Defence Chair:</b> The chair of the student’s graduate program committee, or designate, who shall be a non-voting chair of the examining committee. If the chair of the graduate program committee is also on the student’s supervisory committee, the chair shall designate a member of faculty at this university, who is not a member of the student’s supervisory committee, as chair. Required for thesis master’s and doctoral programs. </p>
+<p><b>SFU Examiner:</b> An examiner who is a member of faculty, or a person suitably qualified, who is not a member of the student's supervisory committee. Required for thesis master’s and doctoral programs. </p>
+<p><b>External Examiner:</b> An external examiner who shall be specifically qualified in the field of the thesis and not be a member of faculty at the university. The external examiner should be a distinguished scholar with research and supervisory experience in the field of the thesis research. The examiner shall be free from potential conflict of interest. The external examiner may participate in-person, video/telephone conference or in absentia. The external examiner shall be asked to report on the thesis. </p>
+<p><b>Supervisory Committee:</b> All members of the supervisory committee are also members of the examining committee.</p>
+{% endblock %}
