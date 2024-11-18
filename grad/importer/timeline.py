@@ -179,7 +179,8 @@ class GradTimeline(object):
 
         dropped = [h for h in happenings if not h.in_career]
         if dropped:
-            raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
+            if not (self.emplid in [301476272] and dropped == '[NWD in 1244]'): #  found a "deferred" record in an earlier term. Not going to fix in SIMS.
+                raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
 
         for c in self.careers:
             c.sort_happenings()
