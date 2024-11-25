@@ -674,23 +674,17 @@ class CommitteeMembership(GradHappening):
         if matches:
             member = matches[0]
             if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
-                # if we have a match that has been found in SIMS previously, has not been removed already, and is not included in the most recent commitee version, 'delete' it
-                if verbosity > 2:
-                    print("We should delete committee member: %s is a %s for %s/%s", (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                    #member.updated_at = self.max_effdt
-                    #member.removed = True
-        else:
-            similar = [m for m in local_committee if m.supervisor == p]
-            if len(similar) > 0:
-                if verbosity > 2:
-                    print("* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                member = similar[0]
-            else:
+                # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
-                member.created_at = self.effdt
-                local_committee.append(member)
+                    print("Removing committee member: %s is a %s for %s/%s", (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                member.updated_at = self.max_effdt
+                member.removed = True
+        else:
+            if verbosity:
+                print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+            member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
+            member.created_at = self.effdt
+            local_committee.append(member)
 
         if SIMS_SOURCE not in member.config:
             # record (the first) place we found this fact
