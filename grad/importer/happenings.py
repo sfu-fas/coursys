@@ -629,7 +629,7 @@ class CommitteeMembership(GradHappening):
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role
-        self.max_effdt = max_effdt
+        self.max_effdt = max_effdt.date()
 
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
