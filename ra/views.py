@@ -148,7 +148,7 @@ def _email_request_notification(req, url):
         elif req.unit.label == "MSE":
             email = MSE_CONTACT
         elif req.unit.label == "ENSC":
-            email = FAS_CONTACT
+            email = ENSC_CONTACT
         elif req.unit.label == "SEE":
             email = SEE_CONTACT
         else:
@@ -1235,7 +1235,7 @@ def download(request, current=False):
     if admin:
         writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project 1', 'Project 2', 'Project 3', 'Supervisor', 'Supervisor Email', 
                          'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Appointee Co-op Status', 'Processed By', 'Student Status', 'Visa 1', 'Visa Expiry 1', 'Visa 2', 'Visa Expiry 2',
-                         'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours', 'Author'])
+                         'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours', 'Author', 'Submission Date'])
         for ra in ras:
             if ra.complete:
                 status = "Complete"
@@ -1281,7 +1281,7 @@ def download(request, current=False):
                 payment_terms = ["Backdated"] + ([""] * 6)
 
             writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.fs1_project, ra.fs2_project, ra.fs3_project, ra.supervisor.sortname(), ra.supervisor.email(), 
-                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_1_info + visa_2_info + [ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms + [ra.author.sortname()] )
+                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_1_info + visa_2_info + [ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms + [ra.author.sortname(), ra.created_at.strftime("%Y-%m-%d")] )
     else:
         writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:

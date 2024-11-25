@@ -174,7 +174,7 @@ def possible_supervisors(units, extras=[], null=False):
     people |= set(extras)
     people = list(people)
     people.sort()
-    supervisors = [(p.id, p.name()) for p in people]
+    supervisors = [(p.id, p.sortname()) for p in people]
     if null:
         return [(-1, '\u2014')] + supervisors
     else:
@@ -813,6 +813,7 @@ class SearchForm(forms.Form):
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
                 ('scholarshiptype', 'scholarship__scholarship_type__in'),
+                ('program','program__in'),
                 ]
 
         manual_queries = []
