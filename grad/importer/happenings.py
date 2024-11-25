@@ -676,7 +676,7 @@ class CommitteeMembership(GradHappening):
             if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
                 # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Removing committee member: %s is a %s for %s/%s", (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                    print("Removing committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member.updated_at = self.max_effdt
                 member.removed = True
         else:
