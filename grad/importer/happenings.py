@@ -670,18 +670,27 @@ class CommitteeMembership(GradHappening):
             p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
             CommitteeMembership.found_people[self.sup_emplid] = p
 
+        # remove any similar committee members previously imported
+        similar = [m for m in local_committee if m.supervisor == p and m.supervisor_type != sup_type]
+        if similar:
+            similar = similar[0]
+            if SIMS_SOURCE in similar.config:
+                if verbosity:
+                    print("Removing similar committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[similar.supervisor_type], self.emplid, self.unit.slug, self.max_effdt))
+                similar.updated_at = self.max_effdt
+                similar.removed = True
         matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
         if matches:
             member = matches[0]
-            if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
+            if self.max_effdt != self.effdt and SIMS_SOURCE in member.config:
                 # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Removing committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                    print("Removing committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
                 member.updated_at = self.max_effdt
                 member.removed = True
         else:
             if verbosity:
-                print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                print("Adding committee member: %s is a %s for %s/%s, effective: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
             member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
             member.created_at = self.effdt
             local_committee.append(member)
