@@ -618,7 +618,7 @@ class GradSemester(GradHappening):
 
 class CommitteeMembership(GradHappening):
     found_people = None
-    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role):
+    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role, max_effdt):
         # argument order must match committee_members query
         self.emplid = emplid
         self.adm_appl_nbr = None
@@ -629,6 +629,7 @@ class CommitteeMembership(GradHappening):
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role
+        self.max_effdt = max_effdt.date()
 
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
@@ -669,21 +670,30 @@ class CommitteeMembership(GradHappening):
             p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
             CommitteeMembership.found_people[self.sup_emplid] = p
 
+        # remove any similar committee members previously imported
+        similar = [m for m in local_committee if m.supervisor == p and m.supervisor_type != sup_type]
+        if similar:
+            similar = similar[0]
+            if SIMS_SOURCE in similar.config:
+                if verbosity:
+                    print("Removing similar committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[similar.supervisor_type], self.emplid, self.unit.slug, self.max_effdt))
+                similar.updated_at = self.max_effdt
+                similar.removed = True
         matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
         if matches:
             member = matches[0]
-        else:
-            similar = [m for m in local_committee if m.supervisor == p]
-            if len(similar) > 0:
-                if verbosity > 2:
-                    print("* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                member = similar[0]
-            else:
+            if self.max_effdt != self.effdt and SIMS_SOURCE in member.config:
+                # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
-                member.created_at = self.effdt
-                local_committee.append(member)
+                    print("Removing committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
+                member.updated_at = self.max_effdt
+                member.removed = True
+        else:
+            if verbosity:
+                print("Adding committee member: %s is a %s for %s/%s, effective: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
+            member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
+            member.created_at = self.effdt
+            local_committee.append(member)
 
         if SIMS_SOURCE not in member.config:
             # record (the first) place we found this fact
