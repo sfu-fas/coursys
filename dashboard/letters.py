@@ -5526,7 +5526,7 @@ class TUGForm(object):
         self.c.drawString(5, 132*mm, "4. Attendance at lectures, including breakout groups")
         self.c.drawString(5, 126*mm, "5. Support classroom course delivery, including technical support")
         self.c.drawString(5, 120*mm, "6. Attendance at labs/tutorials/workshops")
-        self.c.drawString(5, 114*mm, "7. Leading dicussions")
+        self.c.drawString(5, 114*mm, "7. Leading discussions")
         self.c.drawString(5, 108*mm, "8. Office hours/student consultation")
         self.c.drawString(5, 102*mm, "9. Electronic communication")
         self.c.drawString(5, 96*mm, "10. Grading **")
