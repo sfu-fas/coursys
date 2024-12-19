@@ -678,7 +678,7 @@ class CommitteeMembership(GradHappening):
             if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
                 # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Removing committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
+                    print("Removing committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member.removed = True
         # add any SIMS matches that are current
         else:
@@ -697,7 +697,6 @@ class CommitteeMembership(GradHappening):
                 member.created_at = self.effdt
             if not dry_run:
                 member.save_if_dirty()
-        
         # if there are any current committee members that are of a different type, remove them
         similar = [m for m in local_committee if m.supervisor == p and m.supervisor_type != sup_type]
         if similar:
