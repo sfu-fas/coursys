@@ -908,7 +908,7 @@ class RARequestForm(SFUMediaMixin):
         comments = []
         if backdated or appointment_type == "LS":
             init_comment = "Lump sum amount $" + str(self.ra.total_pay) + ". "
-        elif gras_ls:
+        elif gras_ls or nc_ls or ra_ls:
             init_comment = "Lump sum funding amount $" + str(self.ra.total_pay) + ". "
         elif gras_bw:
             init_comment = "Total funding amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
