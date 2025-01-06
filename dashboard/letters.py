@@ -776,8 +776,10 @@ class RARequestForm(SFUMediaMixin):
         gras_bw = graduate_research_assistant and self.ra.gras_payment_method=="BW"
         ra_hourly = research_assistant and self.ra.ra_payment_method=="H"
         ra_bw = research_assistant and self.ra.ra_payment_method=="BW"
+        ra_ls = research_assistant and self.ra.ra_payment_method=="LS"
         nc_hourly = non_continuing and self.ra.nc_payment_method=="H"
         nc_bw = non_continuing and self.ra.nc_payment_method=="BW"
+        nc_ls = non_continuing and self.ra.nc_payment_method=="LS"
         backdated = self.ra.backdated
 
         if gras_ls:
@@ -808,6 +810,13 @@ class RARequestForm(SFUMediaMixin):
             biweekhours_hourly = ''
             lumpsum = ''
             lumphours = ''
+        elif ra_ls:
+            hourly = ''
+            biweekly = ''
+            biweekhours_bw = ''
+            biweekhours_hourly = ''
+            lumpsum = "$%.2f" % (self.ra.total_pay)
+            lumphours = "%.2f" % self.ra.lump_sum_hours
         elif nc_hourly:
             hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
@@ -822,6 +831,13 @@ class RARequestForm(SFUMediaMixin):
             biweekhours_bw = "%.2f" % self.ra.biweekly_hours
             lumpsum = ''
             lumphours = ''
+        elif nc_ls:
+            hourly = ''
+            biweekly = ''
+            biweekhours_bw = ''
+            biweekhours_hourly = ''
+            lumpsum = "$%.2f" % (self.ra.total_pay)
+            lumphours = "%.2f" % self.ra.lump_sum_hours
         elif backdated:
             hourly = ''
             biweekly = ''
@@ -830,12 +846,14 @@ class RARequestForm(SFUMediaMixin):
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
             lumphours =  "%.2f" % self.ra.backdate_hours
         
-        # override if lump sum is selected, if not check if hourly
-        if appointment_type == "LS":
+        # override if lump sum is selected
+        if appointment_type == "LS" and not (nc_ls or ra_ls):
             hourly = ''
             biweekly = ''
-            biweekhours = ''
+            biweekhours_hourly = ''
+            biweekhours_bw = ''
             lumpsum = "$%.2f" % (self.ra.total_pay)
+            lumphours = ''
    
 
         self.c.setFont("Helvetica-Bold", 8)
