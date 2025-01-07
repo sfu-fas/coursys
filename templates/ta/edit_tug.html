@@ -9,7 +9,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block title %}Edit Time Use Guideline{% endblock %}
-{% block h1 %}Edit Time Use Guideline{% if draft %}<h2>DRAFT</h2> {% endif %}{% endblock %}
+{% block h1 %}Edit Time Use Guideline{% if draft %} [DRAFT]{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
@@ -88,7 +88,6 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
         {% endif %}
   </div>
 </form>
-</div>
 
 <div class="instructions" id="instructions-section">
   <p> This form is based on the form in Appendix C of the <a href="{{tssu_link}}" target="_new">TSSU's collective agreement.</a></p>
