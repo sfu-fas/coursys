@@ -5516,7 +5516,7 @@ class TUGForm(object):
         self.c.drawString(main_width/2, 215*mm, "Instructor: " + course.instructors_str())
         self.c.drawString(5, 210*mm, "Course: " + str(course))
         #self.c.drawString(5, 210*mm, "Maximum Hours to be Assigned: " + str(max_hours))
-        self.c.drawString(5, 205*mm, "Base Units Assigned*:" + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
+        self.c.drawString(5, 205*mm, "Base Units Assigned *: " + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
         if has_lab_or_tut:
             self.c.drawString(main_width/2, 205*mm, "{ + " + str(lab_bonus) + " for prep = "+ str(total_bu) + "}" )
 
@@ -5553,7 +5553,7 @@ class TUGForm(object):
         self.c.drawString(15, 79*mm, "To compensate for all statutory holidays which may occur in a semester, the total workload")
         self.c.drawString(15, 74*mm, "required will be reduced by " + str(holiday_hours_per_bu) + " hour(s) for each base unit assigned excluding the additional")
         self.c.drawString(15, 69*mm, str(lab_bonus)+ " B.U. for preparation, e.g. 4.4 hours reduction for "+ str(lab_bonus_4) + " B.U. appointment.")        
-        self.c.drawString(5, 63*mm, "13. Other - specify***")
+        self.c.drawString(5, 63*mm, "13. Other - specify ***")
         xpos = 57*mm
         for other in tug.others():
             self.c.drawString(15, xpos, other.get('label'))            
@@ -5601,7 +5601,7 @@ class TUGForm(object):
         self.c.drawString(5, xpos-10*mm, "Teaching Assistants and course instructors should familiarize themselves with the general working conditions set out in Article 13C, ")
         self.c.drawString(5, xpos-15*mm, "assignment and compensation in Article 13D, and workload review mechanisms in Article 13E.")
 
-        self.c.drawString(5, xpos-20*mm, "*There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
+        self.c.drawString(5, xpos-20*mm, "* There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
         self.c.drawString(5, xpos-25*mm, "calculation of hours.")
         self.c.drawString(5, xpos-30*mm, "** Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards.")
         self.c.drawString(5, xpos-35*mm, "*** Attendance at a TA/TM Day/and other required Training")

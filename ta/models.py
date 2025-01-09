@@ -175,7 +175,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
                     'help':'8. Office hours/student consultation'}, 
             'e_communication':{'label':'Electronic communication', 
                     'help':'9. Electronic communication'}, 
-            'grading':{'label':'Grading', 
+            'grading':{'label':'Grading **', 
                     'help':'10. Grading\u2020',
                     'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
             'test_prep':{'label':'Quiz/exam preparation and invigilation', 
