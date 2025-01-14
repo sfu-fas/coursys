@@ -336,8 +336,11 @@ function grad_browser_setup(my_url) {
 	  if ( $('#id_program').val() != 'all' ) {
         aoData.push( { "name": "program", "value": $('#id_program').val() } );
       }
-	  if ( $('#id_started_by').val() != 'all' ) {
-        aoData.push( { "name": "started_by", "value": $('#id_started_by').val() } );
+	  if ( $('#id_started_begins').val() != 'all' ) {
+        aoData.push( { "name": "started_begins", "value": $('#id_started_begins').val() } );
+      }
+	  if ( $('#id_started_ends').val() != 'all' ) {
+        aoData.push( { "name": "started_ends", "value": $('#id_started_ends').val() } );
       }
 	  if ( $('#id_supervisor').val() != 'all' ) {
         aoData.push( { "name": "supervisor", "value": $('#id_supervisor').val() } );

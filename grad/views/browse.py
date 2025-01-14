@@ -68,10 +68,15 @@ class GradDataJson(BaseDatatableView):
             program = GradProgram.objects.get(label=program[0], unit=unit)
             qs = qs.filter(program=program)
 
-        started_by = GET.get('started_by', None)
-        if started_by:
-            semester = Semester.objects.get(name=started_by)
+        started_begins = GET.get('started_begins', None)
+        if started_begins:
+            semester = Semester.objects.get(name=started_begins)
             qs = qs.filter(start_semester__gte=semester)
+
+        started_ends = GET.get('started_ends', None)
+        if started_ends:
+            semester = Semester.objects.get(name=started_ends)
+            qs = qs.filter(start_semester__lte=semester)
 
         supervisor = GET.get('supervisor', None)
         if supervisor:
