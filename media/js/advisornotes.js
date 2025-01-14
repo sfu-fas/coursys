@@ -188,7 +188,10 @@ function course_outline_info(url) {
 			}
 
 			$('h2#outline').after('<p id="outlinenote">This information is from <a href="' + data['outlineurl'] + '">the course\'s outline</a>. Please see the outline itself for more complete information.</p>');
-
+            if (data['info'] && data['info']['specialTopic']) {
+				add_to_info('Special Topic', '<u>' + data['info']['specialTopic'] + '</u>', 'outlineinfo', 'linkify');
+				anything = true;
+			}
             if (data['info'] && data['info']['courseDetails']) {
 				add_to_info('Course Details', data['info']['courseDetails'], 'outlineinfo', 'linkify');
 				anything = true;
