@@ -1220,7 +1220,7 @@ class GradFilterForm(forms.Form):
     program = forms.ChoiceField(initial = 'all')
     started_by = forms.ChoiceField(initial = 'all', label = 'Start Semester Begins')
     supervisor = forms.ChoiceField(initial = 'all', label = 'Supervisor Emplid')
-    status = forms.ChoiceField(choices = (('all', 'All Statuses'),) + gradmodels.STATUS_CHOICES, initial='all')
+    status = forms.ChoiceField(choices = [('all', 'All Statuses')] + sorted(gradmodels.STATUS_CHOICES), initial='all')
 
     @classmethod
     def grad_semesters(self, units):
@@ -1231,13 +1231,14 @@ class GradFilterForm(forms.Form):
 
     @classmethod
     def grad_supervisors(self, units):
-        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units, supervisor_type__in=['SEN'], removed=False)
+        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units, supervisor_type__in=['SEN'], removed=False).order_by('supervisor')
         #externals = grad_supervisors.filter(external__isnull=False)
         users = grad_supervisors.filter(supervisor__isnull=False)
         return users
 
     def __init__(self, units, programs, *args, **kwargs):
         super(GradFilterForm, self).__init__(*args, **kwargs)
+
         # units
         if len(units) == 1:
             self.fields['unit'].choices = [('all', units[0].informal_name())]
@@ -1249,7 +1250,7 @@ class GradFilterForm(forms.Form):
             self.fields['program'].choices = [('all', programs[0].label)]
         else:
             programs = [([str(p.label), str(p.unit.label)], str(p.unit.label) + ", " + str(p.label) ) for p in programs]
-            self.fields['program'].choices = [('all', 'All Programs')] + programs
+            self.fields['program'].choices = [('all', 'All Programs')] + sorted(programs)
         # semesters
         semesters = [(str(s.name), str(s.label())) for s in self.grad_semesters(units)]
         self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
