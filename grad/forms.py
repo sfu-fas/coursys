@@ -1218,7 +1218,8 @@ def process_pcs_export(csvdata, unit_id, semester_id, user):
 class GradFilterForm(forms.Form):
     unit = forms.ChoiceField(initial = 'all')
     program = forms.ChoiceField(initial = 'all')
-    started_by = forms.ChoiceField(initial = 'all', label = 'Start Semester Begins')
+    started_begins = forms.ChoiceField(initial = 'all', label = 'Start Semester Begins')
+    started_ends = forms.ChoiceField(initial = 'all', label = 'Start Semester Ends')
     supervisor = forms.ChoiceField(initial = 'all', label = 'Supervisor Emplid')
     status = forms.ChoiceField(choices = [('all', 'All Statuses')] + sorted(gradmodels.STATUS_CHOICES), initial='all')
 
@@ -1253,7 +1254,8 @@ class GradFilterForm(forms.Form):
             self.fields['program'].choices = [('all', 'All Programs')] + sorted(programs)
         # semesters
         semesters = [(str(s.name), str(s.label())) for s in self.grad_semesters(units)]
-        self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
+        self.fields['started_begins'].choices = [('all', 'Any Semester')] + semesters
+        self.fields['started_ends'].choices = [('all', 'Any Semester')] + semesters
 
         # supervisors
         users = self.grad_supervisors(units)
