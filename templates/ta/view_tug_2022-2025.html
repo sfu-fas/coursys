@@ -67,7 +67,7 @@
 	<div id="courses">Course:
 		<span class="tugField">{{course.name}}, {{course.semester.label}}</span>
 	</div>
-	<div id="assignBU"> Base Units Assigned*:
+	<div id="assignBU"> Base Units Assigned *:
 		<span class="tugField"><u>{{ bu }} </u> x {{ hours_per_bu }} = Maximum Hours: <u>{{ max_hours }}</u>
         {% if has_lab_or_tut %}
             (+ {{ lab_bonus }} for prep = {{ total_bu }})
@@ -173,7 +173,7 @@
 			</tr>
 			<tr class="subsectionHeader">
 				<td class="numeral">13.</td>
-				<td>Other – specify*** </td><td></td><td></td>
+				<td>Other – specify *** </td><td></td><td></td>
 			</tr>
 			{% for other in tug.others %} 
 			<tr>
@@ -198,7 +198,7 @@
 		and workload review mechanisms in Article 13E.
 	</p>
 	<p class="smallprint">
-		*There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
+		* There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
 		Article 13D. 2 b.  See Appendix B for calculation of hours.
 		<br/>
 		**  Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards. 
