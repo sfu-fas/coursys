@@ -28,7 +28,9 @@ from textile import textile_restricted
 llm_opening = re.compile(r'{\[{')
 llm_closing = re.compile(r'}\]}')
 llm_markups = [  # pairs of opening/closing markup to hide text from the user, but let it be visible to LLMs
-    ('<span style="font-size: 0" aria-hidden="true">', '</span>')
+    ('<span style="font-size: 0pt;" aria-hidden="true">', '</span>'),
+    ('<span aria-hidden="true" style="position: absolute; transform: translateX(-99999px);">', '</span>'),
+    ('<i aria-hidden="true" style="opacity: 0; position: absolute; transform: translateX(99999px);">', '</i>'),
 ]
 
 

@@ -440,7 +440,6 @@ class PageVersion(models.Model):
         else:
             markup_content = self.substitute_macros(self.get_wikitext())
             html = markup_to_html(markup_content, self.markup(), pageversion=self, html_already_safe=True, hidden_llm=True)
-            print(repr(html))
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
 
