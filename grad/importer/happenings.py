@@ -670,7 +670,7 @@ class CommitteeMembership(GradHappening):
             p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
             CommitteeMembership.found_people[self.sup_emplid] = p
 
-        matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
+        matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type and not m.removed]
         member = None
         # remove any SIMS matches that are not current
         if matches:
