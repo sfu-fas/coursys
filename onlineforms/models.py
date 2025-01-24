@@ -866,12 +866,14 @@ class FormSubmission(models.Model):
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
         # 'email_cc':  email addresses that got CCed when the student got emailed.
+        # 'notes': notes for admin to help process pending forms
 
-    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None}
+    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None, 'notes': ''}
     summary, set_summary = getter_setter('summary')
     emailed, set_emailed = getter_setter('emailed')
     closer_id, set_closer = getter_setter('closer')
     email_cc, set_email_cc = getter_setter('email_cc')
+    notes, set_notes = getter_setter('notes')
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self)
