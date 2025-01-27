@@ -279,6 +279,9 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
             sheet_submission.save()
 
+            form_submission.set_notes('')
+            form_submission.save()
+
             FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
                     description='Assigned sheet to %s.' % (formFiller.full_email()))
 
