@@ -1440,7 +1440,7 @@ def update_submission_notes(request, form_slug, formsubmit_slug):
         if not form_submission:
             raise Http404
 
-        can_admin = not is_advisor and form_submission.status != 'DONE' and form_submission.status != 'REJE'
+        can_admin = not is_advisor and form_submission.status == 'PEND'
 
         if request.method == 'POST' and can_admin:
             notes_form = FormSubmissionNotesForm(request.POST, instance=form_submission)
@@ -1462,7 +1462,6 @@ def update_submission_notes(request, form_slug, formsubmit_slug):
 
         context = {
                    'form': form_submission.form,
-                   'form_sub': form_submission,
                    'form_slug': form_slug,
                    'formsubmit_slug': formsubmit_slug,
                    'can_admin': can_admin,

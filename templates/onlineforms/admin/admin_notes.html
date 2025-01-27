@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block content %}
+{% if can_admin %}
 <p>Any text entered here will appear under the corresponding pending form submission on the main page for administrators to assist with processing (optional).</p>
 <div class="form_container" id="notes">
     <form method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -19,5 +20,6 @@
     <p><input class="submit"  type="submit" value="Submit" /></p>
     </form>
 </div>
+{% endif %}
 {% endblock %}
 
