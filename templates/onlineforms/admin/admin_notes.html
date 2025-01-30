@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}{{ form.title}} Submission Notes{% endblock %}
+{% block h1 %}{{ form.title}} Submission Notes{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:view_submission" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">View {{ form.title }}</a></li>
+    <li>Form Submission Notes</li>
+{% endblock %}
+
+{% block content %}
+{% if can_admin %}
+<p>Any text entered here will appear under the corresponding pending form submission on the main page for administrators to assist with processing (optional).</p>
+<div class="form_container" id="notes">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% if notes_form %}{{ notes_form|as_dl }}{% endif %}
+    <p><input class="submit"  type="submit" value="Submit" /></p>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
+

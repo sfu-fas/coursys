@@ -22,7 +22,21 @@
 {% endif %}
 {% endblock %}
 
+{% block actions %}
+{% if can_admin and is_pending %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "onlineforms:update_submission_notes" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Update Short Note</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
+    {% if is_pending and can_admin and form_sub.notes %}
+        <b>{{form_sub.notes}}</b>
+    {% endif %}
 	{% if formsub_activity %}
 	    {% include "onlineforms/admin/view_sheet.html" with formsub_activity=formsub_activity sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin can_advise=can_advise %}
     {% endif %}

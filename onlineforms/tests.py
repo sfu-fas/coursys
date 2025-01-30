@@ -339,7 +339,7 @@ class ViewTestCase(TestCase):
         self.run_basic_page_tests(views, args)
 
     def test_form_submission_pages(self):
-        views = ['view_submission']
+        views = ['view_submission', 'update_submission_notes']
         args = {'form_slug': self.slug_data["form_slug"], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
