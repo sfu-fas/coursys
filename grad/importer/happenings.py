@@ -712,12 +712,15 @@ class CommitteeMembership(GradHappening):
 
 
 class ScholarshipDisbursement(GradHappening):
-    def __init__(self, emplid, aid_year, strm, descr, disbursed_balance, acad_prog):
+    def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog):
         # argument order must match committee_members query
         self.adm_appl_nbr = None
         self.stdnt_car_nbr = None
         self.emplid = emplid
         self.aid_year = aid_year
+        self.item_type = item_type
+        self.acad_career = acad_career
+        self.disbursement_id = disbursement_id
         self.strm = strm
         self.descr = descr
         self.disbursed_balance = Decimal(str(disbursed_balance)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
@@ -736,17 +739,23 @@ class ScholarshipDisbursement(GradHappening):
         pass
 
     def import_key(self):
-        return [self.emplid, self.strm, self.descr, self.disbursed_balance]
+        return [self.emplid, self.aid_year, self.item_type, self.acad_career, self.disbursement_id]
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        # if self.grad_program.unit.slug == 'cmpt':
-        #     return
 
         key = self.import_key()
         local_scholarships = student_info['scholarships']
         
-        matches = [s for s in local_scholarships if s.semester == self.semester and s.description == self.descr and s.amount == self.disbursed_balance]
-        if not matches:
+        matches = [s for s in local_scholarships if s.config[SIMS_SOURCE] == key]
+        if matches:
+            scholarship = matches[0]
+            # update any amounts or descriptions
+            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester:
+                if verbosity:
+                    print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
+                scholarship.amount = self.disbursed_balance
+                scholarship.description == self.descr
+        else:
             if verbosity:
                 print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
             scholarship = GradScholarship(student=student_info['student'], semester=self.semester, description=self.descr, amount=self.disbursed_balance)
