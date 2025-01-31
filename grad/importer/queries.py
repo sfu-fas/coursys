@@ -109,6 +109,31 @@ def committee_members(emplids):
 
 @SIMS_problem_handler
 @cache_by_args
+def grad_scholarships(emplids):
+    """ 
+    Grad scholarships for this person
+    """
+    db = SIMSConn()
+    db.execute("""
+        SELECT DISTINCT 'ScholarshipDisbursement', SA.EMPLID, SA.AID_YEAR, SA.STRM, IT.DESCR, SA.DISBURSED_BALANCE, SS.ACAD_PROG
+        FROM PS_STDNT_AWRD_DISB SA
+        JOIN (SELECT * FROM (
+                SELECT ITEM_TYPE, EFF_STATUS, AID_YEAR, DESCR, RANK () OVER (PARTITION BY ITEM_TYPE, AID_YEAR ORDER BY EFFDT DESC) AS DATE_RANK 
+                    FROM PS_ITEM_TYPE_FA
+                    WHERE EFF_STATUS IN ('A')
+        ) DR WHERE DR.DATE_RANK = 1
+        ) IT
+            ON SA.ITEM_TYPE = IT.ITEM_TYPE AND SA.AID_YEAR = IT.AID_YEAR
+        JOIN (SELECT * FROM (
+        SELECT *, RANK () OVER (PARTITION BY EMPLID, ACAD_CAREER, STDNT_CAR_NBR ORDER BY EFFDT DESC, EFFSEQ DESC) AS date_Rank	
+        FROM PS_ACAD_PROG
+        ) DATA1
+        WHERE DATA1.date_Rank = 1) SS ON SA.EMPLID = SS.EMPLID AND SA.STRM >= SS.ADMIT_TERM AND SA.EMPLID IN %s""",
+        (emplids,))
+    return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
 def metadata_translation_tables():
     """
     Translation tables of SIMS values to english. Fetched once into a dict to save joining many things later.

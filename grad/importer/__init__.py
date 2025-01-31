@@ -20,10 +20,10 @@ logic around this is trying to find the similar-enough fact that was manually en
 """
 
 from .parameters import IMPORT_UNIT_SLUGS
-from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, \
+from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, grad_scholarships, \
     grad_metadata, research_areas, metadata_translation_tables
 from .happenings import build_program_map, ProgramStatusChange, ApplProgramChange, GradSemester, CommitteeMembership, \
-    GradMetadata, GradResearchArea
+    GradMetadata, GradResearchArea, ScholarshipDisbursement
 from .timeline import GradTimeline
 
 from django.db import transaction
@@ -118,6 +118,9 @@ def get_timelines(verbosity, import_emplids=None):
     for r in itertools.chain(*_batch_call(committee_members, emplids)):
         emplid = r[1]
         timeline_data[emplid].append(r)
+    for r in itertools.chain(*_batch_call(grad_scholarships, emplids)):
+        emplid = r[1]
+        timeline_data[emplid].append(r)
     for r in itertools.chain(*_batch_call(grad_metadata, emplids, batchsize=50)):
         emplid = r[1]
         timeline_data[emplid].append(r)
@@ -139,6 +142,8 @@ def build_timeline(emplid, data):
             h = GradSemester(*(d[1:]))
         elif d[0] == 'CommitteeMembership':
             h = CommitteeMembership(*(d[1:]))
+        elif d[0] == 'ScholarshipDisbursement':
+            h = ScholarshipDisbursement(*(d[1:]))
         elif d[0] == 'GradMetadata':
             h = GradMetadata(*(d[1:]))
         elif d[0] == 'GradResearchArea':
