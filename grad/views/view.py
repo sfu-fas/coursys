@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, \
-        CompletedRequirement, GradRequirement, Scholarship, \
+        CompletedRequirement, GradRequirement, Scholarship, GradScholarship, \
         OtherFunding, Promise, Letter, GradProgramHistory, \
         FinancialComment, ProgressReport, ExternalDocument
 from tacontracts.models import TAContract
@@ -122,6 +122,8 @@ def view(request, grad_slug, section=None):
             comments = FinancialComment.objects.filter(student=grad, comment_type='SCO', removed=False).order_by('created_at')
             context['scholarships'] = scholarships
             context['scholarship_comments'] = comments
+            sims_scholarships = GradScholarship.objects.filter(student=grad, removed=False).order_by('semester__name')
+            context['sims_scholarships'] = sims_scholarships
             return render(request, 'grad/view__scholarships.html', context)
 
         elif section == 'otherfunding':
