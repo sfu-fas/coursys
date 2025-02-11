@@ -754,7 +754,8 @@ class ScholarshipDisbursement(GradHappening):
                 if verbosity:
                     print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
                 scholarship.amount = self.disbursed_balance
-                scholarship.description == self.descr
+                scholarship.description = self.descr
+                scholarship.semester = self.semester
         else:
             if verbosity:
                 print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
@@ -765,8 +766,8 @@ class ScholarshipDisbursement(GradHappening):
                 # record (the first) place we found this fact
                 scholarship.config[SIMS_SOURCE] = key
 
-            if not dry_run:
-                scholarship.save_if_dirty()
+        if not dry_run:
+            scholarship.save_if_dirty()
 
 class CareerUnitChangeOut(ProgramStatusChange):
     """
