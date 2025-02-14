@@ -62,4 +62,5 @@ ta_patterns = [ # prefix /ta/
 tug_patterns = [ # prefix /tugs/
     url(r'^$', ta_views.all_tugs_admin, name='all_tugs_admin'),
     url(r'^(?P<semester_name>\d+)$', ta_views.all_tugs_admin, name='all_tugs_admin'),
+    url(r'^(?P<semester_name>\d+)/tugs_csv_download$', ta_views.tugs_csv_download, name='tugs_csv_download'),
 ]

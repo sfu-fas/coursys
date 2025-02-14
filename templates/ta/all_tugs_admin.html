@@ -46,6 +46,9 @@
 {% if semester.next_semester %}
 <li><a href="{% url "tugs:all_tugs_admin" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
+{% if admin %}
+<li><a href="{% url "tugs:tugs_csv_download" semester_name=semester.name %}">TUGs CSV Download</a></li>
+{% endif %}
 </ul>
 </div>
 {% endblock %}
