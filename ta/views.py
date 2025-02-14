@@ -85,7 +85,7 @@ def _create_news(person, url, from_user, accept_deadline, total_bu ):
 
 
 def _is_admin_by_slug(request, course_slug, **kwargs):
-    offering = CourseOffering.objects.get(slug=course_slug)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
     roles = Role.objects_fresh.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
             + Role.objects_fresh.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
     return roles > 0

@@ -62,6 +62,7 @@ forms_patterns = [
     url(r'^bulk$', onlineforms_views.bulk_assign, name='bulk_assign'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', onlineforms_views.view_submission, name='view_submission'),
+    url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/notes$', onlineforms_views.update_submission_notes, name='update_submission_notes'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/re-open$', onlineforms_views.reopen_submission, name='reopen_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/$', onlineforms_views.file_field_download, name='file_field_download'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/(?P<secret>\w+)$', onlineforms_views.file_field_download_unauth, name='file_field_download_unauth'),

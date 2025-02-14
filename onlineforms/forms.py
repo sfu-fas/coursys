@@ -7,7 +7,7 @@ from django.forms.models import ModelForm
 from coredata.models import Person
 from coredata.queries import add_person, SIMSProblem
 from courselib.search import find_userid_or_emplid
-from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
+from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller, FormSubmission
 from django.utils.safestring import mark_safe
 from django.forms.utils import ErrorList
 import datetime
@@ -231,6 +231,20 @@ class CloseFormForm(forms.Form):
             self.used = False
             
 
+class FormSubmissionNotesForm(forms.ModelForm):
+    notes = forms.CharField(required=False, max_length=50, label="Short Note",
+                            help_text="Maximum of 50 Characters")
+    
+    class Meta:
+        model = FormSubmission
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(FormSubmissionNotesForm, self).__init__(*args, **kwargs)
+        config_init = ['notes']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
 
 
 

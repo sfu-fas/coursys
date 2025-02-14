@@ -86,7 +86,7 @@ class TUG(models.Model):
         ########### Four duties are added on 2024.06        
         # t.config['prep_lectures']: Preparation for lectures
         # t.config['support']: Support classroom course delivery, including technical support
-        # t.config['leading']: Leading dicussions
+        # t.config['leading']: Leading discussions
         # t.config['e_communication']: Electronic communication
     
     prep = property(*getter_setter('prep'))
@@ -169,13 +169,13 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
                     'help':'5. Support classroom course delivery, including technical support'}, 
             'tutorials':{'label':'Attendance at labs/tutorials/workshops', 
                     'help':'6. Attendance at labs/tutorials/workshops'}, 
-            'leading':{'label':'Leading dicussions', 
-                    'help':'7. Leading dicussions'}, 
+            'leading':{'label':'Leading discussions', 
+                    'help':'7. Leading discussions'}, 
             'office_hours':{'label':'Office hours/student consultation', 
                     'help':'8. Office hours/student consultation'}, 
             'e_communication':{'label':'Electronic communication', 
                     'help':'9. Electronic communication'}, 
-            'grading':{'label':'Grading', 
+            'grading':{'label':'Grading **', 
                     'help':'10. Grading\u2020',
                     'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
             'test_prep':{'label':'Quiz/exam preparation and invigilation', 

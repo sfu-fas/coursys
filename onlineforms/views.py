@@ -19,7 +19,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm, NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm, \
-    BulkAssignForm, SearchCompletedForm
+    BulkAssignForm, SearchCompletedForm, FormSubmissionNotesForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, FormGroup, \
     FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -279,6 +279,9 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
             sheet_submission.save()
 
+            form_submission.set_notes('')
+            form_submission.save()
+
             FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
                     description='Assigned sheet to %s.' % (formFiller.full_email()))
 
@@ -390,6 +393,7 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
             form = ChangeOwnerForm(data=request.POST, queryset=allowed_groups)
             if form.is_valid():
                 new_g = form.cleaned_data['new_group']
+                form_submission.set_notes('')
                 form_submission.owner = new_g
                 form_submission.email_notify_new_owner(request, admin)
                 form_submission.save()
@@ -1373,6 +1377,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                     ss.set_reject_reason('Withdrawn when form was closed by %s.' % (admin.userid))
                     ss.save()
                 
+                form_submission.set_notes('')
                 form_submission.set_closer(admin.id)
                 form_submission.status = 'DONE'
                 form_submission.save()
@@ -1409,6 +1414,8 @@ def view_submission(request, form_slug, formsubmit_slug):
         formsub_activity = list(sheet_submissions) + [(le, 'FormLogEntry') for le in logentries]
         formsub_activity.sort(key=lambda a: a[0].completed_at)
 
+        is_pending = (form_submission.status == 'PEND')
+
         context = {
                    'form': form_submission.form,
                    'form_sub': form_submission,
@@ -1421,8 +1428,46 @@ def view_submission(request, form_slug, formsubmit_slug):
                    'can_advise': can_advise,
                    'close_form': close_form,
                    'waiting_sheets': waiting_sheets,
+                   'is_pending': is_pending,
                    }
         return render(request, 'onlineforms/admin/view_partial_form.html', context)
+
+
+@login_required
+def update_submission_notes(request, form_slug, formsubmit_slug):
+    with django.db.transaction.atomic():
+        form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+        if not form_submission:
+            raise Http404
+
+        can_admin = not is_advisor and form_submission.status == 'PEND'
+
+        if request.method == 'POST' and can_admin:
+            notes_form = FormSubmissionNotesForm(request.POST, instance=form_submission)
+            if notes_form.is_valid():
+                if 'notes' in notes_form.cleaned_data:
+                    form_submission.set_notes(notes_form.cleaned_data['notes'])
+                notes_form.save()
+
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                    description=("Added admin note to form submission %s") % (form_submission,),
+                    related_object=form_submission)
+                l.save()
+                return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
+        elif can_admin:
+            notes_form = FormSubmissionNotesForm(instance=form_submission)
+        else:
+            notes_form = None
+
+        context = {
+                   'form': form_submission.form,
+                   'form_slug': form_slug,
+                   'formsubmit_slug': formsubmit_slug,
+                   'can_admin': can_admin,
+                   'notes_form': notes_form,
+                   }
+        return render(request, 'onlineforms/admin/admin_notes.html', context)
 
 
 @requires_formgroup()

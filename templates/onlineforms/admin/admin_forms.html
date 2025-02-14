@@ -74,7 +74,13 @@
             </thead>
             {% for form_sub in pend_submissions %}
                 <tr>
-                    <td>{{ form_sub.form.title }}</td>
+                    <td>
+                        {{ form_sub.form.title }} 
+                        {% if form_sub.notes %}
+                            <br>   
+                            <b>({{ form_sub.notes }})</b>
+                        {% endif %}
+                    </td>
                     <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>

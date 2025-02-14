@@ -767,7 +767,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
-                                    help_text=mark_safe('<a href="http://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/Research%20Benefit%20Summary%20-%20Summer%202024.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
+                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/Research_Benefit_Summary_Spring_2025.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")

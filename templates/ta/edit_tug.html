@@ -9,7 +9,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block title %}Edit Time Use Guideline{% endblock %}
-{% block h1 %}Edit Time Use Guideline{% if draft %}<h2>DRAFT</h2> {% endif %}{% endblock %}
+{% block h1 %}Edit Time Use Guideline{% if draft %} [DRAFT]{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
@@ -48,7 +48,7 @@ $(document).ready(function() {
 <th>
 {{form.non_field_errors}}
 {% if form.label_editable %}
-Other: {{ form.label.as_widget }}{{form.label.errors}}
+*** Other: {{ form.label.as_widget }}{{form.label.errors}}
 {% else %}
 {{ form.label }}
 {% endif %}
@@ -72,7 +72,7 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
     and workload review mechanisms in Article 13E.
   </p>
   <p>
-    *There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
+    * There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
     Article 13D. 2 b.  See Appendix B for calculation of hours.
     <br/>
     **  Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards. 
@@ -88,7 +88,6 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
         {% endif %}
   </div>
 </form>
-</div>
 
 <div class="instructions" id="instructions-section">
   <p> This form is based on the form in Appendix C of the <a href="{{tssu_link}}" target="_new">TSSU's collective agreement.</a></p>
