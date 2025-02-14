@@ -37,6 +37,11 @@ def ping(): # used to check that celery is alive
     return True
 
 
+@task(queue='email')
+def email_queue_ping(): # used to check that the celery email queue is alive
+    return True
+
+
 @task(queue='fast')
 def failing_task(): # used to check celery error handling
     raise RuntimeError('This is a deliberately-thrown exception to test exception-handling from a Celery task. It can be ignored.')
