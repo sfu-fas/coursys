@@ -713,7 +713,7 @@ class CommitteeMembership(GradHappening):
 
 class ScholarshipDisbursement(GradHappening):
     def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog):
-        # argument order must match committee_members query
+        # argument order must match grad_scholarships query
         self.adm_appl_nbr = None
         self.stdnt_car_nbr = None
         self.emplid = emplid
