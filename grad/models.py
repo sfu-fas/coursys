@@ -1726,6 +1726,19 @@ class Scholarship(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.scholarship_type, self.amount)
     
+class GradScholarship(models.Model, ConditionalSaveMixin):
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    description = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    eligible = models.BooleanField(default=True)
+    comments = models.TextField(blank=True, null=True)
+    removed = models.BooleanField(default=False)
+    config = JSONField(default=dict)
+    # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+
+    def __str__(self):
+        return "%s ($%s) for %s in %s" % (self.description, self.amount, self.student.person, self.semester.name)
     
 class OtherFunding(models.Model):
     student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
