@@ -39,7 +39,7 @@ class RATest(TestCase):
         # NEW RA
 
         # test basic pages
-        test_views(self, c, 'ra:', ['browse_appointments', 'new_request', 'dashboard', 'active_appointments', 'advanced_search'], {})
+        test_views(self, c, 'ra:', ['browse_appointments', 'new_request', 'dashboard', 'active_appointments', 'advanced_search', 'download_index'], {})
         # test search
         test_views(self, c, 'ra:', ['appointee_appointments', 'supervisor_appointments'], {'userid': p.userid})
 

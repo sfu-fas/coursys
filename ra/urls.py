@@ -12,7 +12,8 @@ PROGRAM_ID = '(?P<program_id>' + ID_RE + ')'
 ra_patterns = [ # prefix /ra/
     url(r'^download_current', ra_views.download, kwargs={'current': True}, name='download_current'),
     url(r'^download_all', ra_views.download, name='download_all'),
-    url(r'^download_requests', ra_views.download, kwargs={'incomplete': True}, name='download_requests'),
+    url(r'^download_index', ra_views.download_index, name='download_index'),
+    url(r'^download_admin', ra_views.download_admin, name='download_admin'),
     url(r'^new_request/', RANewRequestWizard.as_view(FORMS, 
                                                 condition_dict={'graduate_research_assistant': check_gras, 
                                                 'research_assistant': check_ra, 

@@ -204,7 +204,11 @@ If you have the correct permissions, so you may also create/reappoint new reques
 </table>
 <div class="actionlist">
 <a class="btn" href="{% url "ra:browse" %}">Browse Historic Appointments</a>
+{% if not admin %}
 <a class="btn" href="{% url "ra:download_current" %}">Download Active Appointments</a>
 <a class="btn" href="{% url "ra:download_all" %}">Download All Appointments</a>
+{% else %}
+<a class="btn" href="{% url "ra:download_index" %}">Downloads</a>
+{% endif %}
 </div>
 {% endblock %}
