@@ -1217,11 +1217,10 @@ class ProgramForm(forms.ModelForm):
         exclude = ('hidden',)
 
 class DownloadForm(forms.Form):    
-    #filters
-    start_date = forms.DateField(label='Start Date (Begins)', help_text="Maximum of three years between start dates", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
-    end_date = forms.DateField(label='Start Date (Ends)', help_text="Maximum of three years between start dates", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    start_date = forms.DateField(label='Start Date Range (Begins)', widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    end_date = forms.DateField(label='Start Date Range (Ends)', help_text="Maximum of three years in start date range. Appointments in download will start within the indicated range.", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    current = forms.ChoiceField(label='Only current appointments (ignores above date range)', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='False', help_text='Appointments active now (or within two weeks).', required=False)
     hiring_category = forms.ChoiceField(choices = (('all', 'All Hiring Categories'),) + REQUEST_HIRING_CATEGORY, initial='all', required=True)
-    current = forms.ChoiceField(label='Only current appointments', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='False', help_text='Appointments active now (or within two weeks).', required=False)
     include_financials = forms.ChoiceField(label='Include Payment Details in Result', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='True', help_text='Include payment details (Pay Periods, Payment Methods, Bi-Weekly Salary, etc.)', required=False)
     include_visa_status = forms.ChoiceField(label='Include Visas and Visa Expiries in Result', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='True', help_text='Include Visa Status', required=False)
     

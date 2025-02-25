@@ -23,19 +23,37 @@ function showDownloadButton() {
     download_button.style.display = "block";
     search_button.style.display = "none";
 }
+function setDates(date) {
+    var max_date = new Date(date);
+    var min_date = new Date(date);
+    max_date.setDate(max_date.getDate() + 1096)
+    min_date.setDate(min_date.getDate() + 1)
+    $("#id_end_date").datepicker('option', 'maxDate', max_date);
+    $("#id_end_date").datepicker('option', 'minDate', min_date);
+}
 $(document).ready(function() {
     var search_button = document.getElementById("search_button");
     search_button.style.display = 'none';
-    $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
-    $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
-    
-    $("#id_start_date").change(hideDownloadButton);
+    $("#id_start_date").datepicker({
+        'dateFormat': 'yy-mm-dd', 
+        onSelect: function(date) {
+            setDates(date);
+            hideDownloadButton();
+        }
+    });
+    var default_max_date = new Date();
+    var default_min_date = new Date();
+    default_min_date.setDate(default_min_date.getDate()-1095);
+    $("#id_end_date").datepicker({
+        'dateFormat': 'yy-mm-dd',
+        'maxDate': default_max_date,
+        'minDate': default_min_date,
+    });
     $("#id_end_date").change(hideDownloadButton);
     $("#id_hiring_category").change(hideDownloadButton);
     $("#id_current").change(hideDownloadButton);
     $("#id_include_financials").change(hideDownloadButton);
     $("#id_include_visa_status").change(hideDownloadButton);
-    $("#search_button").onclick(hideDownloadButton);
 });
 </script>
 {% endblock %}
@@ -44,7 +62,7 @@ $(document).ready(function() {
     <form id="csv_download" method="POST">
         {% csrf_token %}  
         {{ form|as_dl }}
-    <button type='submit' id='search_button' class='btn'>Search</button>
+    <button type='submit' id='search_button' class='btn' onclick="showDownloadButton()">Search</button>
     <a href='{% url "ra:download_admin" %}?start_date={{start_date}}&amp;end_date={{end_date}}&amp;hiring_category={{hiring_category}}&amp;current={{current}}&amp;include_financials={{include_financials}}&amp;include_visa_status={{include_visa_status}}' class='btn submit' id='download_button'>Download CSV</a>
     </form> 
 {% endblock %}

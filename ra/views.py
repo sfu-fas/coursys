@@ -1261,7 +1261,7 @@ def download_admin(request):
     include_financials = True if request.GET['include_financials'] == 'True' else False
     include_visa_status = True if request.GET['include_visa_status'] == 'True' else False
 
-    ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False, start_date__gte=start_date, start_date__lte=end_date).order_by('complete')
+    ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False).order_by('complete')
 
     if hiring_category != 'all' and hiring_category in ['RA', 'NC', 'GRAS']:
         ras = ras.filter(hiring_category=hiring_category)
@@ -1271,6 +1271,8 @@ def download_admin(request):
         slack = 14
         ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
                          end_date__gte=today - datetime.timedelta(days=slack), complete=True)
+    else:
+        ras.filter(start_date__gte=start_date, start_date__lte=end_date)
     
     finance_column_names = []
     visa_status_column_names = []
