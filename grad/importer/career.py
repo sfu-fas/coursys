@@ -207,7 +207,7 @@ class GradCareer(object):
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
                 .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
             'committee': list(Supervisor.objects.filter(student=self.gradstudent)),
-            'scholarships': list(GradScholarship.objects.filter(student=self.gradstudent, removed=False)),
+            'scholarships': list(GradScholarship.objects.filter(student=self.gradstudent)),
             'real_admit_term': self.admit_term,
         }
         return student_info
