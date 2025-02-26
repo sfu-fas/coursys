@@ -245,12 +245,13 @@ DEFAULT_LETTER_NCLS = '\n\n'.join([
     ])
 
 DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
+DEFAULT_LETTER_PIDA = """Public Interest Disclosure Act Training - As of December 1, 2024, the provincial government enacted the Public Interest Disclosure Act (PIDA) at research universities in B.C. including SFU. PIDA is provincial legislation that provides a safe, legally protected way for all current and former BC public sector employees to report serious or systemic issues of wrongdoing in the public sector. Employees are required to complete a training module that covers the protections that the law provides for protecting public sector employees who witness or know of serious wrongdoing occurring in their workplace, and outlines the options available for reporting wrongdoing at SFU and to the Ombudsperson. To access the training, please visit: https://learn.bcombudsperson.ca/speaking-up-safely/\n\n"""
 
 DEFAULT_LETTER_CONCLUDE = "If you accept the terms of this letter, please sign and return the letter, retaining the original for your records.\n\n"
 DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records.\n\n"
 
-DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NCH + DEFAULT_LETTER_CONCLUDE_NC
-DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NCBW + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NCH + DEFAULT_LETTER_PIDA + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NCBW + DEFAULT_LETTER_PIDA + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_NCLS = DEFAULT_LETTER_NCLS_INTRO + DEFAULT_LETTER_NCLS + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
