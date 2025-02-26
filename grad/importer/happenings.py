@@ -712,7 +712,7 @@ class CommitteeMembership(GradHappening):
 
 
 class ScholarshipDisbursement(GradHappening):
-    def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog):
+    def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog, eligible):
         # argument order must match grad_scholarships query
         self.adm_appl_nbr = None
         self.stdnt_car_nbr = None
@@ -727,6 +727,7 @@ class ScholarshipDisbursement(GradHappening):
         self.acad_prog = acad_prog
         self.semester = STRM_MAP[self.strm]
         self.effdt = self.semester.start
+        self.eligible = eligible
 
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
@@ -750,16 +751,17 @@ class ScholarshipDisbursement(GradHappening):
         if matches:
             scholarship = matches[0]
             # update any amounts or descriptions
-            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester:
+            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester or self.eligble != scholarship.eligible:
                 if verbosity:
                     print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
                 scholarship.amount = self.disbursed_balance
                 scholarship.description = self.descr
                 scholarship.semester = self.semester
+                scholarship.eligble = self.eligible
         else:
             if verbosity:
                 print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
-            scholarship = GradScholarship(student=student_info['student'], semester=self.semester, description=self.descr, amount=self.disbursed_balance)
+            scholarship = GradScholarship(student=student_info['student'], semester=self.semester, description=self.descr, amount=self.disbursed_balance, eligible=self.eligible)
             local_scholarships.append(scholarship)
 
             if SIMS_SOURCE not in scholarship.config:
