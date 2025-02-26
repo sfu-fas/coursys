@@ -28,6 +28,7 @@ $(document).ready(function() {
     search_button.style.display = 'none';
     $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
     $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_start_date").change(hideDownloadButton);
     $("#id_end_date").change(hideDownloadButton);
     $("#id_hiring_category").change(hideDownloadButton);
     $("#id_current").change(hideDownloadButton);
