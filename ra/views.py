@@ -1272,7 +1272,7 @@ def download_admin(request):
         ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
                          end_date__gte=today - datetime.timedelta(days=slack), complete=True)
     else:
-        ras.filter(start_date__gte=start_date, start_date__lte=end_date)
+        ras = ras.filter(start_date__gte=start_date, start_date__lte=end_date)
     
     finance_column_names = []
     visa_status_column_names = []

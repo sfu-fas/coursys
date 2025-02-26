@@ -1218,7 +1218,7 @@ class ProgramForm(forms.ModelForm):
 
 class DownloadForm(forms.Form):    
     start_date = forms.DateField(label='Start Date Range (Begins)', widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
-    end_date = forms.DateField(label='Start Date Range (Ends)', help_text="Maximum of three years in start date range. Appointments in download will start within the indicated range.", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    end_date = forms.DateField(label='Start Date Range (Ends)', help_text="Appointments in download will start within the indicated range.", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
     current = forms.ChoiceField(label='Only current appointments (ignores above date range)', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='False', help_text='Appointments active now (or within two weeks).', required=False)
     hiring_category = forms.ChoiceField(choices = (('all', 'All Hiring Categories'),) + REQUEST_HIRING_CATEGORY, initial='all', required=True)
     include_financials = forms.ChoiceField(label='Include Payment Details in Result', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='True', help_text='Include payment details (Pay Periods, Payment Methods, Bi-Weekly Salary, etc.)', required=False)
@@ -1228,3 +1228,15 @@ class DownloadForm(forms.Form):
         super(DownloadForm, self).__init__(*args, **kwargs)
         self.initial['start_date'] = datetime.datetime.today() - datetime.timedelta(days=1095)
         self.initial['end_date'] = datetime.datetime.today()
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if end_date < start_date:
+                error_message = "Start date must be before end date."
+                self.add_error('end_date', error_message)
+                self.add_error('start_date', error_message)

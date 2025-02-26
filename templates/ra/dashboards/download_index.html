@@ -23,32 +23,11 @@ function showDownloadButton() {
     download_button.style.display = "block";
     search_button.style.display = "none";
 }
-function setDates(date) {
-    var max_date = new Date(date);
-    var min_date = new Date(date);
-    max_date.setDate(max_date.getDate() + 1096)
-    min_date.setDate(min_date.getDate() + 1)
-    $("#id_end_date").datepicker('option', 'maxDate', max_date);
-    $("#id_end_date").datepicker('option', 'minDate', min_date);
-}
 $(document).ready(function() {
     var search_button = document.getElementById("search_button");
     search_button.style.display = 'none';
-    $("#id_start_date").datepicker({
-        'dateFormat': 'yy-mm-dd', 
-        onSelect: function(date) {
-            setDates(date);
-            hideDownloadButton();
-        }
-    });
-    var default_max_date = new Date();
-    var default_min_date = new Date();
-    default_min_date.setDate(default_min_date.getDate()-1095);
-    $("#id_end_date").datepicker({
-        'dateFormat': 'yy-mm-dd',
-        'maxDate': default_max_date,
-        'minDate': default_min_date,
-    });
+    $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
     $("#id_end_date").change(hideDownloadButton);
     $("#id_hiring_category").change(hideDownloadButton);
     $("#id_current").change(hideDownloadButton);
