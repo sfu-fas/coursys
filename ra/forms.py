@@ -1228,15 +1228,3 @@ class DownloadForm(forms.Form):
         super(DownloadForm, self).__init__(*args, **kwargs)
         self.initial['start_date'] = datetime.datetime.today() - datetime.timedelta(days=1095)
         self.initial['end_date'] = datetime.datetime.today()
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        start_date = cleaned_data.get('start_date')
-        end_date = cleaned_data.get('end_date')
-
-        if start_date and end_date:
-            if end_date < start_date:
-                error_message = "Start date must be before end date."
-                self.add_error('end_date', error_message)
-                self.add_error('start_date', error_message)
