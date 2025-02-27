@@ -76,3 +76,34 @@
 {% endif %}
 
 </div>
+
+<br>
+
+<div class="datatable_container datatable">
+<i>The following scholarships have been imported from SIMS:</i>
+    <table class="display sort-2">
+		<thead>
+			<tr>
+				<th>Description</th>
+				<th>Amount</th>
+				<th>Semester</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in sims_scholarships %}
+			<tr>
+				<td>
+                    {{ s.description }} <i class="fa fa-check sims_check_yes"></i>
+				</td>
+				<td>
+                    ${{ s.amount }}
+                </td>
+				<td> 
+                    {{ s.semester }}
+                </td>
+            </tr>
+            {% endfor %}
+		</tbody>
+	</table>
+
+</div>

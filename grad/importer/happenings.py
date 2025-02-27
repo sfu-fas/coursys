@@ -4,12 +4,12 @@ from .tools import semester_lookup, STRM_MAP
 
 from coredata.models import Unit
 from coredata.queries import add_person
-from grad.models import GradProgram, GradStatus, GradProgramHistory, Supervisor
+from grad.models import GradProgram, GradStatus, GradProgramHistory, Supervisor, GradScholarship
 from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE
 
 import datetime
 from collections import defaultdict
-
+from decimal import Decimal, ROUND_HALF_UP
 
 def build_program_map():
     """
@@ -711,6 +711,65 @@ class CommitteeMembership(GradHappening):
         # TODO: try to match up external members with new real ones? That sounds hard.
 
 
+class ScholarshipDisbursement(GradHappening):
+    def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog, eligible):
+        # argument order must match grad_scholarships query
+        self.adm_appl_nbr = None
+        self.stdnt_car_nbr = None
+        self.emplid = emplid
+        self.aid_year = aid_year
+        self.item_type = item_type
+        self.acad_career = acad_career
+        self.disbursement_id = disbursement_id
+        self.strm = strm
+        self.descr = descr
+        self.disbursed_balance = Decimal(str(disbursed_balance)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.acad_prog = acad_prog
+        self.semester = STRM_MAP[self.strm]
+        self.effdt = self.semester.start
+        self.eligible = eligible
+
+        self.acad_prog_to_gradprogram()
+        self.effdt_to_strm()
+        self.in_career = False
+
+    def __repr__(self):
+        return "%s for %s for %s in %s" % (self.disbursed_balance, self.emplid, self.semester, self.acad_prog)
+
+    def find_local_data(self, student_info, verbosity):
+        pass
+
+    def import_key(self):
+        return [self.emplid, self.aid_year, self.item_type, self.acad_career, self.disbursement_id]
+
+    def update_local_data(self, student_info, verbosity, dry_run):
+
+        key = self.import_key()
+        local_scholarships = student_info['scholarships']
+        
+        matches = [s for s in local_scholarships if s.config[SIMS_SOURCE] == key]
+        if matches:
+            scholarship = matches[0]
+            # update any amounts or descriptions
+            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester or self.eligible != scholarship.eligible:
+                if verbosity:
+                    print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
+                scholarship.amount = self.disbursed_balance
+                scholarship.description = self.descr
+                scholarship.semester = self.semester
+                scholarship.eligible = self.eligible
+        else:
+            if verbosity:
+                print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
+            scholarship = GradScholarship(student=student_info['student'], semester=self.semester, description=self.descr, amount=self.disbursed_balance, eligible=self.eligible)
+            local_scholarships.append(scholarship)
+
+            if SIMS_SOURCE not in scholarship.config:
+                # record (the first) place we found this fact
+                scholarship.config[SIMS_SOURCE] = key
+
+        if not dry_run:
+            scholarship.save_if_dirty()
 
 class CareerUnitChangeOut(ProgramStatusChange):
     """
