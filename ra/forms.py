@@ -1,7 +1,7 @@
 from django import forms
 from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment, Program
 from ra.models import RARequest, RARequestAttachment
-from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ
+from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
 from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
 from django.core.exceptions import ValidationError
@@ -47,9 +47,9 @@ OBJECT_CHOICES = (
 # model with a single entry doesn't seem quite right? django-dbsettings?
 
 # deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2024, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 17.40 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 16.75 # Update to new minimum wage once another upcoming minimum wage is known 
+NEW_MIN_WAGE_DATE = datetime.date(2025, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
+NEW_MIN_WAGE = 17.85 # Update to most recent or upcoming new minimum wage, once known
+MIN_WAGE = 17.40 # Update to new minimum wage once another upcoming minimum wage is known 
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
@@ -807,9 +807,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
         
-        if usra: 
-            self.fields['ra_benefits'].widget=forms.HiddenInput()
-            self.fields['ra_benefits'].required=False
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1218,3 +1215,16 @@ class ProgramForm(forms.ModelForm):
     class Meta:
         model = Program
         exclude = ('hidden',)
+
+class DownloadForm(forms.Form):    
+    start_date = forms.DateField(label='Start Date Range (Begins)', widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    end_date = forms.DateField(label='Start Date Range (Ends)', help_text="Appointments in download will start within the indicated range.", widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=True)
+    current = forms.ChoiceField(label='Only current appointments (ignores above date range)', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='False', help_text='Appointments active now (or within two weeks).', required=False)
+    hiring_category = forms.ChoiceField(choices = (('all', 'All Hiring Categories'),) + REQUEST_HIRING_CATEGORY, initial='all', required=True)
+    include_financials = forms.ChoiceField(label='Include Payment Details in Result', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='True', help_text='Include payment details (Pay Periods, Payment Methods, Bi-Weekly Salary, etc.)', required=False)
+    include_visa_status = forms.ChoiceField(label='Include Visas and Visa Expiries in Result', widget=forms.RadioSelect, choices=BOOL_CHOICES, initial='True', help_text='Include Visa Status', required=False)
+    
+    def __init__(self, *args, **kwargs):
+        super(DownloadForm, self).__init__(*args, **kwargs)
+        self.initial['start_date'] = datetime.datetime.today() - datetime.timedelta(days=1095)
+        self.initial['end_date'] = datetime.datetime.today()
