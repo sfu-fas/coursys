@@ -751,13 +751,13 @@ class ScholarshipDisbursement(GradHappening):
         if matches:
             scholarship = matches[0]
             # update any amounts or descriptions
-            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester or self.eligble != scholarship.eligible:
+            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester or self.eligible != scholarship.eligible:
                 if verbosity:
                     print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
                 scholarship.amount = self.disbursed_balance
                 scholarship.description = self.descr
                 scholarship.semester = self.semester
-                scholarship.eligble = self.eligible
+                scholarship.eligible = self.eligible
         else:
             if verbosity:
                 print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
