@@ -4,7 +4,7 @@ from .happenings import ProgramStatusChange, ApplProgramChange, GradResearchArea
 from .tools import STRM_MAP
 
 from coredata.queries import add_person
-from grad.models import GradStudent, GradProgramHistory, GradStatus, Supervisor, SHORT_STATUSES, SUPERVISOR_TYPE
+from grad.models import GradStudent, GradProgramHistory, GradStatus, Supervisor, GradScholarship, SHORT_STATUSES, SUPERVISOR_TYPE
 
 class GradCareer(object):
     """
@@ -207,6 +207,7 @@ class GradCareer(object):
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
                 .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
             'committee': list(Supervisor.objects.filter(student=self.gradstudent)),
+            'scholarships': list(GradScholarship.objects.filter(student=self.gradstudent)),
             'real_admit_term': self.admit_term,
         }
         return student_info

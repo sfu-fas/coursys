@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig, Program
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, DownloadForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
     RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, \
@@ -358,10 +358,6 @@ class RANewRequestWizard(SessionWizardView):
             req.file_attachment_2 = ''
             req.file_mediatype_2 = ''
         
-        # ensure ra_benefits are false if not applicable
-        if req.usra == "True" or req.usra == True:
-            req.ra_benefits = "N"
-
         # if user creates request as draft
         if self.request.POST.get("save_draft"):
             req.draft = True
@@ -585,13 +581,8 @@ class RAEditRequestWizard(SessionWizardView):
             req.ra_payment_method = None
 
         # ensure swpp is false if not applicable
-        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
+        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS" or req.usra == "True" or req.usra == True:
             req.swpp = False
-        
-        # ensure swpp and ra_benefits are false if not applicable
-        if req.usra == "True" or req.usra == True:
-            req.swpp = False
-            req.ra_benefits = "N"
 
         # draft was submitted 
         if submission:
@@ -1213,12 +1204,8 @@ def download(request, current=False):
     """
     Download CSVs of appointments and requests
     """
-    admin = has_role('FUND', request)
 
-    if admin:
-        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False).order_by('complete')
-    else:
-        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False, draft=False, complete=True)
+    ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False, draft=False, complete=True)
 
     if current:
         today = datetime.date.today()
@@ -1230,22 +1217,89 @@ def download(request, current=False):
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
 
+    writer = csv.writer(response)
+
+    writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
+    for ra in ras:
+        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
+    return response
+
+@requires_role("FUND")
+def download_index(request):
+    """
+    Advanced download CSVs of appointments and requests for admins
+    """
+    form = DownloadForm(request.POST or None)
+    if request.method == 'POST':
+        start_date = form.data['start_date']
+        end_date = form.data['end_date']
+        hiring_category = form.data['hiring_category']
+        current = form.data['current']
+        include_financials = form.data['include_financials']
+        include_visa_status = form.data['include_visa_status']
+    else:
+        start_date = (datetime.date.today() - datetime.timedelta(days=1095)).strftime('%Y-%m-%d')
+        end_date = (datetime.date.today()).strftime('%Y-%m-%d')
+        hiring_category = 'all'
+        current = False
+        include_financials = True
+        include_visa_status = True
+        form = DownloadForm()
+    context={'form': form, 'start_date': start_date, 'end_date': end_date, 'hiring_category': hiring_category, 'current': current, 'include_financials': include_financials, 'include_visa_status': include_visa_status} 
+    return render(request, "ra/dashboards/download_index.html", context)
+
+@requires_role("FUND")
+def download_admin(request):
+    """
+    Download CSVs of appointments and requests for admin
+    """
+    
+    start_date = request.GET['start_date']
+    end_date = request.GET['end_date']
+    hiring_category = request.GET['hiring_category']
+    current = True if request.GET['current'] == 'True' else False
+    include_financials = True if request.GET['include_financials'] == 'True' else False
+    include_visa_status = True if request.GET['include_visa_status'] == 'True' else False
+
+    ras = RARequest.objects.filter(unit__in=request.units, deleted=False, draft=False).order_by('complete')
+
+    if hiring_category != 'all' and hiring_category in ['RA', 'NC', 'GRAS']:
+        ras = ras.filter(hiring_category=hiring_category)
+
+    if current:
+        today = datetime.date.today()
+        slack = 14
+        ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                         end_date__gte=today - datetime.timedelta(days=slack), complete=True)
+    else:
+        ras = ras.filter(start_date__gte=start_date, start_date__lte=end_date)
+    
+    finance_column_names = []
+    visa_status_column_names = []
+    if include_financials:
+        finance_column_names = ['Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours']
+    if include_visa_status:
+        visa_status_column_names = ['Visa 1', 'Visa Expiry 1', 'Visa 2', 'Visa Expiry 2']
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="ras-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'))
 
     writer = csv.writer(response)
-    if admin:
-        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project 1', 'Project 2', 'Project 3', 'Supervisor', 'Supervisor Email', 
-                         'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Appointee Co-op Status', 'Processed By', 'Student Status', 'Visa 1', 'Visa Expiry 1', 'Visa 2', 'Visa Expiry 2',
-                         'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours', 'Author', 'Submission Date'])
-        for ra in ras:
-            if ra.complete:
-                status = "Complete"
-            else:
-                status = "In Progress"
-            if ra.usra:
-                usra = " (USRA)"
-            else:
-                usra = ""
+    writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project 1', 'Project 2', 'Project 3', 'Supervisor', 'Supervisor Email', 
+                        'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Appointee Co-op Status', 'Processed By', 'Student Status'] + visa_status_column_names +
+                        ['True Scholarship Questionnaire'] + finance_column_names + ['Author'])
+    for ra in ras:
+        if ra.complete:
+            status = "Complete"
+        else:
+            status = "In Progress"
+        if ra.usra:
+            usra = " (USRA)"
+        else:
+            usra = ""
 
+        visa_status_values = []
+        if include_visa_status:
             visas = ra.get_visa_info()
 
             visa_1_info = visa_2_info = [""] * 2
@@ -1255,6 +1309,10 @@ def download(request, current=False):
                 if visas[1]:
                     visa_2_info = [visas[1].status, visas[1].end_date]
 
+            visa_status_values = visa_1_info + visa_2_info
+        
+        payment_terms = []
+        if include_financials:
             # payment terms, for finance
             cat = ra.hiring_category
             research_assistant = (cat=="RA")
@@ -1279,13 +1337,10 @@ def download(request, current=False):
                 payment_terms = ["Bi-Weekly", "", ra.biweekly_salary] + ([""] * 4)
             if ra.backdated:
                 payment_terms = ["Backdated"] + ([""] * 6)
-
-            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.fs1_project, ra.fs2_project, ra.fs3_project, ra.supervisor.sortname(), ra.supervisor.email(), 
-                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_1_info + visa_2_info + [ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms + [ra.author.sortname(), ra.created_at.strftime("%Y-%m-%d")] )
-    else:
-        writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
-        for ra in ras:
-            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
+            payment_terms = [ra.pay_periods] + payment_terms
+            
+        writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.fs1_project, ra.fs2_project, ra.fs3_project, ra.supervisor.sortname(), ra.supervisor.email(), 
+                            ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_status_values + [ra.get_scholarship_confirmation_complete()] + payment_terms + [ra.author.sortname()] )
     return response
 
 # altered RADataJson, to make a very similar browse page, but for RARequests
