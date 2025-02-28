@@ -87,6 +87,7 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
+				<th>Eligible</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -100,6 +101,9 @@
                 </td>
 				<td> 
                     {{ s.semester }}
+                </td>
+                <td> 
+                    {{ s.eligible|yesno }}
                 </td>
             </tr>
             {% endfor %}

@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, ScholarshipType, Scholarship, FinancialComment
+from grad.models import GradStudent, ScholarshipType, Scholarship, GradScholarship, FinancialComment
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ScholarshipForm
@@ -16,6 +16,7 @@ def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
     scholarships = Scholarship.objects.filter(student=grad).select_related('scholarship_type').order_by('start_semester__name')
+    sims_scholarships = GradScholarship.objects.filter(student=grad, removed=False).order_by('semester__name')
     comments = FinancialComment.objects.filter(student=grad, comment_type='SCO', removed=False).order_by('created_at')
     
     if request.method == 'POST':
@@ -41,6 +42,7 @@ def manage_scholarships(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'scholarships': scholarships,
+                'sims_scholarships': sims_scholarships,
                 'scholarship_comments': comments,
                 'can_edit': True,
     }

@@ -1,7 +1,7 @@
 from .parameters import IMPORT_START_DATE, RELEVANT_PROGRAM_START, SIMS_SOURCE
 from .career import GradCareer
 from .happenings import ProgramStatusChange, CommitteeMembership, GradSemester, ApplProgramChange, CareerUnitChangeIn,\
-    CareerUnitChangeOut, GradMetadata, GradResearchArea
+    CareerUnitChangeOut, GradMetadata, GradResearchArea, ScholarshipDisbursement
 
 from grad.models import GradStudent
 import datetime, itertools
@@ -144,8 +144,8 @@ class GradTimeline(object):
                     c = possible_careers[-1]
                     c.add(h)
                 else:
-                    if isinstance(h, CommitteeMembership):
-                        # Try even harder: some where given grad committees before they even started
+                    if (isinstance(h, CommitteeMembership) or isinstance(h, ScholarshipDisbursement)):
+                        # Try even harder: some were given grad committees or scholarships before they even started
                         possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
                         possible_careers.sort(key=lambda c: c.admit_term)
                         if possible_careers:
@@ -166,9 +166,9 @@ class GradTimeline(object):
                                 c.add(h)
 
                     # admit failure in a few cases
-                    if not h.in_career and (isinstance(h, CommitteeMembership) or isinstance(h, GradResearchArea)):
+                    if not h.in_career and (isinstance(h, CommitteeMembership) or isinstance(h, GradResearchArea) or isinstance(h, ScholarshipDisbursement)):
                         # Committee member added to one program after student changed to another: drop this one.
-                        # Committee membership for student's new program should be in another happening.
+                        # Committee membership or scholarship for student's new program should be in another happening.
                         # Research areas where we didn't find any other info can be dropped.
                         h.in_career = True
                     elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
