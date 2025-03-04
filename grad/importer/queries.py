@@ -160,7 +160,7 @@ def grad_scholarships(emplids):
                             FROM (	
                                 SELECT *, RANK () OVER (PARTITION BY EMPLID, ACAD_CAREER, STDNT_CAR_NBR ORDER BY EFFDT DESC, EFFSEQ DESC) AS date_Rank
                                     FROM (
-                                        SELECT *, 
+                                        SELECT AP.*, 
                                             CASE
                                                 WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'MATR' THEN 'CONF'
                                                 WHEN PROG_STATUS = 'CN' AND PROG_ACTION = 'WADM' THEN 'CANC'
@@ -174,7 +174,13 @@ def grad_scholarships(emplids):
                                                 WHEN PROG_STATUS = 'CM' AND PROG_ACTION = 'COMP' THEN 'GRAD'
                                                 ELSE 'None'
                                             END AS translated_Status
-                                            FROM PS_ACAD_PROG
+                                            FROM PS_ACAD_PROG AP
+                                            JOIN (
+                                                SELECT ACAD_PROG, ACAD_GROUP FROM (
+                                                    SELECT *, RANK () OVER (PARTITION BY ACAD_PROG ORDER BY EFFDT DESC) AS DATE_RANK FROM PS_ACAD_PROG_TBL WHERE EFF_STATUS = 'A'
+                                                    ) AD WHERE DATE_RANK = 1 AND ACAD_GROUP LIKE ('APSC')
+                                            ) APT ON APT.ACAD_PROG = AP.ACAD_PROG
+                                            WHERE AP.ACAD_CAREER LIKE ('GRAD')
                                         ) DATA1
                                     WHERE DATA1.translated_Status NOT IN ('None')
                                     ) DATA1
