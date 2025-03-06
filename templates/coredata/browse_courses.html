@@ -3,12 +3,12 @@
 {% load static %}
 {% load compress %}
 
-{% block title %}Browse {% if unit %}{{ unit.name }} {% endif %}Course Offerings {% if campus_display %}in {{ campus_display }}{% endif %}{% endblock %}
-{% block h1 %}Browse {% if unit %}{{ unit.name }} {% endif %}Course Offerings {% if campus_display %}in {{ campus_display }}{% endif %}{% endblock %}
+{% block title %}Browse Course Offerings {% if unit %}({{unit.name}}{% if campus_display %}: {{ campus_display }}{% endif %}){% endif %}{% endblock %}
+{% block h1 %}Browse Course Offerings{% endblock %}
 
 {% block subbreadcrumbs %}
 {% if unit or campus %}<li><a href="{% url "browse:browse_courses" %}">Browse Course Offerings</a></li>{% endif %}
-<li>Browse {% if unit %}{{ unit.name }} {% endif %}Course Offerings {% if campus_display %}in {{ campus_display }}{% endif %}</li>
+<li>Browse Course Offerings {% if unit %}({{unit.name}}{% if campus_display %}: {{ campus_display }}{% endif %}){% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -26,6 +26,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+{% if unit %}<h2>{{unit.name}}{% if campus_display %} - {{ campus_display }}{% endif %}</h2>{% endif %}
 <form action="" id="filterform">
 <ul>
 {{ form.semester|browser_field }}
