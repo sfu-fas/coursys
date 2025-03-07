@@ -567,7 +567,7 @@ HolidayFormset = forms.models.modelformset_factory(Holiday, formset=BaseHolidayF
 
 
 # form for the course browser: never submitted, only rendered and processed with JS
-from coredata.models import CAMPUS_CHOICES_SHORT, WQB_FLAGS
+from coredata.models import CAMPUS_CHOICES_SHORT, WQB_FLAGS, CAMPUSES
 from itertools import chain
 from django.utils.html import conditional_escape
 import datetime
@@ -618,16 +618,24 @@ class OfferingFilterForm(forms.Form):
 
     @classmethod
     @cached(6*3600)
-    def all_subjects(self, semesters):
-        return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
+    def all_subjects(self, semesters, unit=None):
+        subjects = CourseOffering.objects.filter(semester__in=semesters)
+        if unit:
+            subunits = Unit.sub_unit_ids([unit])
+            subjects = subjects.filter(owner__in=subunits)
+        return subjects.order_by('subject').values_list('subject', flat=True).distinct()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, unit, campus, *args, **kwargs):
         super(OfferingFilterForm, self).__init__(*args, **kwargs)
+        if campus:
+            self.fields['campus'].widget.attrs['disabled'] = 'disabled'
+            self.fields['campus'].choices = [('', CAMPUSES[campus]),]
+
         # semester choices
         semesters = self.allowed_semesters()
         self.fields['semester'].choices = [('', 'all')] + [(s.name, s.label()) for s in semesters]
         # subject choices: all that exist in allowed semesters
-        subjects = self.all_subjects(semesters)
+        subjects = self.all_subjects(semesters, unit)
         self.fields['subject'].choices = [('', 'all')] + [(s,s) for s in subjects]
 
 class TemporaryPersonForm(forms.Form):
