@@ -149,7 +149,7 @@ def tugs_csv_download(request, semester_name=None):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="tugs(%s)-%s.csv"' % (semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['TA Name', 'TA ID', 'Instructor', 'Course Offering', 'BUs Without Prep', 'BUs With Prep', 'Maximum Hours']
+    writer.writerow(['TA Name', 'TA ID', 'Instructor', 'Course Number', 'Course Section', 'Course Term', 'BUs Without Prep', 'BUs With Prep', 'Maximum Hours']
                     + dr_column_names + ['Required Total Hours', 'Link to TUG'])
     
     for tug in tugs:
@@ -170,8 +170,9 @@ def tugs_csv_download(request, semester_name=None):
             bu = tug.base_units
             total_bu = tug.base_units + LAB_BONUS_DECIMAL
             max_hours = tug.base_units * HOURS_PER_BU
+        course_number = course_offering.subject + " " + course_offering.number
 
-        writer.writerow([person, person.emplid, instructors, course_offering, bu, total_bu, max_hours] + dr_row_values + [total_hours, url])
+        writer.writerow([person, person.emplid, instructors, course_number, course_offering.section, course_offering.semester.label(), bu, total_bu, max_hours] + dr_row_values + [total_hours, url])
     return response
 
 

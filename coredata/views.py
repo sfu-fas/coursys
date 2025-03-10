@@ -10,7 +10,7 @@ from courselib.auth import requires_global_role, requires_role, requires_course_
         has_formgroup, has_global_role
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES
+    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES, CAMPUSES
 from coredata import panel
 from advisornotes.models import NonStudent
 from onlineforms.models import FormGroup, FormGroupMember
@@ -1154,21 +1154,43 @@ def XXX_sims_person_search(request):
     return response
 
 
-def browse_courses(request):
+def browse_courses(request, unit_slug=None, campus=None):
     """
     Interactive CourseOffering browser
     """
+    if unit_slug:
+        unit_slug = unit_slug.lower()
+    if campus:
+        if campus.lower() == "burnaby":
+            campus = "BRNBY"
+        if campus.lower() == "surrey":
+            campus = "SURRY"
+        if campus.lower() == "vancouver":
+            campus = "VANCR"
+        if campus not in CAMPUSES:
+            raise Http404
     if 'tabledata' in request.GET:
         # table data
-        return _offering_data(request)
+        return OfferingDataJson.as_view(unit_slug=unit_slug, campus=campus)(request)
     if 'instructor_autocomplete' in request.GET:
         # instructor autocomplete search
         return _instructor_autocomplete(request)
+    if unit_slug:
+        unit = get_object_or_404(Unit, slug=unit_slug)
+    else:
+        unit = None
+    if campus:
+        campus_display = CAMPUSES[campus]
+    else:
+        campus_display = None
 
     # actually displaying the page at this point
-    form = OfferingFilterForm()
+    form = OfferingFilterForm(unit, campus)
     context = {
         'form': form,
+        'unit': unit,
+        'campus': campus,
+        'campus_display': campus_display
         }
     return render(request, 'coredata/browse_courses.html', context)
 
@@ -1203,6 +1225,20 @@ class OfferingDataJson(BaseDatatableView):
     max_display_length = 500
     columns = COLUMNS
     order_columns = [COLUMN_ORDERING[col] for col in columns]
+    unit_slug = None
+    campus = None
+
+    def get_initial_queryset(self):
+        qs = super(OfferingDataJson, self).get_initial_queryset()
+        unit_slug = self.unit_slug
+        campus = self.campus
+        if unit_slug:
+            unit = Unit.objects.get(slug=unit_slug)
+            subunits = Unit.sub_unit_ids([unit])
+            qs = qs.filter(owner__in=subunits)
+        if campus:
+            qs = qs.filter(campus=campus)
+        return qs
 
     def get_context_data(self, *args, **kwargs):
         try:
@@ -1384,7 +1420,6 @@ class OfferingDataJson(BaseDatatableView):
     #    data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
     #    return data
 
-_offering_data = OfferingDataJson.as_view()
 
 
 def _instructor_autocomplete(request):

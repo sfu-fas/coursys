@@ -1,0 +1,22 @@
+#filterform ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#filterform li {
+    padding: 10px;
+}
+  
+#filterform select {
+    height: 2.25em;
+    padding: .4em;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    box-shadow: 0 0 5px -2px #777;
+    gap:20px;
+}
+
+form label {
+    padding: 5px;
+}

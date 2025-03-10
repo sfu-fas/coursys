@@ -87,6 +87,7 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
+				<th>Eligible</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -99,7 +100,10 @@
                     ${{ s.amount }}
                 </td>
 				<td> 
-                    {{ s.semester }}
+                    {{ s.semester.name }} ({{ s.semester }}) 
+                </td>
+                <td> 
+                    {{ s.eligible|yesno }}
                 </td>
             </tr>
             {% endfor %}
