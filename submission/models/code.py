@@ -22,6 +22,7 @@ CODE_TYPES = [
     (".h", "C header (.h)"),
     (".py", "Python (.py)"),
     (".rb", "Ruby (.rb)"),
+    (".ml", "OCaml (.ml)"),
 #    (".pl", "Perl (.pl)"),
     (".hs", "Haskell (.hs)"),
     (".pl", "Prolog (.pl)"),
