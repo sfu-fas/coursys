@@ -45,20 +45,19 @@ class FASCrosslistedCoursesReport(Report):
 
         for o in unique_joint_offerings:
             if len(o) == 2:
-                co_1 = CourseOffering.objects.get(slug=o[0])
-                co_2 = CourseOffering.objects.get(slug=o[1])
+                try:
+                    co_1 = CourseOffering.objects.get(slug=o[0])
+                    co_2 = CourseOffering.objects.get(slug=o[1])
+                except CourseOffering.DoesNotExist:
+                    continue
                 
                 # semester should always be the same
-                if co_1.semester != co_2.semester:
-                    print("Different semesters here? %s, %s" % (str(co_1), str(co_2)))
                 semester = co_1.semester.label()
 
                 # instructors should always be the same
                 instructors = co_1.instructors_printing_str()
 
                 # campus should always be the same
-                if co_1.campus != co_2.campus:
-                    print("Different campuses here? %s, %s" % (str(co_1), str(co_2)))
                 campus = CAMPUSES_SHORT[co_1.campus]
 
                 # units
