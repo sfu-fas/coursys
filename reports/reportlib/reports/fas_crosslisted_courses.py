@@ -65,8 +65,8 @@ class FASCrosslistedCoursesReport(Report):
                 co_2_unit = co_2.owner.label
                 
                 # course names
-                co_1_course_name = '%s\u00a0%s\u00a0%s' % (co_1.subject, co_1.number, co_1.section)
-                co_2_course_name = '%s\u00a0%s\u00a0%s' % (co_2.subject, co_2.number, co_2.section)
+                co_1_course_name = '%s %s %s' % (co_1.subject, co_1.number, co_1.section)
+                co_2_course_name = '%s %s %s' % (co_2.subject, co_2.number, co_2.section)
                 
                 #course titles
                 co_1_title = co_1.title
