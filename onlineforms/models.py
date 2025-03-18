@@ -350,7 +350,7 @@ class Form(models.Model, _FormCoherenceMixin):
     emailbody, set_emailbody = getter_setter('emailbody')
 
     def __str__(self):
-        return "%s [%s]" % (self.title, self.id)
+        return "%s [%s] [%s]" % (self.title, self.id, self.slug)
     
     def delete(self, *args, **kwargs):
         self.active = False
@@ -384,7 +384,7 @@ class Form(models.Model, _FormCoherenceMixin):
         """
         Make a independent duplicate of this form.
 
-        Not called from the UI anywhere, but can be used to duplicate a form for another unit, without the pain of
+        Can be used to duplicate a form for another unit, without the pain of
         re-creating everything:
             newform = oldform.duplicate()
             newform.owner = ...

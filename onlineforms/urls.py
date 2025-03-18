@@ -60,6 +60,7 @@ forms_patterns = [
     url(r'^index/(?P<unit_slug>[\w-]+)/ajax_calls/form_search/$', onlineforms_views.formSearchAutocomplete),
     url(r'^login/$', onlineforms_views.login, name='login'),
     url(r'^bulk$', onlineforms_views.bulk_assign, name='bulk_assign'),
+    url(r'^duplicate$', onlineforms_views.duplicate_form, name='duplicate_form'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', onlineforms_views.view_submission, name='view_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/notes$', onlineforms_views.update_submission_notes, name='update_submission_notes'),

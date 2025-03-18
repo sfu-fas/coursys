@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %}Duplicate Form{% endblock %}
+{% block title %}Duplicate Form{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li>Duplicate Form</li>
+{% endblock %}
+
+{% block content %}
+<form action="" method="post">{% csrf_token %}
+    {{ form|as_dl }}
+    <p><input type="submit" value="Duplicate" /></p>
+</form>
+{% endblock %}

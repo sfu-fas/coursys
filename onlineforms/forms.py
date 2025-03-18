@@ -7,7 +7,7 @@ from django.forms.models import ModelForm
 from coredata.models import Person
 from coredata.queries import add_person, SIMSProblem
 from courselib.search import find_userid_or_emplid
-from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller, FormSubmission
+from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller, FormSubmission, INITIATOR_CHOICES
 from django.utils.safestring import mark_safe
 from django.forms.utils import ErrorList
 import datetime
@@ -376,6 +376,12 @@ class BulkAssignForm(forms.Form):
             people.append(person)
 
         return people
+
+class DuplicateForm(forms.Form):
+    form = forms.ModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None, label="Form to Duplicate")
+    title = forms.CharField(required=True, max_length=60, label="New Form Title")
+    owner = forms.ModelChoiceField(required=True, queryset=FormGroup.objects.all(), label="New Form Owner", help_text='The group of users who own/administrate this form.')
+    initiators = forms.ChoiceField(choices=INITIATOR_CHOICES, label="New Form Initiators", help_text='Who is allowed to fill out the initial sheet? That is, who can initiate a new instance of this form?')
 
 class SearchCompletedForm(forms.Form):    
     fromdate = forms.DateField(label='Completed Date - From',  widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=False)
