@@ -19,7 +19,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm, NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm, \
-    BulkAssignForm, SearchCompletedForm, FormSubmissionNotesForm
+    BulkAssignForm, SearchCompletedForm, FormSubmissionNotesForm, DuplicateForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, FormGroup, \
     FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -1133,12 +1133,45 @@ def login(request):
     #  if they click on the link in the reminder, thus making sure they see their forms.
     return HttpResponseRedirect(reverse('onlineforms:index'))
 
+# Restricted to sysadmins for now
+@requires_global_role('SYSA')
+def duplicate_form(request):
+    with django.db.transaction.atomic():
+        form_choices = Form.objects.filter(active=True).order_by('title')
+        if request.method == 'POST':
+            form = DuplicateForm(data=request.POST)
+            form.fields['form'].queryset = form_choices
+            if form.is_valid():
+                oldform = form.cleaned_data['form']
+                newform = oldform.duplicate()
+                newform.title = form.cleaned_data['title']
+                newform.owner = form.cleaned_data['owner']
+                newform.unit = newform.owner.unit
+                newform.initiators = form.cleaned_data['initiators']
+                newform.slug = None
+                newform.save()
+                # LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                            description=("Duplicated form %s.") % (oldform,),
+                            related_object=newform)
+                l.save()
+                messages.success(request, 'Duplicated form %s' % (oldform))
+                return HttpResponseRedirect(
+                    reverse('onlineforms:view_form', kwargs={'form_slug':newform.slug }))
+        else:
+            form = DuplicateForm()
+            form.fields['form'].queryset = form_choices
+
+        context = {
+            'form': form
+        }
+        return render(request, 'onlineforms/duplicate_form.html', context)
 
 # Restricted to sysadmins for now: could be opened up somehow with the `admin` field removed from the form and replaced
 # with request.user
 @requires_global_role('SYSA')
 def bulk_assign(request):
-    form_choices = Form.objects.filter(active=True)
+    form_choices = Form.objects.filter(active=True).order_by('title')
     if request.method == 'POST':
         form = BulkAssignForm(data=request.POST)
         form.fields['form'].queryset = form_choices
