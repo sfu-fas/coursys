@@ -1137,7 +1137,7 @@ def login(request):
 @requires_global_role('SYSA')
 def duplicate_form(request):
     with django.db.transaction.atomic():
-        form_choices = Form.objects.filter(active=True)
+        form_choices = Form.objects.filter(active=True).order_by('title')
         if request.method == 'POST':
             form = DuplicateForm(data=request.POST)
             form.fields['form'].queryset = form_choices
