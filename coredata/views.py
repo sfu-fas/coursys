@@ -1259,30 +1259,31 @@ class OfferingDataJson(BaseDatatableView):
             if 'yes' in xlist_filters and joint_with:
                 xcoursecode = ''
                 xcourseurl = ''
-                for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        start = j.find('-')+1
-                        if j[-2:] == '00':
-                            xcoursecode = j.upper()[start:].replace("-", " ")[:-2]
-                        else:
-                            xcoursecode = j.upper()[start:].replace("-", " ")
-                        xcourseurl = reverse('browse:browse_courses_info', kwargs={'course_slug': j})
-
+                crosslist = ''
                 col = mark_safe('<a href="%s">%s</a> <i class="fa fa-clone" title="Crosslisted with %s"></i>' % (url, conditional_escape(txt), joint_with))
-                joint_course_link = mark_safe('<a href="%s">%s</a>' % (xcourseurl, xcoursecode))
-                crosslist = mark_safe('<br> X ')+ joint_course_link
-                col = col + crosslist
+                for index, j in enumerate(joint_with):
+                    start = j.find('-')+1
+                    if j[-2:] == '00':
+                        xcoursecode = j.upper()[start:].replace("-", " ")[:-2]
+                    else:
+                        xcoursecode = j.upper()[start:].replace("-", " ")
+                    xcourseurl = reverse('browse:browse_courses_info', kwargs={'course_slug': j})                
+                    joint_course_link = mark_safe('<a href="%s">%s</a>' % (xcourseurl, xcoursecode))
+                    crosslist += mark_safe('<br> X ') + joint_course_link
+                col = col + mark_safe(crosslist)
         elif column == 'title':            
-            col = str(getattr(offering, column))            
+            col = mark_safe(offering.title)
             # show crosslisted
             if 'yes' in xlist_filters and joint_with:
                 xtitle = '[Cannot find Crosslisted]'
                 for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        xoffering = CourseOffering.objects.filter(slug=j)
-                        if xoffering:
-                            xtitle = xoffering[0].title
-                col =  mark_safe(col) + mark_safe('<br> X  %s' % (xtitle))
+                    xoffering = CourseOffering.objects.filter(slug=j)                    
+                    if xoffering:
+                        if index == 0:
+                            xtitle = mark_safe('<br> X ') + xoffering[0].title 
+                        else:
+                            xtitle += mark_safe('<br> X ') + xoffering[0].title
+                col =  col + mark_safe(xtitle)
             
         elif column == 'instructors':
             col = offering.instructors_printing_str()
@@ -1294,20 +1295,20 @@ class OfferingDataJson(BaseDatatableView):
                 col += ' (+%i)' % (offering.wait_tot,)
             # show crosslisted
             if 'yes' in xlist_filters and joint_with:
-                xenrl_tot = 0
-                xenrl_cap = 0
-                xwait_tot = 0
+                xerol = ''
                 for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        xoffering = CourseOffering.objects.filter(slug=j)
-                        if xoffering:                     
-                            xenrl_tot = xoffering[0].enrl_tot
-                            xenrl_cap = xoffering[0].enrl_cap
-                            xwait_tot = xoffering[0].wait_tot
-                xerol = mark_safe('<br> X  %i/%i' % (xenrl_tot, xenrl_cap))
-                if xwait_tot:
-                    xerol += mark_safe(' (+%i)' % (xwait_tot,))  
-                col =  mark_safe(col) + xerol            
+                    xenrl_tot = 0
+                    xenrl_cap = 0
+                    xwait_tot = 0
+                    xoffering = CourseOffering.objects.filter(slug=j)
+                    if xoffering:                     
+                        xenrl_tot = xoffering[0].enrl_tot
+                        xenrl_cap = xoffering[0].enrl_cap
+                        xwait_tot = xoffering[0].wait_tot
+                        xerol += mark_safe('<br> X  %i/%i' % (xenrl_tot, xenrl_cap))
+                    if xwait_tot:
+                        xerol += mark_safe(' (+%i)' % (xwait_tot,))  
+                col =  mark_safe(col) + mark_safe(xerol)
         elif column == 'semester':
             col = str(offering.semester).replace(' ', '\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
