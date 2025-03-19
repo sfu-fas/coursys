@@ -1269,10 +1269,9 @@ class OfferingDataJson(BaseDatatableView):
                         xcoursecode = j.upper()[start:].replace("-", " ")
                     xcourseurl = reverse('browse:browse_courses_info', kwargs={'course_slug': j})                
                     joint_course_link = mark_safe('<a href="%s">%s</a>' % (xcourseurl, xcoursecode))
-                    crosslist += mark_safe('<br> X ')+ joint_course_link
-                col = col +  mark_safe(crosslist)
+                    crosslist += mark_safe('<br> X ') + joint_course_link
+                col = col + mark_safe(crosslist)
         elif column == 'title':            
-            #col = str(getattr(offering, column))            
             col = mark_safe(offering.title)
             # show crosslisted
             if 'yes' in xlist_filters and joint_with:
@@ -1283,7 +1282,7 @@ class OfferingDataJson(BaseDatatableView):
                         if index == 0:
                             xtitle = mark_safe('<br> X ') + xoffering[0].title 
                         else:
-                            xtitle += mark_safe('<br> X ') + (xoffering[0].title)
+                            xtitle += mark_safe('<br> X ') + xoffering[0].title
                 col =  col + mark_safe(xtitle)
             
         elif column == 'instructors':
