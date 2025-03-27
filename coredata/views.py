@@ -10,7 +10,7 @@ from courselib.auth import requires_global_role, requires_role, requires_course_
         has_formgroup, has_global_role
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES, CAMPUSES
+    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, EnrolmentHistory, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES, CAMPUSES
 from coredata import panel
 from advisornotes.models import NonStudent
 from onlineforms.models import FormGroup, FormGroupMember
@@ -24,6 +24,8 @@ import socket, json, datetime, os
 import iso8601
 from functools import reduce
 from operator import itemgetter
+from django.db.models import Max
+from collections import Counter
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -1621,3 +1623,46 @@ def course_home_admin(request, course_slug):
         'form': form,
     }
     return render(request, "coredata/course_home_admin.html", context)
+
+
+@requires_global_role("SYSA")
+def course_enrolment(request, course_slug):
+    """
+    Enrolment data and analytics for a course offering
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    enrolment_history = EnrolmentHistory.objects.filter(offering=offering)
+    dropped_students = Member.objects.filter(offering=offering, role="DROP")
+    
+    dropped_data = []
+    for student in dropped_students:
+        date = datetime.datetime.fromisoformat(student.config['drop_date']).date()
+        dropped_data.append(date)
+    
+    dropped_counts = Counter(dropped_data)
+    
+    all_dates = set(eh.date for eh in enrolment_history) | set(dropped_counts.keys())
+    all_dates = sorted(all_dates)
+
+    enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.wait_tot) for eh in enrolment_history}
+
+    enrl_tot, wait_tot = 0, 0
+
+    data = [['Date', 'Total Enrolled', 'Waitlist', 'Dropped']]
+    table_data = []
+    for date in all_dates:
+        if date in  enrolment_history_dict:
+            enrl_tot, wait_tot = enrolment_history_dict[date]
+        dropped = dropped_counts[date]
+        data.append([date.strftime('%Y-%m-%d'), enrl_tot, wait_tot, dropped])
+        table_data.append([date.strftime('%Y-%m-%d'), enrl_tot, wait_tot, dropped])
+    
+    enrolment_cap = enrolment_history.aggregate(Max('enrl_cap'))['enrl_cap__max'] + 10
+
+    context = {
+        'offering': offering,
+        'table_data': table_data,
+        'data': data,
+        'enrolment_cap': enrolment_cap
+    }
+    return render(request, 'coredata/course_enrolment.html', context)
