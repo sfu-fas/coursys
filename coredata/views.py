@@ -1632,8 +1632,9 @@ def _course_enrolment_data(request, offering):
     
     dropped_data = []
     for student in dropped_students:
-        date = datetime.datetime.fromisoformat(student.config['drop_date']).date()
-        dropped_data.append(date)
+        if 'drop_date' in student.config:
+            date = datetime.datetime.fromisoformat(student.config['drop_date']).date()
+            dropped_data.append(date)
     
     dropped_counts = Counter(dropped_data)
     
