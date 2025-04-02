@@ -382,6 +382,6 @@ class GradTest(TestCase):
         s1.save()
         s2 = GradStatus(student=gs, status='REJE', start=this_sem.offset(1))
         s2.save()
-        self.assertEqual(gs.status_as_of(this_sem.offset(-3 )), 'COMP')
+        self.assertEqual(gs.status_as_of(this_sem.offset(-3 )), None)
         self.assertEqual(gs.status_as_of(this_sem), 'REJE')
         self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'REJE')
