@@ -96,6 +96,8 @@ STATUS_CHOICES = (
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
                     'DEFR', 'WAIT') # statuses that mean "applicant"
+STATUS_APPLICANT_FUTURE = ('APPL', 'INCO', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
+                    'DEFR', 'WAIT') # statuses that we want to consider in the future for current status
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'WAIT') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
@@ -339,7 +341,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             semester = Semester.current()
 
         timely_status = models.Q(start__name__lte=semester.name)
-        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT)
+        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT_FUTURE)
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
