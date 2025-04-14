@@ -453,6 +453,7 @@ def edit_contract(request, unit_slug, semester, contract_slug):
                   'semester':semester,
                   'category':contract.category,
                   'contract':contract,
+                  'accepted': contract.accepted_by_student,
                   'form':form})
 
 

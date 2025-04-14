@@ -2,7 +2,7 @@
 {% load form_display %}
 {% load static %}
 
-{% block title %}Ta Contracts : Edit Contract{% endblock %}
+{% block title %}TA Contracts : Edit Contract{% endblock %}
 {% block h1 %}TA Contracts : Edit Contract{% endblock %}
 
 {% block headextra %}
@@ -24,6 +24,9 @@ var persongradprograms_url = "{% url 'tacontracts:person_grad_programs' semester
 {% endblock %}
 
 {% block content %}
+{% if accepted %}
+<b>Warning: This contract has already been accepted!</b>
+{% endif %}
 <form action="{% url "tacontracts:edit_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug%}" method="post">
     {% csrf_token %}
     <fieldset>
