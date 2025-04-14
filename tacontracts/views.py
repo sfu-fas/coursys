@@ -764,7 +764,7 @@ def student_contract(request, semester):
     contracts = contracts.exclude(id__in=viewable_draft_contract_ids)
 
     if contracts.count() == 0:
-        return ForbiddenResponse(request, "No available contracts found for this semester.")
+        return ForbiddenResponse(request, "No available contracts found for this semester")
 
     return render(request, 'tacontracts/student_contract.html', {
                   'semester':semester,
@@ -779,7 +779,7 @@ def accept_contract(request, semester, contract_slug):
                                   category__hiring_semester__semester__name=semester, 
                                   person__userid=request.user.username, 
                                   slug=contract_slug) 
-    if request.method == "POST":
+    if request.method == "POST" and contract.has_emails():
         contract.accepted_by_student = True
         contract.save()
         messages.add_message(request, 
@@ -789,6 +789,9 @@ def accept_contract(request, semester, contract_slug):
                      description="Accepted contract %s." % str(contract),
                      related_object=contract)
         l.save()
+    else: 
+        return ForbiddenResponse(request)
+    
     return HttpResponseRedirect(reverse('tacontracts:student_contract',
                                         kwargs={'semester':semester}))
 
@@ -800,7 +803,7 @@ def reject_contract(request, semester, contract_slug):
                                  category__hiring_semester__semester__name=semester,
                                  person__userid=request.user.username,
                                  slug=contract_slug)
-    if request.method == "POST":
+    if request.method == "POST" and contract.has_emails():
         contract.accepted_by_student = False
         contract.rejected = True
         contract.status = 'CAN'
@@ -812,6 +815,9 @@ def reject_contract(request, semester, contract_slug):
                      description="Rejected contract %s." % str(contract),
                      related_object=contract)
         l.save()
+    else: 
+        return ForbiddenResponse(request)
+    
     return HttpResponseRedirect(reverse('dashboard:index'))
 
 
