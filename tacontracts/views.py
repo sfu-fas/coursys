@@ -11,7 +11,7 @@ from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 # Local
-from courselib.auth import requires_role
+from courselib.auth import requires_role, ForbiddenResponse
 from coredata.models import Semester, Unit, CourseOffering, Person
 from grad.models import GradStudent
 from dashboard.models import NewsItem
@@ -756,6 +756,15 @@ def student_contract(request, semester):
     contracts = TAContract.objects.filter(category__hiring_semester__semester__name=semester, 
                                           status__in=["NEW", "SGN"],
                                           person__userid=request.user.username) 
+
+    # exclude any new contracts for students that haven't been contacted yet
+    draft_contracts = contracts.filter(status="NEW")
+    viewable_draft_contract_ids = [dc.id for dc in draft_contracts if not dc.has_emails()]
+    contracts = contracts.exclude(id__in=viewable_draft_contract_ids)
+
+    if contracts.count() == 0:
+        return ForbiddenResponse(request, "No available contracts found for this semester.")
+
     return render(request, 'tacontracts/student_contract.html', {
                   'semester':semester,
                   'contracts':contracts,

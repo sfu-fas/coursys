@@ -468,7 +468,9 @@ class TAContract(models.Model):
     @property
     def number_of_emails(self):
         return len(self.email_receipt.all())
-
+    
+    def has_emails(self):
+        return self.number_of_emails > 0
 
     def grad_students(self):
         """ 
