@@ -812,8 +812,7 @@ def reject_contract(request, semester, contract_slug):
                      description="Rejected contract %s." % str(contract),
                      related_object=contract)
         l.save()
-    return HttpResponseRedirect(reverse('tacontracts:student_contract',
-                                        kwargs={'semester':semester}))
+    return HttpResponseRedirect(reverse('dashboard:index'))
 
 
 @login_required
