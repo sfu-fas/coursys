@@ -142,7 +142,9 @@ class HiringSemester(models.Model):
 
     @property
     def number_of_contracts(self):
-        return len(self.contracts)
+        contracts = [contract for contract in self.contracts 
+                                if contract.status != 'CAN']
+        return len(contracts)
 
     @property
     def number_of_incomplete_contracts(self):
