@@ -517,16 +517,18 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         return bool(res)
     
-    def _get_supervisors(self, senior_only=False):
+    def _get_supervisors(self, senior_only=False, include_potential=False):
         if senior_only:
             types = ['SEN', 'COS']
+        elif include_potential:
+            types = ['SEN', 'COM', 'COS', 'POT']
         else:
             types = ['SEN', 'COM', 'COS']
         supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=types, removed=False)
         return supervisors
 
-    def has_supervisor(self, senior_only=False):
-        supervisors = self._get_supervisors(senior_only).count()
+    def has_supervisor(self, senior_only=False, include_potential=False):
+        supervisors = self._get_supervisors(senior_only, include_potential).count()
         return supervisors > 0
 
     def list_supervisors(self, senior_only=True):

@@ -25,10 +25,10 @@ class FASSupervisorReport(Report):
         
         # find ids of active grads with supervisors
         grads = GradStudent.objects.filter(current_status__in=STATUS_ACTIVE, program__unit__in=units)
-        grad_ids = [grad.id for grad in grads if grad.has_supervisor()]
+        grad_ids = [grad.id for grad in grads if grad.has_supervisor(include_potential=True)]
 
         # find the supervisors of these students
-        supervisors = Supervisor.objects.filter(student__id__in=grad_ids, supervisor_type__in=['SEN', 'COM', 'COS'], removed=False).order_by('supervisor__last_name', 'supervisor__first_name', 'supervisor_type').select_related('student').select_related('supervisor')
+        supervisors = Supervisor.objects.filter(student__id__in=grad_ids, supervisor_type__in=['SEN', 'COM', 'COS', 'POT'], removed=False).order_by('supervisor__last_name', 'supervisor__first_name', 'supervisor_type').select_related('student').select_related('supervisor')
 
         for s in supervisors:
             student = s.student
