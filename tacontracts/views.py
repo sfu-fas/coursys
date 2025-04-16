@@ -11,7 +11,7 @@ from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 # Local
-from courselib.auth import requires_role
+from courselib.auth import requires_role, ForbiddenResponse
 from coredata.models import Semester, Unit, CourseOffering, Person
 from grad.models import GradStudent
 from dashboard.models import NewsItem
@@ -453,6 +453,7 @@ def edit_contract(request, unit_slug, semester, contract_slug):
                   'semester':semester,
                   'category':contract.category,
                   'contract':contract,
+                  'accepted': contract.accepted_by_student,
                   'form':form})
 
 
@@ -756,6 +757,15 @@ def student_contract(request, semester):
     contracts = TAContract.objects.filter(category__hiring_semester__semester__name=semester, 
                                           status__in=["NEW", "SGN"],
                                           person__userid=request.user.username) 
+
+    # exclude any new contracts for students that haven't been contacted yet
+    draft_contracts = contracts.filter(status="NEW")
+    viewable_draft_contract_ids = [dc.id for dc in draft_contracts if not dc.has_emails()]
+    contracts = contracts.exclude(id__in=viewable_draft_contract_ids)
+
+    if contracts.count() == 0:
+        return ForbiddenResponse(request, "No available contracts found for this semester")
+
     return render(request, 'tacontracts/student_contract.html', {
                   'semester':semester,
                   'contracts':contracts,
@@ -769,7 +779,7 @@ def accept_contract(request, semester, contract_slug):
                                   category__hiring_semester__semester__name=semester, 
                                   person__userid=request.user.username, 
                                   slug=contract_slug) 
-    if request.method == "POST":
+    if request.method == "POST" and contract.has_emails():
         contract.accepted_by_student = True
         contract.save()
         messages.add_message(request, 
@@ -779,6 +789,9 @@ def accept_contract(request, semester, contract_slug):
                      description="Accepted contract %s." % str(contract),
                      related_object=contract)
         l.save()
+    else: 
+        return ForbiddenResponse(request)
+    
     return HttpResponseRedirect(reverse('tacontracts:student_contract',
                                         kwargs={'semester':semester}))
 
@@ -790,7 +803,7 @@ def reject_contract(request, semester, contract_slug):
                                  category__hiring_semester__semester__name=semester,
                                  person__userid=request.user.username,
                                  slug=contract_slug)
-    if request.method == "POST":
+    if request.method == "POST" and contract.has_emails():
         contract.accepted_by_student = False
         contract.rejected = True
         contract.status = 'CAN'
@@ -802,8 +815,10 @@ def reject_contract(request, semester, contract_slug):
                      description="Rejected contract %s." % str(contract),
                      related_object=contract)
         l.save()
-    return HttpResponseRedirect(reverse('tacontracts:student_contract',
-                                        kwargs={'semester':semester}))
+    else: 
+        return ForbiddenResponse(request)
+    
+    return HttpResponseRedirect(reverse('dashboard:index'))
 
 
 @login_required

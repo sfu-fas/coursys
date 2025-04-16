@@ -133,7 +133,7 @@ class HiringSemester(models.Model):
         except HiringSemester.DoesNotExist:
             raise NoPreviousSemesterException()
 
-        for category in hiring_semester.tacategory_set.all():
+        for category in hiring_semester.tacategory_set.filter(hidden=False):
             category.copy_to_new_semester(self)
         
     @property
@@ -142,7 +142,9 @@ class HiringSemester(models.Model):
 
     @property
     def number_of_contracts(self):
-        return len(self.contracts)
+        contracts = [contract for contract in self.contracts 
+                                if contract.status != 'CAN']
+        return len(contracts)
 
     @property
     def number_of_incomplete_contracts(self):
@@ -468,7 +470,9 @@ class TAContract(models.Model):
     @property
     def number_of_emails(self):
         return len(self.email_receipt.all())
-
+    
+    def has_emails(self):
+        return self.number_of_emails > 0
 
     def grad_students(self):
         """ 
