@@ -177,6 +177,7 @@ filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
 #filterform {
   padding: 10px 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-evenly;
 }
 
