@@ -57,8 +57,8 @@ class DisciplineReport(Report):
             else:
                 weight = ''
             refer = "Y" if c.refer else "N"
-            contact_date = str(c.contact_date)
-            letter_date = str(c.letter_date)
+            contact_date = str(c.contact_date) if c.contact_date else ""
+            letter_date = str(c.letter_date) if c.letter_date else ""
             group = "Y" if subcase.group else "N"
             creator = str(c.owner)
 
