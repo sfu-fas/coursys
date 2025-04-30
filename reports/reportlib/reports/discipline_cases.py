@@ -61,7 +61,7 @@ class DisciplineReport(Report):
             letter_date = str(c.letter_date) if c.letter_date else ""
             group = "Y" if subcase.group else "N"
             creator = str(c.owner)
-
-        results.append_row([name, emplid, subject, number, section, semester, mode, penalty, weight, refer, contact_date, letter_date, group, creator])
+            results.append_row([name, emplid, subject, number, section, semester, mode, penalty, weight, refer, contact_date, letter_date, group, creator])
+            
         self.artifacts.append(results)
 
