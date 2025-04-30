@@ -50,7 +50,7 @@ class DisciplineReport(Report):
                 mode = c.config['mode']
             else:
                 mode = ''
-            penalty = c.penalty
+            penalty = c.get_penalty_display()
             sem = co.semester
             if 'weight' in c.config:
                 weight = c.config['weight']
