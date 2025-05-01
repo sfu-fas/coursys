@@ -110,7 +110,7 @@
 {% endif %}
 {% for access_rule in access_rules %}
     <li>
-        {{access_rule.person.name}}
+        {{access_rule.person.name}} ({{access_rule.person.emplid}}, {{access_rule.person.userid}})
         {% if not readonly %}
         - <a href="{% url "reports:delete_access_rule" report=report.slug access_rule_id=access_rule.id%}">Delete</a>
         {% endif %}
