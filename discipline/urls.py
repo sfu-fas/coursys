@@ -32,6 +32,6 @@ discipline_offering_patterns = [ # prefix /COURSE_SLUG/dishonesty/
     url(r'^cases/' + CASE_SLUG + '/attach$', discipline_views.edit_attach, name='edit_attach'),
     url(r'^cases/' + CASE_SLUG + '/attach/new$', discipline_views.new_file, name='new_file'),
     url(r'^cases/' + CASE_SLUG + '/attach/delete', discipline_views.CaseDeleteAttachment.as_view(), name='delete_attachment'),
-    url(r'^cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)$', discipline_views.download_file, name='download_file'),
+    url(r'^cases/' + CASE_SLUG + r'/attach/(?P<fileid>\d+)$', discipline_views.download_file, name='download_file'),
     #url(r'^cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)/edit$', discipline_views.edit_file, name='edit_file'),
 ]

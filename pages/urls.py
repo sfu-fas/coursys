@@ -14,5 +14,5 @@ pages_patterns = [ # prefix /COURSE_SLUG/pages/
     url(r'^' + PAGE_LABEL + '/download$', pages_views.download_file, name='download_file'),
     url(r'^' + PAGE_LABEL + '/edit$', pages_views.edit_page, name='edit_page'),
     url(r'^' + PAGE_LABEL + '/history$', pages_views.page_history, name='page_history'),
-    url(r'^' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', pages_views.page_version, name='page_version'),
+    url(r'^' + PAGE_LABEL + r'/version/(?P<version_id>\d+)$', pages_views.page_version, name='page_version'),
 ]

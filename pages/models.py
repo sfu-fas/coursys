@@ -42,8 +42,8 @@ ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to acc
 
 MACRO_LABEL = 'MACROS' # special page that contain macro expansions for other pages
 
-label_re = re.compile("^[\w\-_\.]+$")
-macroline_re = re.compile("^(?P<key>\w+):\s*(?P<value>.*)\s*$")
+label_re = re.compile(r"^[\w\-_\.]+$")
+macroline_re = re.compile(r"^(?P<key>\w+):\s*(?P<value>.*)\s*$")
 
 
 def attachment_upload_to(instance, filename):

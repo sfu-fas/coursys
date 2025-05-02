@@ -28,7 +28,7 @@ from courselib.auth import requires_discipline_user, is_discipline_user, require
 from django.contrib.auth.decorators import login_required
 
 
-also_set_re = re.compile("also-(?P<field>[a-z_]+)-(?P<caseid>\d+)")
+also_set_re = re.compile(r"also-(?P<field>[a-z_]+)-(?P<caseid>\d+)")
 
 
 @requires_discipline_user

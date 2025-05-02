@@ -25,7 +25,7 @@ class CAPhoneNumberField(forms.Field):
         super(CAPhoneNumberField, self).clean(value)
         if value in EMPTY_VALUES:
             return ''
-        value = re.sub('(\(|\)|\s+)', '', force_text(value))
+        value = re.sub(r'(\(|\)|\s+)', '', force_text(value))
         m = phone_digits_re.search(value)
         if m:
             return '%s-%s-%s' % (m.group(1), m.group(2), m.group(3))
