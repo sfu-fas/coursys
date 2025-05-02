@@ -10,7 +10,7 @@ from courselib.auth import requires_global_role, requires_role, requires_course_
         has_formgroup, has_global_role
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES
+    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES, CAMPUSES
 from coredata import panel
 from advisornotes.models import NonStudent
 from onlineforms.models import FormGroup, FormGroupMember
@@ -1154,21 +1154,43 @@ def XXX_sims_person_search(request):
     return response
 
 
-def browse_courses(request):
+def browse_courses(request, unit_slug=None, campus=None):
     """
     Interactive CourseOffering browser
     """
+    if unit_slug:
+        unit_slug = unit_slug.lower()
+    if campus:
+        if campus.lower() == "burnaby":
+            campus = "BRNBY"
+        if campus.lower() == "surrey":
+            campus = "SURRY"
+        if campus.lower() == "vancouver":
+            campus = "VANCR"
+        if campus not in CAMPUSES:
+            raise Http404
     if 'tabledata' in request.GET:
         # table data
-        return _offering_data(request)
+        return OfferingDataJson.as_view(unit_slug=unit_slug, campus=campus)(request)
     if 'instructor_autocomplete' in request.GET:
         # instructor autocomplete search
         return _instructor_autocomplete(request)
+    if unit_slug:
+        unit = get_object_or_404(Unit, slug=unit_slug)
+    else:
+        unit = None
+    if campus:
+        campus_display = CAMPUSES[campus]
+    else:
+        campus_display = None
 
     # actually displaying the page at this point
-    form = OfferingFilterForm()
+    form = OfferingFilterForm(unit, campus)
     context = {
         'form': form,
+        'unit': unit,
+        'campus': campus,
+        'campus_display': campus_display
         }
     return render(request, 'coredata/browse_courses.html', context)
 
@@ -1203,6 +1225,20 @@ class OfferingDataJson(BaseDatatableView):
     max_display_length = 500
     columns = COLUMNS
     order_columns = [COLUMN_ORDERING[col] for col in columns]
+    unit_slug = None
+    campus = None
+
+    def get_initial_queryset(self):
+        qs = super(OfferingDataJson, self).get_initial_queryset()
+        unit_slug = self.unit_slug
+        campus = self.campus
+        if unit_slug:
+            unit = Unit.objects.get(slug=unit_slug)
+            subunits = Unit.sub_unit_ids([unit])
+            qs = qs.filter(owner__in=subunits)
+        if campus:
+            qs = qs.filter(campus=campus)
+        return qs
 
     def get_context_data(self, *args, **kwargs):
         try:
@@ -1223,30 +1259,31 @@ class OfferingDataJson(BaseDatatableView):
             if 'yes' in xlist_filters and joint_with:
                 xcoursecode = ''
                 xcourseurl = ''
-                for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        start = j.find('-')+1
-                        if j[-2:] == '00':
-                            xcoursecode = j.upper()[start:].replace("-", " ")[:-2]
-                        else:
-                            xcoursecode = j.upper()[start:].replace("-", " ")
-                        xcourseurl = reverse('browse:browse_courses_info', kwargs={'course_slug': j})
-
+                crosslist = ''
                 col = mark_safe('<a href="%s">%s</a> <i class="fa fa-clone" title="Crosslisted with %s"></i>' % (url, conditional_escape(txt), joint_with))
-                joint_course_link = mark_safe('<a href="%s">%s</a>' % (xcourseurl, xcoursecode))
-                crosslist = mark_safe('<br> X ')+ joint_course_link
-                col = col + crosslist
+                for index, j in enumerate(joint_with):
+                    start = j.find('-')+1
+                    if j[-2:] == '00':
+                        xcoursecode = j.upper()[start:].replace("-", " ")[:-2]
+                    else:
+                        xcoursecode = j.upper()[start:].replace("-", " ")
+                    xcourseurl = reverse('browse:browse_courses_info', kwargs={'course_slug': j})                
+                    joint_course_link = mark_safe('<a href="%s">%s</a>' % (xcourseurl, xcoursecode))
+                    crosslist += mark_safe('<br> X ') + joint_course_link
+                col = col + mark_safe(crosslist)
         elif column == 'title':            
-            col = str(getattr(offering, column))            
+            col = mark_safe(offering.title)
             # show crosslisted
             if 'yes' in xlist_filters and joint_with:
                 xtitle = '[Cannot find Crosslisted]'
                 for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        xoffering = CourseOffering.objects.filter(slug=j)
-                        if xoffering:
-                            xtitle = xoffering[0].title
-                col =  mark_safe(col) + mark_safe('<br> X  %s' % (xtitle))
+                    xoffering = CourseOffering.objects.filter(slug=j)                    
+                    if xoffering:
+                        if index == 0:
+                            xtitle = mark_safe('<br> X ') + xoffering[0].title 
+                        else:
+                            xtitle += mark_safe('<br> X ') + xoffering[0].title
+                col =  col + mark_safe(xtitle)
             
         elif column == 'instructors':
             col = offering.instructors_printing_str()
@@ -1258,20 +1295,20 @@ class OfferingDataJson(BaseDatatableView):
                 col += ' (+%i)' % (offering.wait_tot,)
             # show crosslisted
             if 'yes' in xlist_filters and joint_with:
-                xenrl_tot = 0
-                xenrl_cap = 0
-                xwait_tot = 0
+                xerol = ''
                 for index, j in enumerate(joint_with):
-                    if index == 0:                                         
-                        xoffering = CourseOffering.objects.filter(slug=j)
-                        if xoffering:                     
-                            xenrl_tot = xoffering[0].enrl_tot
-                            xenrl_cap = xoffering[0].enrl_cap
-                            xwait_tot = xoffering[0].wait_tot
-                xerol = mark_safe('<br> X  %i/%i' % (xenrl_tot, xenrl_cap))
-                if xwait_tot:
-                    xerol += mark_safe(' (+%i)' % (xwait_tot,))  
-                col =  mark_safe(col) + xerol            
+                    xenrl_tot = 0
+                    xenrl_cap = 0
+                    xwait_tot = 0
+                    xoffering = CourseOffering.objects.filter(slug=j)
+                    if xoffering:                     
+                        xenrl_tot = xoffering[0].enrl_tot
+                        xenrl_cap = xoffering[0].enrl_cap
+                        xwait_tot = xoffering[0].wait_tot
+                        xerol += mark_safe('<br> X  %i/%i' % (xenrl_tot, xenrl_cap))
+                    if xwait_tot:
+                        xerol += mark_safe(' (+%i)' % (xwait_tot,))  
+                col =  mark_safe(col) + mark_safe(xerol)
         elif column == 'semester':
             col = str(offering.semester).replace(' ', '\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
@@ -1384,7 +1421,6 @@ class OfferingDataJson(BaseDatatableView):
     #    data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
     #    return data
 
-_offering_data = OfferingDataJson.as_view()
 
 
 def _instructor_autocomplete(request):

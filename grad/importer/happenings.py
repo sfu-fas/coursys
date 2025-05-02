@@ -4,12 +4,12 @@ from .tools import semester_lookup, STRM_MAP
 
 from coredata.models import Unit
 from coredata.queries import add_person
-from grad.models import GradProgram, GradStatus, GradProgramHistory, Supervisor
+from grad.models import GradProgram, GradStatus, GradProgramHistory, Supervisor, GradScholarship
 from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE
 
 import datetime
 from collections import defaultdict
-
+from decimal import Decimal, ROUND_HALF_UP
 
 def build_program_map():
     """
@@ -618,7 +618,7 @@ class GradSemester(GradHappening):
 
 class CommitteeMembership(GradHappening):
     found_people = None
-    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role):
+    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role, max_effdt):
         # argument order must match committee_members query
         self.emplid = emplid
         self.adm_appl_nbr = None
@@ -629,6 +629,7 @@ class CommitteeMembership(GradHappening):
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role
+        self.max_effdt = max_effdt.date()
 
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
@@ -669,35 +670,106 @@ class CommitteeMembership(GradHappening):
             p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
             CommitteeMembership.found_people[self.sup_emplid] = p
 
-        matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
+        matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type and not m.removed]
+        member = None
+        # remove any SIMS matches that are not current
         if matches:
             member = matches[0]
-        else:
-            similar = [m for m in local_committee if m.supervisor == p]
-            if len(similar) > 0:
-                if verbosity > 2:
-                    print("* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
-                member = similar[0]
-            else:
+            if self.max_effdt != self.effdt and SIMS_SOURCE in member.config and not member.removed:
+                # all current committee members should have the same max_effdt
                 if verbosity:
-                    print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                    print("Removing committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
+                member.removed = True
+        # add any SIMS matches that are current
+        else:
+            if self.max_effdt == self.effdt:
+                if verbosity:
+                    print("Adding committee member: %s is a %s for %s/%s, effective: %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug, self.max_effdt))
                 member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
                 member.created_at = self.effdt
                 local_committee.append(member)
-
-        if SIMS_SOURCE not in member.config:
-            # record (the first) place we found this fact
-            member.config[SIMS_SOURCE] = key
-            # if it wasn't the product of a previous import it was hand-entered: take the effdt from SIMS
-            member.created_at = self.effdt
+        # if a member was found or created, add the SIMS_SOURCE and save
+        if member:
+            if SIMS_SOURCE not in member.config:
+                # record (the first) place we found this fact
+                member.config[SIMS_SOURCE] = key
+                # if it wasn't the product of a previous import it was hand-entered: take the effdt from SIMS
+                member.created_at = self.effdt
+            if not dry_run:
+                member.save_if_dirty()
+        # if there are any current committee members that are of a different type, remove them
+        similar = [m for m in local_committee if m.supervisor == p and m.supervisor_type != sup_type]
+        if similar:
+            similar = similar[0]
+            if self.max_effdt == self.effdt and not similar.removed:
+                if verbosity:
+                    print("Removing similar committee member: %s is a %s for %s/%s, end date: %s" % (p.name(), SUPERVISOR_TYPE[similar.supervisor_type], self.emplid, self.unit.slug, self.max_effdt))
+                similar.removed = True
+                if not dry_run:
+                    similar.save_if_dirty()
 
         # TODO: try to match up external members with new real ones? That sounds hard.
-        # TODO: remove members if added by this import (in the past) and not found in the newest committee version
+
+
+class ScholarshipDisbursement(GradHappening):
+    def __init__(self, emplid, aid_year, item_type, acad_career, disbursement_id, strm, descr, disbursed_balance, acad_prog, eligible):
+        # argument order must match grad_scholarships query
+        self.adm_appl_nbr = None
+        self.stdnt_car_nbr = None
+        self.emplid = emplid
+        self.aid_year = aid_year
+        self.item_type = item_type
+        self.acad_career = acad_career
+        self.disbursement_id = disbursement_id
+        self.strm = strm
+        self.descr = descr
+        self.disbursed_balance = Decimal(str(disbursed_balance)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.acad_prog = acad_prog
+        self.semester = STRM_MAP[self.strm]
+        self.effdt = self.semester.start
+        self.eligible = eligible
+
+        self.acad_prog_to_gradprogram()
+        self.effdt_to_strm()
+        self.in_career = False
+
+    def __repr__(self):
+        return "%s for %s for %s in %s" % (self.disbursed_balance, self.emplid, self.semester, self.acad_prog)
+
+    def find_local_data(self, student_info, verbosity):
+        pass
+
+    def import_key(self):
+        return [self.emplid, self.aid_year, self.item_type, self.acad_career, self.disbursement_id]
+
+    def update_local_data(self, student_info, verbosity, dry_run):
+
+        key = self.import_key()
+        local_scholarships = student_info['scholarships']
+        
+        matches = [s for s in local_scholarships if s.config[SIMS_SOURCE] == key]
+        if matches:
+            scholarship = matches[0]
+            # update any amounts or descriptions
+            if scholarship.amount != self.disbursed_balance or scholarship.description != self.descr or scholarship.semester != self.semester or self.eligible != scholarship.eligible:
+                if verbosity:
+                    print("Updating scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
+                scholarship.amount = self.disbursed_balance
+                scholarship.description = self.descr
+                scholarship.semester = self.semester
+                scholarship.eligible = self.eligible
+        else:
+            if verbosity:
+                print("Adding scholarship: %s ($%s) for %s/%s in %s" % (self.descr, self.disbursed_balance, self.emplid, self.unit.slug, self.strm))
+            scholarship = GradScholarship(student=student_info['student'], semester=self.semester, description=self.descr, amount=self.disbursed_balance, eligible=self.eligible)
+            local_scholarships.append(scholarship)
+
+            if SIMS_SOURCE not in scholarship.config:
+                # record (the first) place we found this fact
+                scholarship.config[SIMS_SOURCE] = key
 
         if not dry_run:
-            member.save_if_dirty()
-
-
+            scholarship.save_if_dirty()
 
 class CareerUnitChangeOut(ProgramStatusChange):
     """

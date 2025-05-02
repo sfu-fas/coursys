@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}RA Downloads{% endblock %}
+{% block h1 %}RA Downloads{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
+    <li>RA Downloads</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+function hideDownloadButton() {
+    var download_button = document.getElementById("download_button");
+    var search_button = document.getElementById("search_button");
+    download_button.style.display = "none";
+    search_button.style.display = "block";
+}
+function showDownloadButton() {
+    var download_button = document.getElementById("download_button");
+    var search_button = document.getElementById("search_button");
+    download_button.style.display = "block";
+    search_button.style.display = "none";
+}
+$(document).ready(function() {
+    var search_button = document.getElementById("search_button");
+    search_button.style.display = 'none';
+    $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_start_date").change(hideDownloadButton);
+    $("#id_end_date").change(hideDownloadButton);
+    $("#id_hiring_category").change(hideDownloadButton);
+    $("#id_current").change(hideDownloadButton);
+    $("#id_include_financials").change(hideDownloadButton);
+    $("#id_include_visa_status").change(hideDownloadButton);
+});
+</script>
+{% endblock %}
+
+{% block content %}
+    <form id="csv_download" method="POST">
+        {% csrf_token %}  
+        {{ form|as_dl }}
+    <button type='submit' id='search_button' class='btn' onclick="showDownloadButton()">Search</button>
+    <a href='{% url "ra:download_admin" %}?start_date={{start_date}}&amp;end_date={{end_date}}&amp;hiring_category={{hiring_category}}&amp;current={{current}}&amp;include_financials={{include_financials}}&amp;include_visa_status={{include_visa_status}}' class='btn submit' id='download_button'>Download CSV</a>
+    </form> 
+{% endblock %}

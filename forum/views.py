@@ -26,7 +26,7 @@ from forum.names_generator import get_random_name
 THREAD_LIST_MAX = 100  # maximum number of threads to display in the thread list
 # how long after Semester.end can TAs and student access the forum?
 if settings.DEPLOY_MODE == 'production':
-    ACCESS_AFTER_SEMESTER = datetime.timedelta(days=30)
+    ACCESS_AFTER_SEMESTER = datetime.timedelta(days=75)
 else:
     ACCESS_AFTER_SEMESTER = datetime.timedelta(days=365)
 

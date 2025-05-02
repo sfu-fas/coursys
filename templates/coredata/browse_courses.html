@@ -3,24 +3,30 @@
 {% load static %}
 {% load compress %}
 
-{% block title %}Browse Course Offerings{% endblock %}
+{% block title %}Browse Course Offerings {% if unit %}({{unit.name}}{% if campus_display %}: {{ campus_display }}{% endif %}){% endif %}{% endblock %}
 {% block h1 %}Browse Course Offerings{% endblock %}
 
-{% block subbreadcrumbs %}<li>Browse Course Offerings</li>{% endblock %}
+{% block subbreadcrumbs %}
+{% if unit or campus %}<li><a href="{% url "browse:browse_courses" %}">Browse Course Offerings</a></li>{% endif %}
+<li>Browse Course Offerings {% if unit %}({{unit.name}}{% if campus_display %}: {{ campus_display }}{% endif %}){% endif %}</li>
+{% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/browse.css" %}" type="text/css">
 {% compress js %}
 <script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
 <script src="{% static 'js/browse.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  browser_ready('{% url "browse:browse_courses" %}');
+  var url = '{% if unit and campus %}{% url "browse:browse_courses" unit_slug=unit.slug campus=campus %}{% elif unit %}{% url "browse:browse_courses" unit_slug=unit.slug %}{% else %}{% url "browse:browse_courses"%}{% endif %}';
+  browser_ready(url);
 } );
 </script>
 {% endcompress %}
 {% endblock %}
 
 {% block content %}
+{% if unit %}<h2>{{unit.name}}{% if campus_display %} - {{ campus_display }}{% endif %}</h2>{% endif %}
 <form action="" id="filterform">
 <ul>
 {{ form.semester|browser_field }}

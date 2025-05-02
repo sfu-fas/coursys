@@ -350,7 +350,7 @@ class Form(models.Model, _FormCoherenceMixin):
     emailbody, set_emailbody = getter_setter('emailbody')
 
     def __str__(self):
-        return "%s [%s]" % (self.title, self.id)
+        return "%s [%s] [%s]" % (self.title, self.id, self.slug)
     
     def delete(self, *args, **kwargs):
         self.active = False
@@ -384,7 +384,7 @@ class Form(models.Model, _FormCoherenceMixin):
         """
         Make a independent duplicate of this form.
 
-        Not called from the UI anywhere, but can be used to duplicate a form for another unit, without the pain of
+        Can be used to duplicate a form for another unit, without the pain of
         re-creating everything:
             newform = oldform.duplicate()
             newform.owner = ...
@@ -866,12 +866,14 @@ class FormSubmission(models.Model):
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
         # 'email_cc':  email addresses that got CCed when the student got emailed.
+        # 'notes': notes for admin to help process pending forms
 
-    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None}
+    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None, 'notes': ''}
     summary, set_summary = getter_setter('summary')
     emailed, set_emailed = getter_setter('emailed')
     closer_id, set_closer = getter_setter('closer')
     email_cc, set_email_cc = getter_setter('email_cc')
+    notes, set_notes = getter_setter('notes')
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self)

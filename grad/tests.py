@@ -378,10 +378,10 @@ class GradTest(TestCase):
 
         # because of insanity that makes strange sense, application-decision statuses propagate back a semester
         gs.gradstatus_set.all().delete()
-        s1 = GradStatus(student=gs, status='COMP', start=this_sem)
+        s1 = GradStatus(student=gs, status='DEFR', start=this_sem)
         s1.save()
         s2 = GradStatus(student=gs, status='REJE', start=this_sem.offset(1))
         s2.save()
-        self.assertEqual(gs.status_as_of(this_sem.offset(-3 )), 'COMP')
+        self.assertEqual(gs.status_as_of(this_sem.offset(-3 )), 'DEFR')
         self.assertEqual(gs.status_as_of(this_sem), 'REJE')
         self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'REJE')

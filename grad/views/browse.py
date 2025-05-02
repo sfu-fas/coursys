@@ -9,6 +9,8 @@ from haystack.query import SearchQuerySet
 from grad.views.add_supervisors import _get_grads_missing_supervisors
 import ast
 
+STATUS_IRRELEVENT = ['REJE', 'INRE', 'HOLD', 'ARIV', 'GONE', 'ARSP', 'DELE']
+
 @requires_role("GRAD")
 def browse(request):
     if 'tabledata' in request.GET:
@@ -36,6 +38,7 @@ class GradDataJson(BaseDatatableView):
 
     def get_initial_queryset(self):
         qs = super(GradDataJson, self).get_initial_queryset()
+        qs = qs.exclude(current_status__in=STATUS_IRRELEVENT)
         qs = qs.select_related('program')
         return qs
 

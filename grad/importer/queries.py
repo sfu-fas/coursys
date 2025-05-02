@@ -72,24 +72,130 @@ def committee_members(emplids):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'CommitteeMembership', SC.EMPLID, SC.COMMITTEE_ID, AP.ACAD_PROG, COM.EFFDT, COM.COMMITTEE_TYPE, MEM.EMPLID, MEM.COMMITTEE_ROLE
-        FROM
-            PS_SFU_STDNT_CMTTE SC
-            JOIN (SELECT * FROM (
-                    SELECT EMPLID, ACAD_CAREER, STDNT_CAR_NBR, ACAD_PROG,
-                            RANK () OVER (PARTITION BY EMPLID, ACAD_CAREER, STDNT_CAR_NBR ORDER BY EFFDT DESC) AS DATE_RANK 
-                    FROM PS_ACAD_PROG
-                    ) DR WHERE DR.DATE_RANK = 1
-                ) AP 
-                ON SC.EMPLID = AP.EMPLID AND SC.ACAD_CAREER = AP.ACAD_CAREER AND SC.STDNT_CAR_NBR = AP.STDNT_CAR_NBR
-            JOIN PS_COMMITTEE COM
-                ON (COM.INSTITUTION = SC.INSTITUTION AND COM.COMMITTEE_ID = SC.COMMITTEE_ID AND SC.EFFDT <= COM.EFFDT)
-            JOIN PS_COMMITTEE_MEMBR MEM
-                ON (MEM.INSTITUTION = SC.INSTITUTION AND MEM.COMMITTEE_ID = SC.COMMITTEE_ID AND COM.EFFDT = MEM.EFFDT)
-        WHERE
-            SC.EMPLID IN %s 
-            AND COM.COMMITTEE_TYPE IN ('GSSUPER', 'GSEXAMING')
-        ORDER BY COM.EFFDT""",
+        WITH CM AS (
+            SELECT SC.EMPLID AS S_EMPLID, SC.COMMITTEE_ID, AP.ACAD_PROG, COM.EFFDT, COM.COMMITTEE_TYPE, MEM.EMPLID, MEM.COMMITTEE_ROLE,
+            ROW_NUMBER() OVER (PARTITION BY MEM.EMPLID, AP.ACAD_PROG,
+            CASE
+                WHEN MEM.COMMITTEE_ROLE='MMBR' THEN 'SUPR'
+                WHEN MEM.COMMITTEE_ROLE='STDN' THEN 'SUPR'
+                WHEN MEM.COMMITTEE_ROLE='FADV' THEN 'SNRS'
+                ELSE MEM.COMMITTEE_ROLE
+            END
+            ORDER BY COM.EFFDT DESC) AS RN,
+            MAX(COM.EFFDT) OVER (PARTITION BY AP.ACAD_PROG, SC.EMPLID) AS 'MAX_EFFDT'
+            FROM
+                PS_SFU_STDNT_CMTTE SC
+                JOIN (SELECT * FROM (
+                        SELECT EMPLID, ACAD_CAREER, STDNT_CAR_NBR, ACAD_PROG,
+                                RANK () OVER (PARTITION BY EMPLID, ACAD_CAREER, STDNT_CAR_NBR ORDER BY EFFDT DESC) AS DATE_RANK 
+                        FROM PS_ACAD_PROG
+                        ) DR WHERE DR.DATE_RANK = 1
+                    ) AP
+                    ON SC.EMPLID = AP.EMPLID AND SC.ACAD_CAREER = AP.ACAD_CAREER AND SC.STDNT_CAR_NBR = AP.STDNT_CAR_NBR
+                JOIN PS_COMMITTEE COM
+                    ON (COM.INSTITUTION = SC.INSTITUTION AND COM.COMMITTEE_ID = SC.COMMITTEE_ID AND SC.EFFDT <= COM.EFFDT)
+                JOIN PS_COMMITTEE_MEMBR MEM
+                    ON (MEM.INSTITUTION = SC.INSTITUTION AND MEM.COMMITTEE_ID = SC.COMMITTEE_ID AND COM.EFFDT = MEM.EFFDT)
+            WHERE
+                SC.EMPLID IN %s
+                AND COM.COMMITTEE_TYPE IN ('GSSUPER', 'GSEXAMING')
+        )
+        SELECT 'CommitteeMembership', CM.S_EMPLID AS EMPLID, CM.COMMITTEE_ID, CM.ACAD_PROG, CM.EFFDT, CM.COMMITTEE_TYPE, CM.EMPLID, CM.COMMITTEE_ROLE, CM.MAX_EFFDT
+        FROM CM
+        WHERE RN = 1
+        ORDER BY EFFDT""",
+        (emplids,))
+    return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
+def grad_scholarships(emplids):
+    """ 
+    Grad scholarships for this person
+    """
+    db = SIMSConn()
+    db.execute("""
+        WITH strm_Data AS 
+            (SELECT *, RANK () OVER (PARTITION BY BUSINESS_UNIT ORDER BY STRM DESC) AS date_Rank 
+                FROM PS_TERM_DEFLT_TBL
+                WHERE EFF_STATUS = 'A')
+        
+        SELECT 'ScholarshipDisbursement', EMPLID, AID_YEAR, ITEM_TYPE, ACAD_CAREER, DISBURSEMENT_ID, STRM, DESCR, DISBURSED_BALANCE, ACAD_PROG, 
+                CASE
+                    WHEN ITEM_TYPE = 433000000225 AND STRM < 1247 THEN 0
+                    WHEN ITEM_TYPE = 433000000226 AND STRM < 1247 THEN 0
+                    WHEN ITEM_TYPE = 433000000227 AND STRM < 1247 THEN 0
+                    WHEN ITEM_TYPE = 433100000007 THEN 0
+                    WHEN ITEM_TYPE = 433100000008 THEN 0
+                    WHEN ITEM_TYPE = 433100000004 THEN 0
+                    WHEN ITEM_TYPE = 433100000005 THEN 0
+                    WHEN ITEM_TYPE = 433100000006 THEN 0
+                    WHEN ITEM_TYPE = 403000000241 THEN 0
+                    WHEN ITEM_TYPE = 403000000242 THEN 0
+                    WHEN ITEM_TYPE = 403000000143 THEN 0
+                    WHEN ITEM_TYPE = 423000000061 THEN 0
+                    WHEN ITEM_TYPE = 423000000062 THEN 0
+                    WHEN ITEM_TYPE = 423000000063 THEN 0
+                    WHEN ITEM_TYPE = 403000000460 THEN 0
+                    WHEN ITEM_TYPE = 443000000001 THEN 0
+                    WHEN ITEM_TYPE = 443000000002 THEN 0
+                    WHEN ITEM_TYPE = 443000000003 THEN 0
+                    ELSE 1
+                END AS ELIGIBLE
+            FROM (
+                SELECT SA.EMPLID, SA.AID_YEAR, SA.ITEM_TYPE, SA.ACAD_CAREER, SA.DISBURSEMENT_ID, FIN_AID_TYPE, SA.STRM, IT.DESCR, SA.DISBURSED_BALANCE, org_Status.ACAD_PROG,
+                    RANK () OVER (PARTITION BY SA.EMPLID, SA.AID_YEAR, SA.ITEM_TYPE, SA.ACAD_CAREER, SA.DISBURSEMENT_ID, SA.STRM, IT.DESCR, SA.DISBURSED_BALANCE ORDER BY org_Status.STDNT_CAR_NBR DESC) AS DUPLICATES
+                    FROM PS_STDNT_AWRD_DISB SA
+                    INNER JOIN (
+                        SELECT * 
+                            FROM (
+                                SELECT ITEM_TYPE, EFF_STATUS, AID_YEAR, DESCR, FIN_AID_TYPE, RANK () OVER (PARTITION BY ITEM_TYPE, AID_YEAR ORDER BY EFFDT DESC) AS DATE_RANK 
+                                    FROM PS_ITEM_TYPE_FA
+                                    WHERE EFF_STATUS IN ('A') AND ITEM_TYPE NOT IN (433000000012, 433000000013, 433000000014, 433000000183, 433000000184, 433000000185) AND FIN_AID_TYPE IN ('GA', 'GE', 'GF', 'GS')
+                            ) DR WHERE DR.DATE_RANK = 1
+                        ) IT
+                        ON SA.ITEM_TYPE = IT.ITEM_TYPE AND SA.AID_YEAR = IT.AID_YEAR
+                    JOIN (
+                        SELECT DATA1.EMPLID, DATA1.ACAD_CAREER, DATA1.STDNT_CAR_NBR, DATA1.ACAD_PROG, DATA1.ADMIT_TERM, DATA1.COMPLETION_TERM, SD.STRM AS LATEST_TERM, DATA1.translated_Status AS END_STAT 
+                            FROM (	
+                                SELECT *, RANK () OVER (PARTITION BY EMPLID, ACAD_CAREER, STDNT_CAR_NBR ORDER BY EFFDT DESC, EFFSEQ DESC) AS date_Rank
+                                    FROM (
+                                        SELECT AP.*, 
+                                            CASE
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'MATR' THEN 'CONF'
+                                                WHEN PROG_STATUS = 'CN' AND PROG_ACTION = 'WADM' THEN 'CANC'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'ACTV' THEN 'ACTI'
+                                                WHEN PROG_STATUS = 'DC' AND PROG_ACTION = 'DISC' THEN 'WIDR'
+                                                WHEN PROG_STATUS = 'DE' AND PROG_ACTION = 'DISC' THEN 'WIDR'
+                                                WHEN PROG_STATUS = 'LA' AND PROG_ACTION = 'LEAV' THEN 'LEAV'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'RLOA' THEN 'ACTI'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'RADM' THEN 'ACTI'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'PRGC' THEN 'ACTI'
+                                                WHEN PROG_STATUS = 'CM' AND PROG_ACTION = 'COMP' THEN 'GRAD'
+                                                ELSE 'None'
+                                            END AS translated_Status
+                                            FROM PS_ACAD_PROG AP
+                                            JOIN (
+                                                SELECT ACAD_PROG, ACAD_GROUP FROM (
+                                                    SELECT *, RANK () OVER (PARTITION BY ACAD_PROG ORDER BY EFFDT DESC) AS DATE_RANK FROM PS_ACAD_PROG_TBL WHERE EFF_STATUS = 'A'
+                                                    ) AD WHERE DATE_RANK = 1 AND ACAD_GROUP LIKE ('APSC')
+                                            ) APT ON APT.ACAD_PROG = AP.ACAD_PROG
+                                            WHERE AP.ACAD_CAREER LIKE ('GRAD')
+                                        ) DATA1
+                                    WHERE DATA1.translated_Status NOT IN ('None')
+                                    ) DATA1
+                            JOIN (
+                                SELECT sd1.STRM, sd1.TERM_END_DT AS TERM_END, sd2.TERM_END_DT AS PREV_TERM_END
+                                    FROM strm_Data sd1
+                                    JOIN strm_Data sd2 ON sd1.date_Rank = sd2.date_Rank - 1) SD
+                                ON DATA1.EFFDT >= SD.PREV_TERM_END AND DATA1.EFFDT < SD.TERM_END
+                                WHERE DATA1.date_Rank = 1) org_Status
+                        ON SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND org_Status.END_STAT IN ('ACTI', 'CONF', 'LEAV')
+                            OR SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND SA.STRM <= org_Status.LATEST_TERM AND org_Status.END_STAT IN ('WIDR', 'CANC') AND org_Status.ADMIT_TERM <> org_Status.LATEST_TERM
+                            OR SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND SA.STRM <= org_Status.COMPLETION_TERM AND org_Status.END_STAT IN ('GRAD')
+                    WHERE SA.DISBURSED_BALANCE > 0) final
+                WHERE final.DUPLICATES = 1 AND final.EMPLID IN %s
+                ORDER BY EMPLID DESC, STRM DESC, DISBURSED_BALANCE DESC""",
         (emplids,))
     return list(db)
 

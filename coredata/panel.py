@@ -167,12 +167,13 @@ def deploy_checks(request=None):
     try:
         if settings.USE_CELERY:
             try:
-                from coredata.tasks import ping
+                from coredata.tasks import ping, email_queue_ping
             except ImportError:
                 failed.append(('Celery task', "Couldn't import task: probably missing MySQLdb module"))
             else:
                 try:
                     task = ping.apply_async()
+                    email_task = email_queue_ping.apply_async()
                 except kombu.exceptions.OperationalError:
                     failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
                 except amqp.exceptions.AccessRefused:
@@ -186,6 +187,16 @@ def deploy_checks(request=None):
                         celery_okay = True
                     else:
                         failed.append(('Celery task', 'got incorrect result from task'))
+                    
+                    try:
+                        res = email_task.get(timeout=5)
+                        if res == True:
+                            passed.append(('Celery email task', 'okay'))
+                        else:
+                            failed.append(('Celery email task', 'got incorrect result from email ping task'))
+                    except celery.exceptions.TimeoutError:
+                        failed.append(('Celery email task', "didn't get result before timeout: email queue may have stopped"))
+
         else:
             failed.append(('Celery task', 'celery disabled in settings'))
     except celery.exceptions.TimeoutError:

@@ -96,12 +96,14 @@ STATUS_CHOICES = (
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
                     'DEFR', 'WAIT') # statuses that mean "applicant"
+STATUS_APPLICANT_FUTURE = ('APPL', 'INCO', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
+                    'DEFR', 'WAIT') # statuses that we want to consider in the future for current status
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'WAIT') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
 SHORT_STATUSES = dict([  # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
@@ -339,7 +341,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             semester = Semester.current()
 
         timely_status = models.Q(start__name__lte=semester.name)
-        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT)
+        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT_FUTURE)
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
@@ -515,16 +517,18 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         return bool(res)
     
-    def _get_supervisors(self, senior_only=False):
+    def _get_supervisors(self, senior_only=False, include_potential=False):
         if senior_only:
             types = ['SEN', 'COS']
+        elif include_potential:
+            types = ['SEN', 'COM', 'COS', 'POT']
         else:
             types = ['SEN', 'COM', 'COS']
         supervisors = Supervisor.objects.filter(student=self, supervisor_type__in=types, removed=False)
         return supervisors
 
-    def has_supervisor(self, senior_only=False):
-        supervisors = self._get_supervisors(senior_only).count()
+    def has_supervisor(self, senior_only=False, include_potential=False):
+        supervisors = self._get_supervisors(senior_only, include_potential).count()
         return supervisors > 0
 
     def list_supervisors(self, senior_only=True):
@@ -1726,6 +1730,19 @@ class Scholarship(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.scholarship_type, self.amount)
     
+class GradScholarship(models.Model, ConditionalSaveMixin):
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    description = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    eligible = models.BooleanField(default=True)
+    comments = models.TextField(blank=True, null=True)
+    removed = models.BooleanField(default=False)
+    config = JSONField(default=dict)
+    # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+
+    def __str__(self):
+        return "%s ($%s) for %s in %s" % (self.description, self.amount, self.student.person, self.semester.name)
     
 class OtherFunding(models.Model):
     student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)

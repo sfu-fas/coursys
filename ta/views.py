@@ -116,6 +116,67 @@ def _requires_course_instr_or_admin_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+@requires_role('TAAD')
+def tugs_csv_download(request, semester_name=None):
+    """
+    Download of all TUG data for a semester for admins
+    """
+    if semester_name:
+        semester = get_object_or_404(Semester, name=semester_name)
+    else:
+        semester = Semester.current()
+
+    # get all the tugs appearing on the tugs page for this semester
+    course_ids = [o.id for o in CourseOffering.objects.filter(owner__in=request.units, semester=semester)]
+    tas = Member.objects.filter(offering_id__in=course_ids, role="TA")
+    tugs = TUG.objects.filter(member__in=set(tas), draft=False).select_related('member__person')
+
+    if semester.name >= TUG_FORMAT_CUTOFF:
+        dr_descs = ['Preparation for labs/tutorials/workshops', 'Attendance at orientation and planning/coordinating meetings with instructor',
+                     'Preparation for lectures', 'Attendance at lectures, including breakout groups', 'Support classroom course delivery, including technical support', 
+                     'Attendance at labs/tutorials/workshops', 'Leading discussions', 'Office hours/student consultation', 'Electronic communication', 'Grading', 
+                     'Quiz preparation/assist in exam preparation/Invigilation of exams', 'Statutory Holiday Compensation', 'Other 1', 'Other 2']
+        dr_configs = ['prep', 'meetings', 'prep_lectures', 'lectures', 'support', 'tutorials', 'leading', 'office_hours', 'e_communication', 'grading', 'test_prep', 'holiday', 'other1', 'other2']
+    else:
+        dr_descs = ['Preparation for labs/tutorials', 'Attendance at planning/coordinating meetings with instructor',
+                'Attendance at lectures', 'Attendance at labs/tutorials',
+                'Office hours/student consultation/electronic communication', 'Grading',
+                'Quiz preparation/assist in exam preparation/Invigilation of exams', 'Statutory Holiday Compensation', 
+                'Other 1', 'Other 2']
+        dr_configs = ['prep', 'meetings', 'lectures', 'tutorials', 'office_hours', 'grading', 'test_prep', 'holiday', 'other1', 'other2']
+    dr_column_names = [f"DR{i+1} Hrs/Sem ({dr})" for i, dr in enumerate(dr_descs)]
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="tugs(%s)-%s.csv"' % (semester.name, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['TA Name', 'TA ID', 'Instructor', 'Course Number', 'Course Section', 'Course Term', 'BUs Without Prep', 'BUs With Prep', 'Maximum Hours']
+                    + dr_column_names + ['Required Total Hours', 'Link to TUG'])
+    
+    for tug in tugs:
+        person = tug.member.person
+        course_offering = tug.member.offering
+        instructors = '; '.join(p.sortname_pref() for p in course_offering.instructors())
+        dr_row_values = [tug.config[vn]['total'] for vn in dr_configs]
+        iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
+        total_hours = round(sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None), 2)
+        url = request.build_absolute_uri(reverse('offering:view_tug', kwargs={'course_slug': course_offering.slug, 'userid': person.userid}))
+
+        contract_info = __get_contract_info(tug.member)
+        if contract_info:
+            bu = contract_info.bu
+            total_bu = contract_info.total_bu
+            max_hours = contract_info.hours
+        else:
+            bu = tug.base_units
+            total_bu = tug.base_units + LAB_BONUS_DECIMAL
+            max_hours = tug.base_units * HOURS_PER_BU
+        course_number = course_offering.subject + " " + course_offering.number
+
+        writer.writerow([person, person.emplid, instructors, course_number, course_offering.section, course_offering.semester.label(), bu, total_bu, max_hours] + dr_row_values + [total_hours, url])
+    return response
+
+
+
 
 @login_required
 def all_tugs_admin(request, semester_name=None):
