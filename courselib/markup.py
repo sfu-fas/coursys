@@ -5,6 +5,7 @@
 # TODO: just a "text with line breaks" markup
 # TODO: ... and then use for grade/marking comments?
 # TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
+import random
 from typing import Iterable
 from xml.dom.minidom import parseString, Element, Document, Text, Node
 
@@ -22,6 +23,15 @@ import pytz
 import creoleparser
 import bleach
 from textile import textile_restricted
+
+
+llm_opening = re.compile(r'{\[{')
+llm_closing = re.compile(r'}\]}')
+llm_markups = [  # pairs of opening/closing markup to hide text from the user, but let it be visible to LLMs
+    ('<span style="font-size: 0pt;" aria-hidden="true">', '</span>'),
+    ('<span aria-hidden="true" style="position: absolute; transform: translateX(-99999px);">', '</span>'),
+    ('<i aria-hidden="true" style="opacity: 0; position: absolute; transform: translateX(99999px);">', '</i>'),
+]
 
 
 MARKUP_CHOICES = [
@@ -124,9 +134,38 @@ def convert_forum_links(html: str) -> str:
         return document.documentElement.toxml()[3:-4]
 
 
+def hide_llm_text(html: str) -> str:
+    starts = list(llm_opening.finditer(html))
+    chunks = []
+    prev_end = 0
+    if not starts:
+        # no starting delimeters: might as well bail.
+        return html
+
+    for st in starts:
+        en = llm_closing.search(html, st.end())
+        if en is None:
+            # any unmatched brace sets: bail out
+            break
+
+        before = html[prev_end:st.start()]
+        inside = html[st.end():en.start()]
+        pre, post = random.choice(llm_markups)
+
+        chunks.append(before)
+        chunks.append(pre)
+        chunks.append(inside)
+        chunks.append(post)
+        prev_end = en.end()
+
+    tail = html[prev_end:]
+    chunks.append(tail)
+    return ''.join(chunks)
+
+
 @cached(36000)
 def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=None, html_already_safe=False,
-                   restricted=False, forum_links=False):
+                   restricted=False, forum_links=False, hidden_llm=False):
     """
     Master function to convert one of our markup languages to HTML (safely).
 
@@ -181,6 +220,9 @@ def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=Non
     html = html.strip()
     if forum_links:
         html = convert_forum_links(html)
+    
+    if hidden_llm:
+        html = hide_llm_text(html)
 
     if math is None:
         pass
