@@ -396,7 +396,7 @@ class HTMLEntity(creoleparser.elements.InlineElement):
         self.regexp = re.compile(self.re_string())
 
     def re_string(self):
-        return '&([A-Za-z]\w{1,24}|#\d{2,7}|#[Xx][0-9a-zA-Z]{2,6});'
+        return r'&([A-Za-z]\w{1,24}|#\d{2,7}|#[Xx][0-9a-zA-Z]{2,6});'
 
     def _build(self, mo, element_store, environ):
         content = mo.group(1)
@@ -414,7 +414,7 @@ class CodeBlock(creoleparser.elements.BlockElement):
         self.regexp2 = re.compile(self.re_string2(), re.MULTILINE)
 
     def re_string(self):
-        start = '^\{\{\{\s*\[(' + brushre + ')\]\s*\n'
+        start = r'^\{\{\{\s*\[(' + brushre + r')\]\s*\n'
         content = r'(.+?\n)'
         end = r'\}\}\}\s*?$'
         return start + content + end

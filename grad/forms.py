@@ -508,7 +508,7 @@ class NullBooleanSearchField(forms.NullBooleanField):
 from django.utils.html import escape
 from django.conf import settings
 import re
-numeric_test = re.compile("^\d+$")
+numeric_test = re.compile(r"^\d+$")
 
 # getattribute from http://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 # recursive idea from http://mousebender.wordpress.com/2006/11/10/recursive-getattrsetattr/
