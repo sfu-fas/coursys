@@ -260,10 +260,10 @@ class Quiz(models.Model):
         return now > end
 
     def intro_html(self) -> SafeText:
-        return markup_to_html(self.intro, markuplang=self.markup, math=self.math)
+        return markup_to_html(self.intro, markuplang=self.markup, math=self.math, hidden_llm=True)
 
     def honour_code_html(self) -> SafeText:
-        return markup_to_html(self.honour_code_text, markuplang=self.honour_code_markup, math=self.honour_code_math)
+        return markup_to_html(self.honour_code_text, markuplang=self.honour_code_markup, math=self.honour_code_math, hidden_llm=True)
 
     def random_generator(self, seed: str) -> Randomizer:
         """
@@ -620,11 +620,11 @@ class QuestionVersion(models.Model):
 
     def marking_html(self) -> SafeText:
         text, markup, math = self.marking
-        return markup_to_html(text, markup, math=math)
+        return markup_to_html(text, markup, math=math, hidden_llm=True)
 
     def review_html(self) -> SafeText:
         text, markup, math = self.review
-        return markup_to_html(text, markup, math=math)
+        return markup_to_html(text, markup, math=math, hidden_llm=True)
 
     def automark_all(self, activity_components: Dict['Question', ActivityComponent]) -> Iterable[Tuple[Member, ActivityComponentMark]]:
         """

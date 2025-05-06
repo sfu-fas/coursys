@@ -134,7 +134,7 @@ class QuestionHelper(object):
 
     def question_html(self) -> SafeText:
         text, markup, math = self.version.text
-        return markup_to_html(text, markup, math=math)
+        return markup_to_html(text, markup, math=math, hidden_llm=True)
 
     def question_preview_html(self) -> SafeText:
         return self.question_html()
