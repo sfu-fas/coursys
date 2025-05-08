@@ -232,6 +232,7 @@ function fs3ChoiceUpdate() {
 // SECTION 4: Payment Methods
 function raPaymentMethod() {
     var raPaymentMethod = $('input[name=research_assistant-ra_payment_method]:checked')
+    
     if (raPaymentMethod.val() === 'H') {
         $('.biweekly_info').hide()
         hide(rabw_fields)

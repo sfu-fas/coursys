@@ -740,7 +740,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
 class RARequestResearchAssistantForm(forms.ModelForm):
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    ra_payment_method = forms.ChoiceField(required=True, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
+    ra_payment_method = forms.ChoiceField(required=True, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Extended health/dental benefits (only optional for appointments until March 31, 2026)', 
                                     help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_health_dentalApril2025.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))

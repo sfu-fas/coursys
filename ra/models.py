@@ -331,8 +331,7 @@ RA_VACATION_PAY_CHOICES = (
 )
 
 RA_BENEFITS_CHOICES = (
-    ('Y', "Yes (The cost will be shared 75/25 between employee and employer and eligibility depends on your funding source. " +
-    "Cost depends on Appointee's dependents and family size.)"),
+    ('Y', "Yes (The cost will be shared 75/25 between employer and employee)."),
     ('NE', 'No - My grant is not eligible.'),
     ('N', 'No')
 )
@@ -505,8 +504,8 @@ class RARequest(models.Model):
     position = models.CharField(max_length=64, default='', null=True, blank=True)
     student = models.CharField(max_length=80, default=None, null=True, choices=STUDENT_TYPE)
     coop = models.BooleanField(null=True, blank=True)
-    swpp = config_property('swpp', default=False)
-    usra = config_property('usra', default=False)
+    swpp = config_property('swpp', default=False) # not currently asked
+    usra = config_property('usra', default=False) # not currently asked
     mitacs = models.BooleanField(null=True, blank=True)
     research = models.BooleanField(null=True, blank=True)
     thesis = models.BooleanField(null=True, blank=True)
