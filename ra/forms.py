@@ -154,20 +154,6 @@ class RARequestIntroForm(forms.ModelForm):
 
         if nonstudent == None and person == None:
             raise forms.ValidationError("Cannot be a student and not have an SFU ID.")
-        
-        
-        usra = cleaned_data.get('usra')
-        if usra == "True":
-            self.cleaned_data['usra'] = True
-        else:
-            self.cleaned_data['usra'] = False
-
-
-        usra = cleaned_data.get('usra')
-        if usra == "True":
-            self.cleaned_data['usra'] = True
-        else:
-            self.cleaned_data['usra'] = False
 
         student = cleaned_data.get('student')
         coop = cleaned_data.get('coop')
@@ -205,7 +191,6 @@ class RARequestIntroForm(forms.ModelForm):
             if research=='False':
                 self.cleaned_data['thesis'] = False
 
-
 class RARequestDatesForm(forms.ModelForm):
     backdated = forms.BooleanField(required=False, label="Is this a backdated appointment?")
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
@@ -218,9 +203,9 @@ class RARequestDatesForm(forms.ModelForm):
             'end_date': "Date Appointment Ends",
         }
 
-    def __init__(self, edit=False, research_assistant=False, *args, **kwargs):
+    def __init__(self, edit=False, *args, **kwargs):
         super(RARequestDatesForm, self).__init__(*args, **kwargs)
-        if not edit or research_assistant:
+        if not edit:
             self.fields['backdated'].widget=forms.HiddenInput()
     
     def clean(self):

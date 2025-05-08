@@ -210,10 +210,6 @@ class RANewRequestWizard(SessionWizardView):
         step = step or self.steps.current
         kwargs = super(RANewRequestWizard, self).get_form_kwargs(step)
 
-        if step=='dates':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['hiring_category']=='RA':
-                kwargs['research_assistant'] = True
         if step=='research_assistant':
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 
@@ -441,12 +437,8 @@ class RAEditRequestWizard(SessionWizardView):
         req = _edit_req(self.request, ra_slug)
 
         kwargs = super(RAEditRequestWizard, self).get_form_kwargs(step)
-        if step == 'dates':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if not req.draft:
-                kwargs['edit'] = True
-            if intro['hiring_category']=='RA':
-                kwargs['research_assistant'] = True
+        if step == 'dates' and not req.draft:
+            kwargs['edit'] = True
         if step=='research_assistant':
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 

@@ -232,18 +232,17 @@ function fs3ChoiceUpdate() {
 // SECTION 4: Payment Methods
 function raPaymentMethod() {
     var raPaymentMethod = $('input[name=research_assistant-ra_payment_method]:checked')
-    if (raPaymentMethod.val() === 'BW') {
+    if (raPaymentMethod.val() === 'H') {
+        $('.biweekly_info').hide()
+        hide(rabw_fields)
+        show(rah_fields)
+        raH()
+    } else if (raPaymentMethod.val() === 'BW') {
         $('.biweekly_info').show()
         hide(rah_fields)
         show(rabw_fields)
         raBW()
-    } else if (raPaymentMethod.val() === 'H') {
-        $('.biweekly_info').hide()
-        show(rah_fields)
-        hide(rabw_fields)
-        raH()
     } else {
-        $('.biweekly_info').hide()
         hide(rah_fields)
         hide(rabw_fields)
     }
@@ -270,7 +269,6 @@ function ncPaymentMethod() {
         show(ncls_fields)
         ncLS()
     } else {
-        $('.biweekly_info').hide()
         hide(nch_fields)
         hide(ncbw_fields)
         hide(ncls_fields)
@@ -290,7 +288,6 @@ function grasPaymentMethod () {
         show(grasbw_fields)
         grasBW()
     } else {
-        $('.biweekly_info').hide()
         hide(grasbw_fields)
         hide(grasls_fields)
     }
