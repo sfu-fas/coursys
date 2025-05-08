@@ -14,6 +14,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import datetime, os, uuid, math
 
+# general ra contact
+FAS_CONTACT = "fasra@sfu.ca"
+
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
     ('E', 'Grad Employee'),
@@ -296,11 +299,8 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 )
 
 RA_PAYMENT_METHOD_CHOICES = (
-    ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
-    ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
-    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
-    ' timesheets in order for the Appointee to be paid.)'),
-    ('LS', 'Lump Sum Amount')
+    ('BW', 'Yes (The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.'),
+    ('H', 'No (The Appointee will receive 4% vacation pay. Timesheet must be submitted biweekly for the Appointee to be paid.)')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
@@ -331,7 +331,7 @@ RA_VACATION_PAY_CHOICES = (
 )
 
 RA_BENEFITS_CHOICES = (
-    ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source. " +
+    ('Y', "Yes (The cost will be shared 75/25 between employee and employer and eligibility depends on your funding source. " +
     "Cost depends on Appointee's dependents and family size.)"),
     ('NE', 'No - My grant is not eligible.'),
     ('N', 'No')
@@ -856,6 +856,24 @@ class RARequest(models.Model):
             backdate_hours = str(hours) + " hours"  
         return backdate_hours
 
+    def get_grant_cost(self):
+        grant_cost = float(self.total_pay)
+        hiring_category = self.hiring_category
+        if hiring_category == "RA":
+            ra_benefits = self.ra_benefits
+            payment_method = self.ra_payment_method
+            if payment_method == "BW":
+                if ra_benefits == "Y":
+                    grant_cost = grant_cost * 1.17
+                elif ra_benefits == ("NE" or "N"):
+                    grant_cost = grant_cost * 1.11
+            elif payment_method == "H":
+                if ra_benefits == "Y":
+                    grant_cost = grant_cost * 1.21
+                elif ra_benefits == ("NE" or "N"):
+                    grant_cost = grant_cost * 1.15
+        return grant_cost
+        
     def get_name(self):
         if self.first_name and self.last_name:
             name = "%s %s" % (self.first_name, self.last_name)
@@ -1051,8 +1069,11 @@ class RARequest(models.Model):
         """
         today = datetime.datetime.now()
         min_age = datetime.datetime.now() + datetime.timedelta(days=28)
-        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False, draft=False, complete=True)
-        ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
+        min_age_ras = datetime.datetime.now() + datetime.timedelta(days=60)
+        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, hiring_category__in=["GRAS", "NC"], deleted=False, draft=False, complete=True)
+        expiring_true_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age_ras, hiring_category="RA", deleted=False, draft=False, complete=True)
+        all_ras = expiring_ras | expiring_true_ras
+        ras = [ra for ra in all_ras if 'reminded' not in ra.config or not ra.config['reminded']]
         return ras
 
     def mark_reminded(self):
@@ -1065,30 +1086,49 @@ class RARequest(models.Model):
         Emails the supervisors of the RAs who have appointments that are about to expire.
         Same method as in RAAppointment
         """
-        subject = 'RA Appointment Expiry Reminder'
         from_email = settings.DEFAULT_FROM_EMAIL
 
         expiring_ras = cls.expiring_appointments()
-        template = get_template('ra/emails/new_reminder.txt')
+        html_template = get_template('ra/emails/new_reminder.html')
+        text_template = get_template('ra/emails/new_reminder.txt')
 
         for raappt in expiring_ras:
             supervisor = raappt.supervisor
-            context = {'supervisor': supervisor, 'raappt': raappt}
-            # Let's see if we have any Funding CC supervisors that should also get the reminder.
-            cc = None
-            fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
-            # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
-            # the given role type if it exists.
-            if fund_cc_roles:
-                people = []
-                for role in fund_cc_roles:
-                    people.append(role.person)
-                people = list(set(people))
-                cc = []
-                for person in people:
-                    cc.append(person.role_account_email('FDCC'))
-            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
+            hiring_category = raappt.hiring_category
+
+            if hiring_category == "RA":
+                subject = "Research Assistant Appointment Expiry Reminder"
+                cc = [FAS_CONTACT]
+            elif hiring_category == "GRAS":
+                cc = None
+                subject = "Graduate RA Scholarship Appointment Expiry Reminder"
+                # Let's see if we have any Funding CC supervisors that should also get the reminder.
+                fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
+                # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
+                # the given role type if it exists.
+                if fund_cc_roles:
+                    people = []
+                    for role in fund_cc_roles:
+                        people.append(role.person)
+                    people = list(set(people))
+                    cc = []
+                    for person in people:
+                        cc.append(person.role_account_email('FDCC'))
+            else:
+                subject = "Appointment Expiry Reminder"
+                cc = None
+
+
+            research_assistant = (hiring_category == "RA")
+            graduate_research_assistant = (hiring_category == "GRAS")
+            non_continuing = (hiring_category == "NC") 
+            url = settings.BASE_ABS_URL + raappt.get_absolute_url()
+            context = {'supervisor': supervisor, 'raappt': raappt, 'research_assistant': research_assistant, 'graduate_research_assistant': graduate_research_assistant, 'non_continuing': non_continuing, 'url': url}
+            text_content = text_template.render(context)
+            html_content = html_template.render(context)
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [supervisor.email()],
                                          headers={'X-coursys-topic': 'ra'}, cc=cc)
+            msg.attach_alternative(html_content, "text/html")
             msg.send()
             raappt.mark_reminded()
 

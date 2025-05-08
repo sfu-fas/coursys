@@ -243,6 +243,7 @@
     <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
     <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:2 }} ({{req.get_vacation_hours}})</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
     {% endif %}
     {% if ra_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
@@ -251,6 +252,7 @@
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
+    <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
     {% endif %}
     {% if gras_le %}
       <tr><th>Payment Method:</th><td>Lump Sum</td></tr>
