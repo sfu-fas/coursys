@@ -228,7 +228,7 @@
 
 
 <div class="table_container">
-  <h2>Payment Terms</h2>
+  <h2>Appointment Terms</h2>
   <table class="info">
     <tr><th>Start Date:</th><td>{{ req.start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.end_date }}</td></tr>
@@ -236,22 +236,22 @@
     <tr><th>Pay Periods:</th><td>{{ req.pay_periods}}</td></tr>
     {% endif %}
     {% if ra_bw %}
-    <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
-    <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
-    <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:0 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
-    <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:2 }} ({{req.get_vacation_hours}})</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
-    <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
+    <tr><th>Gross Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
+    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
+    <tr><th>Vacation Entitlement per Year (Weeks):</th><td>{{ req.weeks_vacation|floatformat:0 }}</td></tr>
+    <tr><th>Vacation Hours (pro-rated):</th><td>{{ req.vacation_hours|floatformat:2 }} ({{req.get_vacation_hours}})</td></tr>
+    <tr><th>Total Gross Pay:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
+    <tr><th>Extended Health/Dental Benefits:</th><td>{% if req.ra_benefits == 'Y' %}Yes{% elif req.ra_benefits == 'NE' %}No - Grant is Not Eligible{% elif req.ra_benefits == 'N' %}No{% endif %}</td></tr>
     {% endif %}
     {% if ra_hourly %}
-    <tr><th>Payment Method:</th><td>Hourly</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
-    <tr><th>Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Pay:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
+    <tr><th>Extended Health/Dental Benefits:</th><td>{% if req.ra_benefits == 'Y' %}Yes{% elif req.ra_benefits == 'NE' %}No - Grant is Not Eligible{% elif req.ra_benefits == 'N' %}No{% endif %}</td></tr>
+    <tr><th>Total Gross Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
+    <tr><th>Must Submit Timesheet:</th><td>Yes</td></tr>
+    <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
+    <tr><th>Vacation Pay Amount:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
     <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
     {% endif %}
     {% if gras_le %}
@@ -294,11 +294,31 @@
     {% endif %}
     {% if graduate_research_assistant %}
     <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
+    {% elif research_assistant and not req.usra %}
+      {% if req.ra_benefits == 'Y' %}
+      <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
+      {% elif req.ra_benefits == 'N' or req.ra_benefits == 'NE' %}
+      <tr><th>Total Gross Pay and Vacation Pay:</th><td>${{ req.total_pay}}</td></tr>
+      {% endif %}
     {% else %}
     <tr><th><div class="info-bubble">Total Pay: <i class="fa fa-info-circle"></i> <span class="info">Exclusive of statutory benefit rate (Employer portion of EHT, CPP, EI, and WCB)</span></div></th><td>${{ req.total_pay}}</td></tr>
     {% endif %}
   </table>
 </div>
+
+{% if research_assistant and not req.usra %}
+<div class="table_container">
+  <h2>Appointment Costs</h2>
+  <table class="info">
+    <tr><th>Benefits estimation on top of gross pay (%):</th>
+      <td>11% - Statutory Benefits<br>
+          {% if ra_hourly %}4% - Vacation Pay{% endif %}<br>
+          {% if req.ra_benefits == 'Y' %}6% - Extended Health/Dental Benefits{% endif %}
+      </td></tr>
+    <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
+  </table>
+</div>
+{% endif %}
 
 <div class="table_container">
   <h2>Funding Comments</h2>
@@ -397,7 +417,7 @@
 
 {% if research_assistant %}
 <div class="table_container">
-  <h2>Duties/Benefits</h2>
+  <h2>Duties</h2>
   <table class="info">
     <tr><td>
       <ul>
@@ -415,18 +435,6 @@
           {% endif %}
       </ul>
     </td></tr>
-  </table>
-  <table class="info">
-    <tr><th>Benefits:</th><td>
-      {% if req.ra_benefits == 'Y' %}
-      Yes
-      {% elif req.ra_benefits == 'NE' %}
-      No - Grant is Not Eligible
-      {% elif req.ra_benefits == 'N' %}
-      No
-      {% endif %}
-    </td></tr>
-    
   </table>
 </div>
 {% endif %}

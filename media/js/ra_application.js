@@ -474,9 +474,18 @@ function ncLS() {
 // for any hiring category, if it is backdated, show relevant fields for backdating an appointment
 function backDatedPaymentMethod () {
     nc_backdated = $('#id_non_continuing-backdated').val()
+    ra_backdated = $('#id_research_assistant-backdated').val()
     gras_backdated = $('#id_graduate_research_assistant-backdated').val()
 
-    if (nc_backdated === 'True') {
+    if (ra_backdated === 'True') {
+        hide(rabw_fields)
+        hide(rah_fields)
+        hide(rals_fields)
+        hide(['research_assistant-ra_payment_method'])
+        $('.biweekly_info').hide()
+        show(ra_backdated_fields)
+        raBackDated()
+    } else if (nc_backdated === 'True') {
         hide(ncbw_fields)
         hide(nch_fields)
         hide(ncls_fields)
@@ -496,6 +505,14 @@ function backDatedPaymentMethod () {
         hide(ra_backdated_fields)
         hide(nc_backdated_fields)
     }
+}
+
+function raBackDated(){
+    totalPay = $('#id_research_assistant-backdate_lump_sum').val()
+    $('#id_research_assistant-total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+
 }
 
 function grasBackDated(){
@@ -639,5 +656,6 @@ $(document).ready(function() {
 
     // backdated appointments
     $('#id_non_continuing-backdate_lump_sum').change(ncBackDated)
+    $('#id_research_assistant-backdate_lump_sum').change(raBackDated)
     $('#id_graduate_research_assistant-backdate_lump_sum').change(grasBackDated)
 })

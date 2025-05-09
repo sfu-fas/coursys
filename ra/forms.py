@@ -740,6 +740,11 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
 class RARequestResearchAssistantForm(forms.ModelForm):
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    # fill out if backdated
+    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
     ra_payment_method = forms.ChoiceField(required=True, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Extended health/dental benefits (only optional for appointments until March 31, 2026)', 
@@ -773,7 +778,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
     class Meta:
         model = RARequest
-        fields = ('ra_payment_method', 'total_pay', 'total_gross','weeks_vacation','biweekly_hours',
+        fields = ('ra_payment_method', 'total_pay', 'backdated', 'total_gross','weeks_vacation','biweekly_hours',
                   'biweekly_salary','vacation_hours','gross_hourly','vacation_pay')
 
         widgets = {
@@ -785,7 +790,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_benefits', 'ra_other_duties']
+                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -805,9 +810,16 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         ra_payment_method = cleaned_data.get('ra_payment_method')
         total_gross = cleaned_data.get('total_gross')
         weeks_vacation = cleaned_data.get('weeks_vacation')
+        biweekly_salary = cleaned_data.get('biweekly_salary')
         gross_hourly = cleaned_data.get('gross_hourly')
         biweekly_hours = cleaned_data.get('biweekly_hours')
+        vacation_hours = cleaned_data.get('vacation_hours')
         vacation_pay = cleaned_data.get('vacation_pay')
+
+        backdated = cleaned_data.get('backdated')
+        backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
+        backdate_hours = cleaned_data.get('backdate_hours')
+        backdate_reason = cleaned_data.get('backdate_reason')
 
         ra_other_duties = cleaned_data.get('ra_other_duties')
         ra_duties_ex = cleaned_data.get('ra_duties_ex')
@@ -822,8 +834,15 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
 
-        if ra_payment_method == None or ra_payment_method == "":
-                self.add_error('ra_payment_method', error_message)
+        if backdated:
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
+            if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
+                self.add_error('backdate_hours', error_message)
+            if backdate_reason == '' or backdate_reason == None:
+                self.add_error('backdate_reason', error_message)
+        elif ra_payment_method == None or ra_payment_method == "":
+            self.add_error('ra_payment_method', error_message)
         else:
             if ra_payment_method == "BW":
                 if total_gross == 0 or total_gross == None:
@@ -857,18 +876,31 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
                 raise forms.ValidationError('Please enter at least one job duty.')
 
-            if ra_payment_method == "H":
+
+            if backdated:
+                self.cleaned_data["ra_payment_method"] = ''
                 self.cleaned_data["total_gross"] = 0
                 self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_hours"] = 0
                 self.cleaned_data["biweekly_salary"] = 0
                 self.cleaned_data["vacation_hours"] = 0
-            elif ra_payment_method == "BW":
+                self.cleaned_data["gross_hourly"] = 0
                 self.cleaned_data["vacation_pay"] = 0
-            
+                self.cleaned_data["lump_sum_hours"] = 0
+                self.cleaned_data["lump_sum_reason"] = ''
+            else:
+                self.cleaned_data["backdate_lump_sum"] = 0
+                self.cleaned_data["backdate_hours"] = 0
+                self.cleaned_data["backdate_reason"] = ''
+                if ra_payment_method == "H":
+                    self.cleaned_data["total_gross"] = 0
+                    self.cleaned_data["weeks_vacation"] = 0
+                    self.cleaned_data["biweekly_salary"] = 0
+                    self.cleaned_data["vacation_hours"] = 0
+                elif ra_payment_method == "BW":
+                    self.cleaned_data["vacation_pay"] = 0
+             
             # always irrelevant
-            self.cleaned_data["backdate_lump_sum"] = 0
-            self.cleaned_data["backdate_hours"] = 0
-            self.cleaned_data["backdate_reason"] = ''
             self.cleaned_data["lump_sum_hours"] = 0
             self.cleaned_data["lump_sum_reason"] = ''
 
