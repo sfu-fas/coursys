@@ -89,7 +89,7 @@
         {% else %}
             {{ wizard.form|as_dl }}
           {% endif %} 
-        {% if not edit %}
+        {% if not edit and not research_assistant %}
         <div class="backdated_info" >
           <p style="color:red"><b>This will be categorized as backdated appointment.</b></p>
         </div>

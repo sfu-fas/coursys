@@ -1,10 +1,26 @@
-Hello, {{ supervisor.name }},
+Hello {{ supervisor.name }},
 
-This is a friendly reminder that one of your RAs has an appointment that is expiring in the near future:
-{{ raappt.get_name }} expiring on {{ raappt.end_date }}.
+{% if research_assistant %}
+This is a friendly reminder that one of your Research Assistants (RAs) has an appointment that is expiring in the near future:
+{% elif graduate_research_assistant %}
+This is a friendly reminder that one of your graduate students has a scholarship funding appointment that is expiring in the near future:
+{% elif non_continuing %}
+This is a friendly reminder that one of your temporary hires has an appointment that is expiring in the near future:
+{% endif %}
 
-If you wish to renew this appointment, please start the process to ensure everything gets done in time.
+{{ raappt.get_name }} expiring on {{ raappt.end_date }}
+
+{% if research_assistant %}
+The employment of research assistants (RA) is under the collective agreement between SFU and the Teaching Support Staff Union (TSSU). Appointment letters are required to be issued prior to the commencement of all appointments and where possible, a week in advance. If you plan to set up another appointment for this appointee beyond the current appointment end date, please initiate the process by submitting a new appointment request via CourSys as soon as possible to allow sufficient processing time. 
+{% elif graduate_research_assistant or non_continuing %}
+If you wish to renew this appointment, please start the process by submitting a new appointment request via CourSys to ensure everything gets done in time. 
+{% endif %}
+To view the current appointment, click here: {{ url }}
+
+{% if research_assistant %}
+If a reappointment is not needed, or if the process has already been started, please feel free to ignore this email.
+{% elif graduate_research_assistant or non_continuing %}
 If a renewal is not needed, or if the process has already been started, please feel free to ignore this email.
+{% endif %}
 
-
-You will NOT get this reminder again.
+You will NOT get a system-generated reminder from CourSys for this appointment again.
