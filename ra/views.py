@@ -210,14 +210,6 @@ class RANewRequestWizard(SessionWizardView):
         step = step or self.steps.current
         kwargs = super(RANewRequestWizard, self).get_form_kwargs(step)
 
-        if step=='research_assistant':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
-        if step=='non_continuing':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
         return kwargs
 
     def get_form_initial(self, step):
@@ -439,17 +431,9 @@ class RAEditRequestWizard(SessionWizardView):
         kwargs = super(RAEditRequestWizard, self).get_form_kwargs(step)
         if step == 'dates' and not req.draft:
             kwargs['edit'] = True
-        if step=='research_assistant':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
         if step=='graduate_research_assistant':
             if req.complete:
                 kwargs['complete'] = True
-        if step=='non_continuing':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
         return kwargs
 
     def get_form_initial(self, step):

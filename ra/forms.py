@@ -621,7 +621,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
             'total_pay': forms.HiddenInput(),     
         }
 
-    def __init__(self, coop=False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(RARequestNonContinuingForm, self).__init__(*args, **kwargs) 
         
         config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
@@ -785,7 +785,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             'total_pay': forms.HiddenInput() 
         }
 
-    def __init__(self, coop=False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
