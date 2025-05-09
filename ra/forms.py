@@ -745,7 +745,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
-    ra_payment_method = forms.ChoiceField(required=True, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
+    ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Extended health/dental benefits (only optional for appointments until March 31, 2026)', 
                                     help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_health_dentalApril2025.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
@@ -800,7 +800,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
-                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties']
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -815,7 +815,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         biweekly_hours = cleaned_data.get('biweekly_hours')
         vacation_hours = cleaned_data.get('vacation_hours')
         vacation_pay = cleaned_data.get('vacation_pay')
-
         backdated = cleaned_data.get('backdated')
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
@@ -877,32 +876,33 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 raise forms.ValidationError('Please enter at least one job duty.')
 
 
-            if backdated:
-                self.cleaned_data["ra_payment_method"] = ''
-                self.cleaned_data["total_gross"] = 0
-                self.cleaned_data["weeks_vacation"] = 0
-                self.cleaned_data["biweekly_hours"] = 0
-                self.cleaned_data["biweekly_salary"] = 0
-                self.cleaned_data["vacation_hours"] = 0
-                self.cleaned_data["gross_hourly"] = 0
-                self.cleaned_data["vacation_pay"] = 0
-                self.cleaned_data["lump_sum_hours"] = 0
-                self.cleaned_data["lump_sum_reason"] = ''
-            else:
-                self.cleaned_data["backdate_lump_sum"] = 0
-                self.cleaned_data["backdate_hours"] = 0
-                self.cleaned_data["backdate_reason"] = ''
-                if ra_payment_method == "H":
-                    self.cleaned_data["total_gross"] = 0
-                    self.cleaned_data["weeks_vacation"] = 0
-                    self.cleaned_data["biweekly_salary"] = 0
-                    self.cleaned_data["vacation_hours"] = 0
-                elif ra_payment_method == "BW":
-                    self.cleaned_data["vacation_pay"] = 0
-             
-            # always irrelevant
+        # remove irrelevant fields
+        if backdated:
+            self.cleaned_data["ra_payment_method"] = ''
+            self.cleaned_data["total_gross"] = 0
+            self.cleaned_data["weeks_vacation"] = 0
+            self.cleaned_data["biweekly_hours"] = 0
+            self.cleaned_data["biweekly_salary"] = 0
+            self.cleaned_data["vacation_hours"] = 0
+            self.cleaned_data["gross_hourly"] = 0
+            self.cleaned_data["vacation_pay"] = 0
             self.cleaned_data["lump_sum_hours"] = 0
             self.cleaned_data["lump_sum_reason"] = ''
+        else:
+            self.cleaned_data["backdate_lump_sum"] = 0
+            self.cleaned_data["backdate_hours"] = 0
+            self.cleaned_data["backdate_reason"] = ''
+            if ra_payment_method == "H":
+                self.cleaned_data["total_gross"] = 0
+                self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_salary"] = 0
+                self.cleaned_data["vacation_hours"] = 0
+            elif ra_payment_method == "BW":
+                self.cleaned_data["vacation_pay"] = 0
+            
+        # always irrelevant
+        self.cleaned_data["lump_sum_hours"] = 0
+        self.cleaned_data["lump_sum_reason"] = ''
 
 class ShortClearableFileInput(forms.ClearableFileInput):
     """

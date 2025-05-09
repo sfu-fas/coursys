@@ -232,13 +232,14 @@ function fs3ChoiceUpdate() {
 // SECTION 4: Payment Methods
 function raPaymentMethod() {
     var raPaymentMethod = $('input[name=research_assistant-ra_payment_method]:checked')
-    
-    if (raPaymentMethod.val() === 'H') {
+    ra_backdated = $('#id_research_assistant-backdated').val()
+
+    if (raPaymentMethod.val() === 'H' && ra_backdated !== 'True') {
         $('.biweekly_info').hide()
         hide(rabw_fields)
         show(rah_fields)
         raH()
-    } else if (raPaymentMethod.val() === 'BW') {
+    } else if (raPaymentMethod.val() === 'BW' && ra_backdated !== 'True') {
         $('.biweekly_info').show()
         hide(rah_fields)
         show(rabw_fields)
@@ -480,7 +481,6 @@ function backDatedPaymentMethod () {
     if (ra_backdated === 'True') {
         hide(rabw_fields)
         hide(rah_fields)
-        hide(rals_fields)
         hide(['research_assistant-ra_payment_method'])
         $('.biweekly_info').hide()
         show(ra_backdated_fields)
@@ -512,7 +512,8 @@ function raBackDated(){
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
-
+    $('.grant_cost_info').text(totalPay)
+    $('.grant_cost_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function grasBackDated(){
