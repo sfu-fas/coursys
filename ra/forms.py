@@ -888,7 +888,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             self.cleaned_data["vacation_pay"] = 0
             self.cleaned_data["lump_sum_hours"] = 0
             self.cleaned_data["lump_sum_reason"] = ''
-        else:
+        else: 
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
             self.cleaned_data["backdate_reason"] = ''

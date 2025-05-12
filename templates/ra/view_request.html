@@ -245,6 +245,7 @@
     {% endif %}
     {% if ra_hourly %}
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Biweekly Salary:</th><td>${{ req.get_biweekly_salary|floatformat:2 }}</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Extended Health/Dental Benefits:</th><td>{% if req.ra_benefits == 'Y' %}Yes{% elif req.ra_benefits == 'NE' %}No - Grant is Not Eligible{% elif req.ra_benefits == 'N' %}No{% endif %}</td></tr>
     <tr><th>Total Gross Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>

@@ -836,6 +836,12 @@ class RARequest(models.Model):
         else:
             biweekly_hours = str(hours) + " hours"  
         return biweekly_hours
+    
+    def get_biweekly_salary(self):
+        biweekly_salary = self.biweekly_salary
+        if self.gross_hourly != 0 and self.biweekly_hours != 0:
+            biweekly_salary = self.gross_hourly * self.biweekly_hours
+        return biweekly_salary
 
     def get_vacation_hours(self):
         mins = round(60 * (self.vacation_hours % 1))
