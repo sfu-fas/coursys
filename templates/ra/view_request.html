@@ -305,7 +305,7 @@
   </table>
 </div>
 
-{% if research_assistant and not req.usra %}
+{% if research_assistant and not req.usra and not req.backdated %}
 <div class="table_container">
   <h2>Appointment Costs</h2>
   <table class="info">
