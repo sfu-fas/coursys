@@ -572,6 +572,9 @@ class RAEditRequestWizard(SessionWizardView):
             req.gras_payment_method = None
             req.ra_payment_method = None
 
+        req.swpp = False
+        req.usra = False
+
         # draft was submitted 
         if submission:
             description = "Submitted RA Request Draft %s." % req
