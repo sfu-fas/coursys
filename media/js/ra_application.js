@@ -236,11 +236,13 @@ function raPaymentMethod() {
 
     if (raPaymentMethod.val() === 'H' && ra_backdated !== 'True') {
         $('.biweekly_info').hide()
+        $('.hourly_info').show()
         hide(rabw_fields)
         show(rah_fields)
         raH()
     } else if (raPaymentMethod.val() === 'BW' && ra_backdated !== 'True') {
         $('.biweekly_info').show()
+        $('.hourly_info').hide()
         hide(rah_fields)
         show(rabw_fields)
         raBW()
@@ -391,24 +393,28 @@ function raH () {
     hourlyRate = $('#id_research_assistant-gross_hourly').val()
     vacationPay = $('#id_research_assistant-vacation_pay').val()
     payPeriods = $('#id_research_assistant-pay_periods').val()
-    totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
+    totalGross = (payPeriods * biweeklyHours * hourlyRate)
+    totalPay = totalGross * (1 + (vacationPay/100))
     if (raBenefits.val() === 'Y') {
         grantCo = 1.21
-        grantCost = totalPay * grantCo
+        grantCost = totalGross * grantCo
     } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
         grantCo = 1.15
-        grantCost = totalPay * grantCo
+        grantCost = totalGross * grantCo
     } else {
         grantCo = ''
         grantCost = totalPay
     }
+    totalGross = totalGross.toFixed(2)
     totalPay = totalPay.toFixed(2)
     grantCost = grantCost.toFixed(2)
     $('#id_research_assistant-total_pay').val(totalPay)
+    $('.total_pay_gross_info').text(totalGross)
+    $('.total_pay_gross_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ')')
     $('.total_pay_info').text(totalPay)
-    $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
+    $('.total_pay_calc').text('Total Gross (' + totalGross + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
     $('.grant_cost_info').text(grantCost)
-    $('.grant_cost_calc').text('Total Gross (' + totalPay + ') x (' + grantCo + ')')
+    $('.grant_cost_calc').text('Total Gross (' + totalGross + ') x (' + grantCo + ')')
 }
 
 function ncBW () {
@@ -483,6 +489,7 @@ function backDatedPaymentMethod () {
         hide(rah_fields)
         hide(['research_assistant-ra_payment_method'])
         $('.biweekly_info').hide()
+        $('.hourly_info').hide()
         show(ra_backdated_fields)
         raBackDated()
     } else if (nc_backdated === 'True') {
