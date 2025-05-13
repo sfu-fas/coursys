@@ -222,7 +222,7 @@ class RARequestDatesForm(forms.ModelForm):
                 self.add_error('end_date', error_message)
                 self.add_error('start_date', error_message)
             if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA":
-                self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
+                self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
         if start_date and hiring_category == "RA" and not edit:
             if start_date <= datetime.date.today():
                 self.add_error('start_date', 'Appointment letters are required to be issued prior to the commencement of all appointments and where possible, a week in advance.')
