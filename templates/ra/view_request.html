@@ -109,7 +109,7 @@
     {% if not nonstudent %}
     <tr><th>Is Co-Op:</th><td>{{ req.coop|yesno|capfirst }}
         {% if req.swpp and req.coop %} (and applying for funding through SWPP) {% endif %}</td></tr>
-    {% if req.student == 'U' %}
+    {% if req.usra %}
         <tr><th>USRA:</th><td>{{ req.usra|yesno|capfirst }}</td></tr>
     {% endif %}
     {% if show_mitacs %}
@@ -301,7 +301,7 @@
   </table>
 </div>
 
-{% if research_assistant and not req.usra and not req.backdated %}
+{% if research_assistant and not req.usra and not req.backdated and not ra_ls %}
 <h3>Entitlement</h3>
 {% if ra_bw %}
 <table class="info">

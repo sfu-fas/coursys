@@ -623,9 +623,9 @@ $(document).ready(function() {
     $('#id_funding_sources-fs3_start_date').datepicker({'dateFormat': 'yy-mm-dd'})
     $('#id_funding_sources-fs3_end_date').datepicker({'dateFormat': 'yy-mm-dd'})
 
+    raPaymentMethod()
     grasPaymentMethod()
     ncPaymentMethod()
-    raPaymentMethod()
     backDatedPaymentMethod()
 
     // select if appointee does not have an ID
