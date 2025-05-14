@@ -684,7 +684,58 @@ def get_reqmnt_designtn():
                        WHERE RQMNT_DESIGNTN=R.RQMNT_DESIGNTN AND R.EFFDT<=GETDATE() AND EFF_STATUS='A')
             AND R.EFF_STATUS='A'""", ())
     return dict(db)
-    
+
+@SIMS_problem_handler
+def get_waitlist_info(offering, date=None):
+    """
+    Get waitlist movement info for a given course offering, for the prior day
+    """
+    date = datetime.date.today() - datetime.timedelta(days=1)
+
+    db = SIMSConn()
+    crse_id = "%06i" % (offering.crse_id)
+
+    enrl_drp = None
+    wait_drp = None
+    wait_add = None
+
+    query = """
+        SELECT COALESCE(D1.S_DROP, 0) AS S_DROP, COALESCE(D2.S_DRWL, 0) AS S_DRWL, COALESCE(D3.S_EWAT, 0) AS S_EWAT
+            FROM (
+                SELECT %s AS CRSE_ID, %s AS STATUS_DATE
+                ) D0
+                LEFT OUTER JOIN (
+                SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_DROP
+                    FROM PS_STDNT_ENRL E 
+                    JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                    WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('DROP') AND E.LAST_DROP_DT_STMP = %s
+                    GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
+                ) D1 ON D0.CRSE_ID = D1.CRSE_ID
+                LEFT OUTER JOIN (
+                    SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_DRWL
+                        FROM PS_STDNT_ENRL E 
+                        JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                        WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('DRWL') AND E.LAST_DROP_DT_STMP = %s
+                        GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
+                ) D2 ON D0.CRSE_ID = D2.CRSE_ID
+                LEFT OUTER JOIN (
+                    SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_EWAT
+                        FROM PS_STDNT_ENRL E 
+                        JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                        WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('EWAT') AND E.LAST_ENRL_DT_STMP = %s
+                        GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
+                ) D3 ON D0.CRSE_ID = D3.CRSE_ID
+            """
+    db.execute(query, (crse_id, date, crse_id, date, crse_id, date, crse_id, date))
+
+    for S_DROP, S_DRWL, S_EWAT in db:
+        enrl_drp = S_DROP
+        wait_drp = S_DRWL
+        wait_add = S_EWAT
+
+    return enrl_drp, wait_drp, wait_add
+
+
 @cache_by_args
 def get_semester_names():
     """
