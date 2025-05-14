@@ -247,6 +247,8 @@ function raPaymentMethod() {
         show(rabw_fields)
         raBW()
     } else {
+        $('.biweekly_info').hide()
+        $('.hourly_info').hide()
         hide(rah_fields)
         hide(rabw_fields)
     }
