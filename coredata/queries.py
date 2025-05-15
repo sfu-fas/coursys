@@ -693,7 +693,6 @@ def get_waitlist_info(offering, date=None):
     date = datetime.date.today() - datetime.timedelta(days=1)
 
     db = SIMSConn()
-    crse_id = "%06i" % (offering.crse_id)
 
     enrl_drp = None
     wait_drp = None
@@ -726,7 +725,7 @@ def get_waitlist_info(offering, date=None):
                         GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
                 ) D3 ON D0.CRSE_ID = D3.CRSE_ID
             """
-    db.execute(query, (crse_id, date, crse_id, date, crse_id, date, crse_id, date))
+    db.execute(query, (offering.crse_id, date, offering.crse_id, date, offering.crse_id, date, offering.crse_id, date))
 
     for S_DROP, S_DRWL, S_EWAT in db:
         enrl_drp = S_DROP

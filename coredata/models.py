@@ -1901,7 +1901,7 @@ class EnrolmentHistory(models.Model):
         unique_together = (('offering', 'date'),)
 
     def __str__(self):
-        return '%s@%s (%i, %i, %i)' % (self.offering.slug, self.date, self.enrl_cap, self.enrl_tot, self.wait_tot)
+        return '%s@%s (%i, %i, %i) (%i, %i, %i)' % (self.offering.slug, self.date, self.enrl_cap, self.enrl_tot, self.wait_tot, self.enrl_drp, self.wait_drp, self.wait_add)
 
     @classmethod
     def from_offering(cls, offering, extra_waitlist_data=None, date=None, save=True):
