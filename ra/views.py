@@ -142,6 +142,7 @@ def _email_request_notification(req, url):
     subject = "New Research Personnel Appointment Request Form Submission" 
     from_email = req.author.email()
     email = None
+    cc = None
     if req.hiring_category == "GRAS":
         if req.unit.label == "CMPT":
             email = CS_CONTACT
@@ -155,10 +156,12 @@ def _email_request_notification(req, url):
             email = FAS_CONTACT
     elif req.hiring_category == "RA" or req.hiring_category == "NC":
         email = FAS_CONTACT
+        if req.unit.label == "CMPT":
+            cc = [CS_CONTACT]
 
     if email:
         content_text = req.author.name() + " has submitted a new Research Personnel Appointment Request Form. You can view it here: " + url
-        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email])
+        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email], cc=cc)
         mail.send()
 
 @method_decorator([requires_role(["FUND", "FDRE"]), never_cache], name='dispatch')
