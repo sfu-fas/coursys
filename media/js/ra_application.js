@@ -1,13 +1,12 @@
 var noIdFields = ['intro-first_name', 'intro-last_name', 'intro-email_address']
 var idFields = ['intro-person']
 
-var studentFields = ['intro-coop', 'intro-thesis', 'intro-research', 'intro-usra']
+var studentFields = ['intro-coop', 'intro-thesis', 'intro-research']
 
 var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
 var rabw_fields = ['research_assistant-total_gross', 'research_assistant-weeks_vacation', 'research_assistant-biweekly_hours']
 var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacation_pay', 'research_assistant-biweekly_hours']
-var rals_fields = ['research_assistant-total_gross', 'research_assistant-lump_sum_hours', 'research_assistant-lump_sum_reason']
 var ncbw_fields = ['non_continuing-total_gross', 'non_continuing-weeks_vacation', 'non_continuing-biweekly_hours']
 var nch_fields = ['non_continuing-gross_hourly', 'non_continuing-vacation_pay', 'non_continuing-biweekly_hours']
 var ncls_fields = ['non_continuing-total_gross', 'non_continuing-lump_sum_hours', 'non_continuing-lump_sum_reason']
@@ -67,22 +66,9 @@ function idFieldsUpdate () {
 function studentFieldsUpdate () {
     var student_checked = $('input[name=intro-student]').is(':checked')
     var student = $('input[name=intro-student]:checked')
-    var usra = $('input[name=intro-usra]:checked')
     if (student.val() != 'N' && student_checked === true) {
         show(['intro-coop'])
-        if (student.val() == 'U') {
-            show(['intro-usra'])
-            if (usra.val() === 'False') {
-                show(['intro-research'])
-            } else {
-                hide(['intro-research', 'intro-thesis'])
-                setToNone(['intro-research', 'intro-thesis'])
-            }
-        } else if (student.val() == 'M' || student.val() == 'P') {
-            show(['intro-research'])
-            hide(['intro-usra'])
-            setToNone(['intro-usra'])
-        }
+        show(['intro-research'])
         var research = $('input[name=intro-research]:checked')
         if (research.val() === 'True') {
             show(['intro-thesis'])
@@ -92,8 +78,8 @@ function studentFieldsUpdate () {
         }
     } else if (student.val() == 'N' && student_checked == true) {
         show(['intro-research'])
-        hide(['intro-coop', 'intro-usra', 'intro-thesis'])
-        setToNone(['intro-coop', 'intro-usra', 'intro-thesis'])
+        hide(['intro-coop', 'intro-thesis'])
+        setToNone(['intro-coop', 'intro-thesis'])
     } else {
         hide(studentFields)
         setToNone(studentFields)
@@ -101,18 +87,11 @@ function studentFieldsUpdate () {
 }
 
 function researchAssistant () {
-    var usra =  $('input[name=intro-usra]:checked')
     $('#id_intro-hiring_category').val('RA')
     $('.need_more_info').hide()
     $('.gras_info').hide()
     $('.nc_info').hide()
-    if (usra.val() === 'True') {
-        $('.usra_info').show() 
-        $('.ra_info').hide()  
-    } else {
-        $('.usra_info').hide()
-        $('.ra_info').show()
-    }
+    $('.ra_info').show()
 }
 
 function graduateResearchAssistant () {
@@ -121,7 +100,6 @@ function graduateResearchAssistant () {
     $('.need_more_info').hide()
     $('.gras_info').show()
     $('.ra_info').hide()
-    $('.usra_info').hide()
     $('.nc_info').hide()
 }
 
@@ -131,7 +109,6 @@ function nonContinuing () {
     $('.need_more_info').hide()
     $('.nc_info').show()
     $('.ra_info').hide()
-    $('.usra_info').hide()
     $('.gras_info').hide()
 }
 
@@ -139,14 +116,11 @@ function hiringCategoryRec () {
     var student = $('input[name=intro-student]:checked')
     var thesis = $('input[name=intro-thesis]:checked')
     var research =  $('input[name=intro-research]:checked')
-    var usra =  $('input[name=intro-usra]:checked')
     
     if (student.val() === 'N' & research.val() === 'True') {   
         researchAssistant()
     } else if (student.val() === 'N' & research.val() === 'False') {
         nonContinuing()
-    } else if (usra.val() === 'True' & student.val() === 'U') {
-        researchAssistant()
     } else if (research.val() === 'False') {
         nonContinuing()
     } else if (thesis.val() == 'True') {
@@ -159,7 +133,6 @@ function hiringCategoryRec () {
         $('.ra_info').hide()
         $('.nc_info').hide()
         $('.gras_info').hide()
-        $('.usra_info').hide()
     }
 }
 
@@ -259,29 +232,25 @@ function fs3ChoiceUpdate() {
 // SECTION 4: Payment Methods
 function raPaymentMethod() {
     var raPaymentMethod = $('input[name=research_assistant-ra_payment_method]:checked')
+    ra_backdated = $('#id_research_assistant-backdated').val()
 
-    if (raPaymentMethod.val() === 'H') {
+    if (raPaymentMethod.val() === 'H' && ra_backdated !== 'True') {
         $('.biweekly_info').hide()
+        $('.hourly_info').show()
         hide(rabw_fields)
-        hide(rals_fields)
         show(rah_fields)
         raH()
-    } else if (raPaymentMethod.val() === 'BW') {
+    } else if (raPaymentMethod.val() === 'BW' && ra_backdated !== 'True') {
         $('.biweekly_info').show()
+        $('.hourly_info').hide()
         hide(rah_fields)
-        hide(rals_fields)
         show(rabw_fields)
         raBW()
-    } else if (raPaymentMethod.val() === 'LS') {
-        $('.biweekly_info').hide()
-        hide(rah_fields)
-        hide(rabw_fields)
-        show(rals_fields)
-        raLS()
     } else {
+        $('.biweekly_info').hide()
+        $('.hourly_info').hide()
         hide(rah_fields)
         hide(rabw_fields)
-        hide(rals_fields)
     }
 }
 
@@ -365,6 +334,7 @@ function grasLS () {
 }
 
 function raBW () {
+    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     totalPay = $('#id_research_assistant-total_gross').val()
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     weeksVacation = $('#id_research_assistant-weeks_vacation').val()
@@ -381,13 +351,28 @@ function raBW () {
     }
     vacationHours = payPeriods * (weeksVacation / 52.14) * biweeklyHours
 
+    if (raBenefits.val() === 'Y') {
+        grantCo = 1.17
+        grantCost = totalPay * grantCo
+    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
+        grantCo = 1.11
+        grantCost = totalPay * grantCo
+    } else {
+        grantCo = ''
+        grantCost = totalPay
+    }
+
     vacationHours = vacationHours.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
     }
+    if (grantCost == '') {
+        grantCost = parseInt(0).toFixed(2)
+    }
     totalPay = parseFloat(totalPay).toFixed(2)
+    grantCost = parseFloat(grantCost).toFixed(2)
     $('#id_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
@@ -400,25 +385,38 @@ function raBW () {
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+    $('.grant_cost_info').text(grantCost)
+    $('.grant_cost_calc').text('Total Gross (' + totalPay + ') x (' + grantCo + ')')
 }
 
 function raH () {
+    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     hourlyRate = $('#id_research_assistant-gross_hourly').val()
     vacationPay = $('#id_research_assistant-vacation_pay').val()
     payPeriods = $('#id_research_assistant-pay_periods').val()
-    totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
+    totalGross = (payPeriods * biweeklyHours * hourlyRate)
+    totalPay = totalGross * (1 + (vacationPay/100))
+    if (raBenefits.val() === 'Y') {
+        grantCo = 1.21
+        grantCost = totalGross * grantCo
+    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
+        grantCo = 1.15
+        grantCost = totalGross * grantCo
+    } else {
+        grantCo = ''
+        grantCost = totalPay
+    }
+    totalGross = totalGross.toFixed(2)
     totalPay = totalPay.toFixed(2)
+    grantCost = grantCost.toFixed(2)
     $('#id_research_assistant-total_pay').val(totalPay)
+    $('.total_pay_gross_info').text(totalGross)
+    $('.total_pay_gross_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ')')
     $('.total_pay_info').text(totalPay)
-    $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
-}
-
-function raLS() {
-    totalPay = $('#id_research_assistant-total_gross').val()
-    $('#id_research_assistant-total_pay').val(totalPay)
-    $('.total_pay_info').text(totalPay)
-    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+    $('.total_pay_calc').text('Total Gross (' + totalGross + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
+    $('.grant_cost_info').text(grantCost)
+    $('.grant_cost_calc').text('Total Gross (' + totalGross + ') x (' + grantCo + ')')
 }
 
 function ncBW () {
@@ -473,6 +471,10 @@ function ncH () {
 
 function ncLS() {
     totalPay = $('#id_non_continuing-total_gross').val()
+    if (totalPay == '') {
+        totalPay = parseInt(0).toFixed(2)
+    }
+    totalPay = parseFloat(totalPay).toFixed(2)
     $('#id_non_continuing-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
@@ -487,9 +489,9 @@ function backDatedPaymentMethod () {
     if (ra_backdated === 'True') {
         hide(rabw_fields)
         hide(rah_fields)
-        hide(rals_fields)
         hide(['research_assistant-ra_payment_method'])
         $('.biweekly_info').hide()
+        $('.hourly_info').hide()
         show(ra_backdated_fields)
         raBackDated()
     } else if (nc_backdated === 'True') {
@@ -519,7 +521,8 @@ function raBackDated(){
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
-
+    $('.grant_cost_info').text(totalPay)
+    $('.grant_cost_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function grasBackDated(){
@@ -620,9 +623,9 @@ $(document).ready(function() {
     $('#id_funding_sources-fs3_start_date').datepicker({'dateFormat': 'yy-mm-dd'})
     $('#id_funding_sources-fs3_end_date').datepicker({'dateFormat': 'yy-mm-dd'})
 
+    raPaymentMethod()
     grasPaymentMethod()
     ncPaymentMethod()
-    raPaymentMethod()
     backDatedPaymentMethod()
 
     // select if appointee does not have an ID
@@ -630,11 +633,9 @@ $(document).ready(function() {
     
     // is the appointee a student?
     $('#id_intro-student').change(studentFieldsUpdate)
-    $('#id_intro-usra').change(studentFieldsUpdate)
     $('#id_intro-research').change(studentFieldsUpdate)
 
     $('#id_intro-student').change(hiringCategoryRec)
-    $('#id_intro-usra').change(hiringCategoryRec)
     $('#id_intro-research').change(hiringCategoryRec)
     $('#id_intro-thesis').change(hiringCategoryRec)
 
@@ -644,6 +645,7 @@ $(document).ready(function() {
 
     // ra payment method
     $('#id_research_assistant-ra_payment_method').change(raPaymentMethod)
+    $('#id_research_assistant-ra_benefits').change(raPaymentMethod)
     $('#id_research_assistant-total_gross').change(raPaymentMethod)
     $('#id_research_assistant-biweekly_hours').change(raPaymentMethod)
     $('#id_research_assistant-weeks_vacation').change(raPaymentMethod)

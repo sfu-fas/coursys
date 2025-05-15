@@ -70,16 +70,6 @@
     <fieldset>
       <div class ="form_section">
         <h2><strong>Dates</strong></h2>
-        {% if reappoint %}
-        <p><div class="important_info">
-        <b>Tip For Reappointments:</b> 
-        <div class="helptext">
-        To keep the biweekly salary and hourly rate exactly the same as before, please ensure the estimated pay periods is exactly the same as the previous 
-        appointment as well as the total salary and biweekly hours. If the dates are changing, adjust the salary according to the change in the number of
-        pay periods. For example, if the number of pay periods is increasing by 2.2 and the biweekly salary is $500, increase the total salary by 2.2 X $500
-        and keep the biweekly hours the same.</div>
-        </div></p>
-        {% endif %}
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
             {{ wizard.form.management_form }}
@@ -89,7 +79,7 @@
         {% else %}
             {{ wizard.form|as_dl }}
           {% endif %} 
-        {% if not edit %}
+        {% if not edit and not research_assistant %}
         <div class="backdated_info" >
           <p style="color:red"><b>This will be categorized as backdated appointment.</b></p>
         </div>

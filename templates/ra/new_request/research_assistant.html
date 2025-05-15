@@ -72,8 +72,12 @@
         <h2><strong>Hiring Category: Research Assistant</strong></h2>
         <div class="helptext">
           <ul>
-            <li>All numbers are exclusive of statutory benefit rate (Employer portion of EHT, CPP, EI, and WCB) --> 11%</li>
-            <li>All numbers are exclusive of discretionary benefits (extended health and dental) --> 2.84%</li>
+            <li><u><b>Appointment Budget Overview</b></u></li>
+            <li>B.C. minimum wage starting from June 01, 2025: $17.85 per hour </li>
+            <li>TSSU minimum hourly wage starting from April 01, 2026: $24.74 per hour </li>
+            <li>Employer portion of statutory benefits covering CPP, EI, WCB and EHT: estimated at 11% </li>
+            <li>Employer paid extended health benefits: estimated at 6% (Non-discretionary from April 01, 2026) </li>
+            <li>Vacation pay: minimum 4%, which equals to 2 weeks annual vacation </li>
           </ul>
         </div>
         {{ wizard.management_form }}
@@ -83,7 +87,7 @@
                 {{ form }}
             {% endfor %}
         {% else %}
-            {{ wizard.form|as_dl_excludefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_excludefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
           <div class="biweekly_info">
             <p><div class="important_info">
               <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
@@ -97,12 +101,29 @@
               <b>Vacation Hours:</b> <span class="vacation_hours_info"></span>
               <div class="helptext"><span class="vacation_hours_calc"></span></div>
             </div></p>
+            <p><div class="important_info">
+              <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
+              <div class="helptext"><span class="total_pay_calc"></span></div>
+            </div></p>
+          </div>
+          <div class="hourly_info">
+            <p><div class="important_info">
+              <b>Estimated Total Gross:</b> $<span class="total_pay_gross_info"></span>
+              <div class="helptext"><span class="total_pay_gross_calc"></span></div>
+            </div></p>
+            <p><div class="important_info">
+              <b>Estimated Total Gross and Vacation Pay:</b> $<span class="total_pay_info"></span>
+              <div class="helptext"><span class="total_pay_calc"></span></div>
+            </div></p>
           </div>
           <p><div class="important_info">
-            <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
-            <div class="helptext"><span class="total_pay_calc"></span></div>
+            <b>Estimated Cost to PI's Grant:</b> $<span class="grant_cost_info"></span>
+            <div class="helptext"><span class="grant_cost_calc"></span></div>
           </div></p>
-            {{ wizard.form|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+      </div>
+      <div class="form_section">
+          <h2>Job Duties</h2>
+            {{ wizard.form|as_dl_includefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
         {% endif %} 
       </div>
     </fieldset>

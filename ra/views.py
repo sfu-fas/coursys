@@ -194,6 +194,9 @@ class RANewRequestWizard(SessionWizardView):
             elif hiring_category == "NC":
                 pay_data = self.get_cleaned_data_for_step('non_continuing')
             context.update({'total_pay': pay_data['total_pay']})
+        if self.steps.current == 'dates':
+            cleaned_data = self.get_cleaned_data_for_step('intro')
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
         if reappoint:
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
@@ -207,16 +210,6 @@ class RANewRequestWizard(SessionWizardView):
         step = step or self.steps.current
         kwargs = super(RANewRequestWizard, self).get_form_kwargs(step)
 
-        if step=='research_assistant':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
-            if intro['usra']:
-                kwargs['usra'] = True
-        if step=='non_continuing':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
         return kwargs
 
     def get_form_initial(self, step):
@@ -230,6 +223,9 @@ class RANewRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid}
             if req.person:
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
+        if step == 'dates':
+            cleaned_data = self.get_cleaned_data_for_step('intro') or {}
+            init = {'hiring_category': cleaned_data['hiring_category'], 'edit': False}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
@@ -419,6 +415,9 @@ class RAEditRequestWizard(SessionWizardView):
             elif hiring_category == "NC":
                 pay_data = self.get_cleaned_data_for_step('non_continuing')
             context.update({'total_pay': pay_data['total_pay']})
+        if self.steps.current == 'dates':
+            cleaned_data = self.get_cleaned_data_for_step('intro')
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
         ra_slug = self.kwargs['ra_slug']
         req = _edit_req(self.request, ra_slug)
         context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'admin': has_role('FUND', self.request), 'status': req.status()})
@@ -432,19 +431,9 @@ class RAEditRequestWizard(SessionWizardView):
         kwargs = super(RAEditRequestWizard, self).get_form_kwargs(step)
         if step == 'dates' and not req.draft:
             kwargs['edit'] = True
-        if step=='research_assistant':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
-            if intro['usra']:
-                kwargs['usra'] = True
         if step=='graduate_research_assistant':
             if req.complete:
                 kwargs['complete'] = True
-        if step=='non_continuing':
-            intro = self.get_cleaned_data_for_step('intro') or {}
-            if intro['coop']=="True": 
-                kwargs['coop'] = True
         return kwargs
 
     def get_form_initial(self, step):
@@ -456,6 +445,9 @@ class RAEditRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid}
             if req.person:
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
+        if step == 'dates':
+            cleaned_data = self.get_cleaned_data_for_step('intro') or {}
+            init = {'hiring_category': cleaned_data['hiring_category'], 'edit': (req.draft == False)}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
@@ -580,9 +572,8 @@ class RAEditRequestWizard(SessionWizardView):
             req.gras_payment_method = None
             req.ra_payment_method = None
 
-        # ensure swpp is false if not applicable
-        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS" or req.usra == "True" or req.usra == True:
-            req.swpp = False
+        req.swpp = False
+        req.usra = False
 
         # draft was submitted 
         if submission:
