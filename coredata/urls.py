@@ -94,7 +94,7 @@ browse_patterns = [ # prefix /browse/
     url(r'^pages/' + UNIT_SLUG + '$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),
     url(r'^pages/' + UNIT_SLUG + '/' + SEMESTER + '$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),
     url(r'^pages/admin/' + COURSE_SLUG + '$', coredata_views.course_home_admin, name='course_home_admin'),
-    url(r'^pages/' + UNIT_SLUG + '/', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),          
+    url(r'^pages/' + UNIT_SLUG + '/$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),          
     url(r'^' + UNIT_SLUG + '$', coredata_views.browse_courses, name='browse_courses'),
     url(r'^' + UNIT_SLUG + '/(?P<campus>[a-zA-Z]{1,9})$', coredata_views.browse_courses, name='browse_courses'),    
 ]
