@@ -89,11 +89,11 @@ sysadmin_patterns = [ # prefix /sysadmin/
 
 browse_patterns = [ # prefix /browse/
     url(r'^$', coredata_views.browse_courses, name='browse_courses'),
-    url(r'^' + UNIT_SLUG + '$', coredata_views.browse_courses, name='browse_courses'),
-    url(r'^' + UNIT_SLUG + '/(?P<campus>[a-zA-Z]{1,9})$', coredata_views.browse_courses, name='browse_courses'),
     url(r'^info/' + COURSE_SLUG + '$', coredata_views.browse_courses_info, name='browse_courses_info'),
     url(r'^pages/$', coredata_views.course_home_pages, name='course_home_pages'),
-    url(r'^pages/' + UNIT_SLUG + '/$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),
+    url(r'^pages/' + UNIT_SLUG + '$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),
     url(r'^pages/' + UNIT_SLUG + '/' + SEMESTER + '$', coredata_views.course_home_pages_unit, name='course_home_pages_unit'),
     url(r'^pages/admin/' + COURSE_SLUG + '$', coredata_views.course_home_admin, name='course_home_admin'),
+    url(r'^' + UNIT_SLUG + '$', coredata_views.browse_courses, name='browse_courses'),
+    url(r'^' + UNIT_SLUG + '/(?P<campus>[a-zA-Z]{1,9})$', coredata_views.browse_courses, name='browse_courses'),    
 ]
