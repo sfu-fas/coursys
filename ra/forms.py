@@ -852,7 +852,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_MIN_WAGE_DATE:
+                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date):
                     message = get_minimum_wage_error(start_date, end_date)
@@ -860,7 +860,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_MIN_WAGE_DATE:
+                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date):
                     message = get_minimum_wage_error(start_date, end_date)
