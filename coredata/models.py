@@ -1893,6 +1893,9 @@ class EnrolmentHistory(models.Model):
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
+    enrl_drp = models.PositiveSmallIntegerField(default=0) # how many students dropped yesterday?
+    wait_drp = models.PositiveSmallIntegerField(default=0) # how many students dropped off the waitlist yesterday?
+    wait_add = models.PositiveSmallIntegerField(default=0) # how many students were added to the waitlist yesterday? 
 
     class Meta:
         unique_together = (('offering', 'date'),)
@@ -1901,7 +1904,7 @@ class EnrolmentHistory(models.Model):
         return '%s@%s (%i, %i, %i)' % (self.offering.slug, self.date, self.enrl_cap, self.enrl_tot, self.wait_tot)
 
     @classmethod
-    def from_offering(cls, offering, date=None, save=True):
+    def from_offering(cls, offering, extra_waitlist_data=None, date=None, save=True):
         """
         Build an EnrolmentHistory for this offering (today or on given date).
         """
@@ -1915,6 +1918,14 @@ class EnrolmentHistory(models.Model):
         else:
             eh.date = datetime.date.today()
 
+        if extra_waitlist_data:
+            if extra_waitlist_data["enrl_drp"]:
+                eh.enrl_drp = extra_waitlist_data["enrl_drp"]
+            if extra_waitlist_data["wait_drp"]:
+                eh.wait_drp = extra_waitlist_data["wait_drp"]
+            if extra_waitlist_data["wait_add"]:
+                eh.wait_add = extra_waitlist_data["wait_add"]
+        
         if save:
             eh.save_or_replace()
 
@@ -1925,7 +1936,7 @@ class EnrolmentHistory(models.Model):
     def is_dup(self, other):
         "Close enough that other can be deleted?"
         assert self.date < other.date
-        return self.enrl_vals == other.enrl_vals
+        return (self.enrl_vals == other.enrl_vals and self.enrl_drp == 0 and self.wait_drp == 0 and self.wait_add == 0)
 
     @classmethod
     def deduplicate(cls, start_date=None, end_date=None, dry_run=False):
