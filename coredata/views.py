@@ -24,8 +24,6 @@ import socket, json, datetime, os
 import iso8601
 from functools import reduce
 from operator import itemgetter
-from django.db.models import Max
-from collections import Counter
 import csv
 
 @requires_global_role("SYSA")
@@ -1624,7 +1622,6 @@ def course_home_admin(request, course_slug):
         'form': form,
     }
     return render(request, "coredata/course_home_admin.html", context)
-
 
 def _course_enrolment_data(offering):
     enrolment_history = EnrolmentHistory.objects.filter(offering=offering)
