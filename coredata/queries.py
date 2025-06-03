@@ -690,7 +690,9 @@ def get_waitlist_info(offering, date=None):
     """
     Get waitlist movement info for a given course offering, for the prior day
     """
-    date = datetime.date.today() - datetime.timedelta(days=1)
+    if not date:
+        date = datetime.date.today()
+    date = date - datetime.timedelta(days=1)
 
     db = SIMSConn()
 
@@ -699,33 +701,34 @@ def get_waitlist_info(offering, date=None):
     wait_add = None
 
     query = """
-        SELECT COALESCE(D1.S_DROP, 0) AS S_DROP, COALESCE(D2.S_DRWL, 0) AS S_DRWL, COALESCE(D3.S_EWAT, 0) AS S_EWAT
-            FROM (
-                SELECT %s AS CRSE_ID, %s AS STATUS_DATE
-                ) D0
-                LEFT OUTER JOIN (
-                SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_DROP
-                    FROM PS_STDNT_ENRL E 
-                    JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
-                    WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('DROP') AND E.LAST_DROP_DT_STMP = %s
-                    GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
-                ) D1 ON D0.CRSE_ID = D1.CRSE_ID
-                LEFT OUTER JOIN (
-                    SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_DRWL
-                        FROM PS_STDNT_ENRL E 
-                        JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
-                        WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('DRWL') AND E.LAST_DROP_DT_STMP = %s
-                        GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
-                ) D2 ON D0.CRSE_ID = D2.CRSE_ID
-                LEFT OUTER JOIN (
-                    SELECT CT.CRSE_ID, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS S_EWAT
-                        FROM PS_STDNT_ENRL E 
-                        JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
-                        WHERE CT.CRSE_ID = %s AND E.ENRL_STATUS_REASON IN ('EWAT') AND E.LAST_ENRL_DT_STMP = %s
-                        GROUP BY CT.CRSE_ID, E.ENRL_STATUS_REASON
-                ) D3 ON D0.CRSE_ID = D3.CRSE_ID
-            """
-    db.execute(query, (offering.crse_id, date, offering.crse_id, date, offering.crse_id, date, offering.crse_id, date))
+        SELECT COALESCE(D1.STUDENT_DROP, 0) AS S_DROP, COALESCE(D2.STUDENT_DRWL, 0) AS S_DRWL, COALESCE(D3.STUDENT_EWAT, 0) AS S_EWAT
+        FROM (
+            SELECT %s AS CLASS_NBR, %s AS STRM, %s AS STATUS_DATE
+            ) D0
+            LEFT OUTER JOIN (
+            SELECT CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS STUDENT_DROP
+                FROM PS_STDNT_ENRL E 
+                JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                WHERE CT.CLASS_NBR = %s AND E.STRM = %s AND E.ENRL_STATUS_REASON IN ('DROP') AND E.LAST_DROP_DT_STMP = %s
+                GROUP BY CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON
+            ) D1 ON D0.CLASS_NBR = D1.CLASS_NBR AND D0.STRM = D1.STRM
+            LEFT OUTER JOIN (
+            SELECT CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS STUDENT_DRWL
+                FROM PS_STDNT_ENRL E 
+                JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                WHERE CT.CLASS_NBR = %s AND E.STRM = %s AND E.ENRL_STATUS_REASON IN ('DRWL') AND E.LAST_DROP_DT_STMP = %s
+                GROUP BY CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON
+            ) D2 ON D0.CLASS_NBR = D2.CLASS_NBR AND D0.STRM = D2.STRM
+            LEFT OUTER JOIN (
+            SELECT CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS STUDENT_EWAT
+                FROM PS_STDNT_ENRL E 
+                JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
+                WHERE CT.CLASS_NBR = %s AND E.STRM = %s AND E.ENRL_STATUS_REASON IN ('EWAT') AND E.LAST_ENRL_DT_STMP = %s
+                GROUP BY CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON
+            ) D3 ON D0.CLASS_NBR = D3.CLASS_NBR AND D0.STRM = D3.STRM
+        """
+    
+    db.execute(query, (offering.class_nbr, offering.semester.name, date) * 4)
 
     for S_DROP, S_DRWL, S_EWAT in db:
         enrl_drp = S_DROP
