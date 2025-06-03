@@ -1626,41 +1626,31 @@ def course_home_admin(request, course_slug):
     return render(request, "coredata/course_home_admin.html", context)
 
 
-def _course_enrolment_data(request, offering):
+def _course_enrolment_data(offering):
     enrolment_history = EnrolmentHistory.objects.filter(offering=offering)
-    dropped_students = Member.objects.filter(offering=offering, role="DROP")
     
-    dropped_data = []
-    for student in dropped_students:
-        if 'drop_date' in student.config:
-            date = datetime.datetime.fromisoformat(student.config['drop_date']).date()
-            dropped_data.append(date)
-    
-    dropped_counts = Counter(dropped_data)
-    
-    all_dates = set(eh.date for eh in enrolment_history) | set(dropped_counts.keys())
+    all_dates = set(eh.date for eh in enrolment_history)
     all_dates = sorted(all_dates)
 
-    enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.enrl_cap, eh.wait_tot) for eh in enrolment_history}
+    enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.enrl_cap, eh.wait_tot, eh.enrl_drp, eh.wait_drp, eh.wait_add) for eh in enrolment_history}
 
-    enrl_tot, enrl_cap, wait_tot = 0, 0, 0
+    enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = 0, 0, 0, 0, 0, 0
 
     data = []
     for date in all_dates:
         if date in  enrolment_history_dict:
-            enrl_tot, enrl_cap, wait_tot = enrolment_history_dict[date]
-        dropped = dropped_counts[date]
-        data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, dropped])
+            enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = enrolment_history_dict[date]
+        data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
 
     return data
 
-@requires_global_role("SYSA")
+@requires_role('ADMN')
 def course_enrolment_download(request, course_slug):
     """
     Download enrolment data for a course offering
     """
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    data = _course_enrolment_data(request, offering)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    data = _course_enrolment_data(offering)
 
     response = HttpResponse(content_type='text/csv')
 
@@ -1668,14 +1658,14 @@ def course_enrolment_download(request, course_slug):
                                       (datetime.datetime.now().strftime('%Y%m%d'), offering.slug)
     writer = csv.writer(response)
 
-    writer.writerow(['Date', 'Enrolment Total', 'Enrolment Cap', 'Wait List', 'Dropped'])
+    writer.writerow(['Date', 'Enrolment Total', 'Enrolment Cap', 'Wait List Total', 'Dropped Course', 'Dropped Waitlist', 'Added to Waitlist'])
     for eh in data:
         writer.writerow(eh)
 
     return response
 
 
-@requires_global_role("SYSA")
+@requires_role('ADMN')
 def course_enrolment(request, course_slug):
     """
     Enrolment data and analytics for a course offering
@@ -1684,9 +1674,9 @@ def course_enrolment(request, course_slug):
     enrolment_cap_buffer = 10
     enrolment_cap_column = 2
 
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
     table_data = _course_enrolment_data(request, offering)
-    data = [['Date', 'Total Enrolled', 'Enrolment Cap', 'Waitlist', 'Dropped']] + table_data
+    data = [['Date', 'Total Enrolled', 'Enrolment Cap', 'Waitlist', 'Dropped Course', 'Dropped Waitlist', 'Added to Waitlist']] + table_data
     
     # maximum enrolment cap
     if len(table_data) > 0:

@@ -1974,4 +1974,7 @@ class EnrolmentHistory(models.Model):
             other.enrl_cap = self.enrl_cap
             other.enrl_tot = self.enrl_tot
             other.wait_tot = self.wait_tot
+            other.enrl_drp = self.enrl_drp
+            other.wait_drp = self.wait_drp
+            other.wait_add = self.wait_add
             other.save()

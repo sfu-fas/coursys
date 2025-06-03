@@ -65,7 +65,7 @@ function drawChart() {
 
 <div class="datatable_container">
 <table id="enrolment_history" class="display">
-  <thead><tr><th scope="col">Date</th><th scope="col">Enrolment Total</th><th scope="col">Enrolment Cap.</th><th scope="col">Wait List</th><th scope="col">Dropped</th></thead>
+  <thead><tr><th scope="col">Date</th><th scope="col">Enrolment Total</th><th scope="col">Enrolment Cap.</th><th scope="col">Wait List</th><th scope="col">Dropped Course</th><th scope="col">Dropped Waitlist</th><th scope="col">Added to Waitlist</th></thead>
   <tbody>
   {% for eh in table_data %}
     <tr>
@@ -74,6 +74,8 @@ function drawChart() {
     <td>{{eh.2}}</td>
     <td>{{eh.3}}</td>
     <td>{{eh.4}}</td>
+    <td>{{eh.5}}</td>
+    <td>{{eh.6}}</td>
     </tr>
   {% endfor %}
   </tbody>
