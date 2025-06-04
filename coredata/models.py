@@ -1936,7 +1936,7 @@ class EnrolmentHistory(models.Model):
     def is_dup(self, other):
         "Close enough that other can be deleted?"
         assert self.date < other.date
-        return (self.enrl_vals == other.enrl_vals and self.enrl_drp == 0 and self.wait_drp == 0 and self.wait_add == 0)
+        return (self.enrl_vals == other.enrl_vals and other.enrl_drp == 0 and other.wait_drp == 0 and other.wait_add == 0)
 
     @classmethod
     def deduplicate(cls, start_date=None, end_date=None, dry_run=False):
