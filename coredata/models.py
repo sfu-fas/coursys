@@ -1932,6 +1932,10 @@ class EnrolmentHistory(models.Model):
     @property
     def enrl_vals(self):
         return self.enrl_cap, self.enrl_tot, self.wait_tot
+    
+    @property
+    def wait_vals(self):
+        return self.enrl_drp, self.wait_drp, self.wait_add
 
     def is_dup(self, other):
         "Close enough that other can be deleted?"
