@@ -25,6 +25,7 @@ import iso8601
 from functools import reduce
 from operator import itemgetter
 import csv
+from django.db.models import Max, Min
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -1625,20 +1626,28 @@ def course_home_admin(request, course_slug):
 
 def _course_enrolment_data(offering):
     enrolment_history = EnrolmentHistory.objects.filter(offering=offering)
-    
-    all_dates = set(eh.date for eh in enrolment_history)
-    all_dates = sorted(all_dates)
-
-    enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.enrl_cap, eh.wait_tot, eh.enrl_drp, eh.wait_drp, eh.wait_add) for eh in enrolment_history}
-
-    enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = 0, 0, 0, 0, 0, 0
-
     data = []
-    for date in all_dates:
-        if date in  enrolment_history_dict:
-            enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = enrolment_history_dict[date]
-        data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
+    if enrolment_history.count() > 0:
+        dates = enrolment_history.aggregate(start_date=Min('date'), end_date=Max('date'))
+        start_date = dates['start_date']
+        end_date = dates['end_date']
 
+        enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.enrl_cap, eh.wait_tot, eh.enrl_drp, eh.wait_drp, eh.wait_add) for eh in enrolment_history}
+        
+        enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = 0, 0, 0, 0, 0, 0
+
+        if start_date and end_date:
+            date = start_date
+            while date <= end_date:
+                if date in  enrolment_history_dict:
+                    enrl_tot, enrl_cap, wait_tot, new_enrl_drp, new_wait_drp, new_wait_add = enrolment_history_dict[date]
+                    enrl_drp = enrl_drp + new_enrl_drp
+                    wait_drp = wait_drp + new_wait_drp
+                    wait_add = wait_add + new_wait_add
+                    data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
+                else:
+                    data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
+                date = date + datetime.timedelta(days=1)
     return data
 
 @requires_role('ADMN')
@@ -1672,7 +1681,7 @@ def course_enrolment(request, course_slug):
     enrolment_cap_column = 2
 
     offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
-    table_data = _course_enrolment_data(request, offering)
+    table_data = _course_enrolment_data(offering)
     data = [['Date', 'Total Enrolled', 'Enrolment Cap', 'Waitlist', 'Dropped Course', 'Dropped Waitlist', 'Added to Waitlist']] + table_data
     
     # maximum enrolment cap
