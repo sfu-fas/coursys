@@ -1625,29 +1625,44 @@ def course_home_admin(request, course_slug):
     return render(request, "coredata/course_home_admin.html", context)
 
 def _course_enrolment_data(offering):
-    enrolment_history = EnrolmentHistory.objects.filter(offering=offering)
+    data_start = offering.semester.start - datetime.timedelta(days=60)
+    data_end = offering.semester.start + datetime.timedelta(days=20)
+    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gt=data_start, date__lte=data_end)
     data = []
+
     if enrolment_history.count() > 0:
-        dates = enrolment_history.aggregate(start_date=Min('date'), end_date=Max('date'))
-        start_date = dates['start_date']
-        end_date = dates['end_date']
-
         enrolment_history_dict = {eh.date: (eh.enrl_tot, eh.enrl_cap, eh.wait_tot, eh.enrl_drp, eh.wait_drp, eh.wait_add) for eh in enrolment_history}
-        
         enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add = 0, 0, 0, 0, 0, 0
+        date = enrolment_history.aggregate(start_date=Min('date'))['start_date']
+        while date <= data_end:
+            if date in enrolment_history_dict:
+                enrl_tot, enrl_cap, wait_tot, new_enrl_drp, new_wait_drp, new_wait_add = enrolment_history_dict[date]
+                enrl_drp = enrl_drp + new_enrl_drp
+                wait_drp = wait_drp + new_wait_drp
+                wait_add = wait_add + new_wait_add
+                data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
+            else:
+                data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
+            date = date + datetime.timedelta(days=1)
 
-        if start_date and end_date:
-            date = start_date
-            while date <= end_date:
-                if date in  enrolment_history_dict:
-                    enrl_tot, enrl_cap, wait_tot, new_enrl_drp, new_wait_drp, new_wait_add = enrolment_history_dict[date]
-                    enrl_drp = enrl_drp + new_enrl_drp
-                    wait_drp = wait_drp + new_wait_drp
-                    wait_add = wait_add + new_wait_add
-                    data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
-                else:
-                    data.append([date.strftime('%Y-%m-%d'), enrl_tot, enrl_cap, wait_tot, enrl_drp, wait_drp, wait_add])
-                date = date + datetime.timedelta(days=1)
+    return data
+
+def _course_drop_data(offering):
+    # drops after the enrolment period
+    data_start = offering.semester.start + datetime.timedelta(days=20)
+    data_end = offering.semester.end
+    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gte=data_start, date__lte=data_end)
+    data = []
+
+    if enrolment_history.count() > 0:
+        enrolment_history_dict = {eh.date: (eh.enrl_drp) for eh in enrolment_history}
+        date = data_start
+        while date <= data_end:
+            if date in enrolment_history_dict:
+                enrl_drp = enrolment_history_dict[date]
+                data.append([date.strftime('%Y-%m-%d'), enrl_drp])
+            date = date + datetime.timedelta(days=1)
+
     return data
 
 @requires_role('ADMN')
@@ -1693,10 +1708,19 @@ def course_enrolment(request, course_slug):
     # don't show enrolment cap in charts
     data = [[eh[i] for i in range(len(eh)) if i != enrolment_cap_column] for eh in data]
 
+    dropped_data = _course_drop_data(offering)
+    courses_start = (offering.semester.start).strftime('%Y-%m-%d')
+    courses_end = (offering.semester.end).strftime('%Y-%m-%d')
+    enrolment_end = (offering.semester.start + datetime.timedelta(days=20)).strftime('%Y-%m-%d')
+
     context = {
         'offering': offering,
         'table_data': table_data,
         'data': data,
-        'enrolment_cap': enrolment_cap
+        'dropped_data': dropped_data,
+        'enrolment_cap': enrolment_cap,
+        'courses_start': courses_start,
+        'courses_end': courses_end,
+        'enrolment_end': enrolment_end
     }
     return render(request, 'coredata/course_enrolment.html', context)

@@ -41,7 +41,14 @@ function drawChart() {
         "ordering": false,
         "searching": false,
       } );
-    } );
+      $('#drop_history').dataTable( {
+        'bPaginate': false,
+        'bInfo': false,
+        "bJQueryUI": true,
+        "ordering": false,
+        "searching": false,
+      } );
+    }  );
 </script>
 {% endblock %}
 
@@ -63,9 +70,11 @@ function drawChart() {
 
 <h2 id="histo">Enrolment Table</h2>
 
+Courses begin: {{ courses_start }}
+
 <div class="datatable_container">
 <table id="enrolment_history" class="display">
-  <thead><tr><th scope="col">Date</th><th scope="col">Enrolment Total</th><th scope="col">Enrolment Cap.</th><th scope="col">Wait List</th><th scope="col">Dropped Course</th><th scope="col">Dropped Waitlist</th><th scope="col">Added to Waitlist</th></thead>
+  <thead><tr><th scope="col">Date</th><th scope="col">Enrolment Total</th><th scope="col">Enrolment Cap.</th><th scope="col">Wait List</th><th scope="col">Dropped Course Total</th><th scope="col">Dropped Waitlist Total</th><th scope="col">Added to Waitlist Total</th></thead>
   <tbody>
   {% for eh in table_data %}
     <tr>
@@ -84,6 +93,25 @@ function drawChart() {
 <a href="{% url "browse:course_enrolment_download" course_slug=offering.slug %}">Download CSV</a>
 {% else %}
 No data to show.
+{% endif %}
+{% if dropped_data %}
+<h2 id="histo">Course Drops after {{ enrolment_end }}</h2>
+Courses end: {{ courses_end }}
+
+<div class="datatable_container">
+  <table id="drop_history" class="display">
+    <thead><tr><th scope="col">Date</th><th scope="col">Dropped Course</th></thead>
+    <tbody>
+    {% for eh in dropped_data %}
+      <tr>
+      <td>{{eh.0}}</td>
+      <td>{{eh.1}}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
 {% endif %}
 {% endblock %}
 
