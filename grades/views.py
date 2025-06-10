@@ -1218,7 +1218,7 @@ def _all_grades_output(response, course):
     writer.writerow(row)
     
     for s in students:
-        row = [s.person.last_name, s.person.first_name, s.person.userid, s.person.emplid]
+        row = [s.person.last_name, s.person.first_with_pref(), s.person.userid, s.person.emplid]
         if labtut:
             row.append(s.labtut_section or '')
         for a in activities:

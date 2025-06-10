@@ -219,7 +219,7 @@ class Person(models.Model, ConditionalSaveMixin):
     def first_with_pref(self):
         name = self.config.get('first_name', self.first_name)
         pref = self.real_pref_first()
-        if pref != name:
+        if pref.upper() != name.upper():
             name += ' (%s)' % (pref)
         return name
 
