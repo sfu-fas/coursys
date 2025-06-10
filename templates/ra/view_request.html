@@ -312,7 +312,7 @@
 {% endif %}
 {% if ra_hourly %}
 <table class="info">
-  <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
+  <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}% - Must submit timesheet for employee to be paid</td></tr>
   <tr><th>Vacation Pay Amount:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
   <tr><th>Extended Health/Dental Benefits:</th><td>{% if req.ra_benefits == 'Y' %}Yes{% elif req.ra_benefits == 'NE' %}No - Grant is Not Eligible{% elif req.ra_benefits == 'N' %}No{% endif %}</td></tr>
 </table>

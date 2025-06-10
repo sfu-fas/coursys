@@ -870,12 +870,13 @@ class RARequest(models.Model):
             if payment_method == "BW":
                 if ra_benefits == "Y":
                     grant_cost = grant_cost * 1.17
-                elif ra_benefits == ("NE" or "N"):
+                elif (ra_benefits == "NE" or ra_benefits == "N"):
                     grant_cost = grant_cost * 1.11
             elif payment_method == "H":
+                grant_cost = self.get_base_pay()
                 if ra_benefits == "Y":
                     grant_cost = grant_cost * 1.21
-                elif ra_benefits == ("NE" or "N"):
+                elif (ra_benefits == "NE" or ra_benefits == "N"):
                     grant_cost = grant_cost * 1.15
         return grant_cost
         
