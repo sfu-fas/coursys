@@ -380,36 +380,54 @@ class EnrolmentHistoryTest(TestCase):
         EnrolmentHistory.from_offering(o1, date='2017-01-03')
         EnrolmentHistory.from_offering(o1, date='2017-01-05')
         o1.wait_tot = 3
-        EnrolmentHistory.from_offering(o1, date='2017-01-07')
+        EnrolmentHistory.from_offering(o1, date='2017-01-08', extra_waitlist_data={'enrl_drp': 1, 'wait_drp': 2, 'wait_add': 3})
+        EnrolmentHistory.from_offering(o1, date='2017-01-10')
+        EnrolmentHistory.from_offering(o1, date='2017-01-11', extra_waitlist_data={'enrl_drp': 0, 'wait_drp': 0, 'wait_add': 1})
 
         o2.enrl_cap = 20
         o2.enrl_tot = 25
         o2.wait_tot = 7
         EnrolmentHistory.from_offering(o2, date='2017-01-01')
         EnrolmentHistory.from_offering(o2, date='2017-01-02')
-        EnrolmentHistory.from_offering(o2, date='2017-01-03')
+        EnrolmentHistory.from_offering(o2, date='2017-01-03', extra_waitlist_data={'enrl_drp': 0, 'wait_drp': 1, 'wait_add': 0})
         EnrolmentHistory.from_offering(o2, date='2017-01-04')
         o2.enrl_tot = 30
         EnrolmentHistory.from_offering(o2, date='2017-01-05')
-        EnrolmentHistory.from_offering(o2, date='2017-01-06')
+        EnrolmentHistory.from_offering(o2, date='2017-01-06', extra_waitlist_data={'enrl_drp': 1, 'wait_drp': 0, 'wait_add': 0})
 
     def test_dedupe(self):
+        eh1 = EnrolmentHistory.objects.filter(offering=self.o1).order_by('date')
+        eh2 = EnrolmentHistory.objects.filter(offering=self.o2).order_by('date')
         EnrolmentHistory.deduplicate()
         eh1 = EnrolmentHistory.objects.filter(offering=self.o1).order_by('date')
-        self.assertEqual(eh1.count(), 3)
+        self.assertEqual(eh1.count(), 4)
         self.assertEqual(eh1[0].date, date(2017, 1, 1))
         self.assertEqual(eh1[0].enrl_vals, (10, 15, 2))
+        self.assertEqual(eh1[0].wait_vals, (0, 0, 0))
         self.assertEqual(eh1[1].date, date(2017, 1, 3))
         self.assertEqual(eh1[1].enrl_vals, (13, 15, 2))
-        self.assertEqual(eh1[2].date, date(2017, 1, 7))
+        self.assertEqual(eh1[1].wait_vals, (0, 0, 0))
+        self.assertEqual(eh1[2].date, date(2017, 1, 8))
         self.assertEqual(eh1[2].enrl_vals, (13, 15, 3))
+        self.assertEqual(eh1[2].wait_vals, (1, 2, 3))
+        self.assertEqual(eh1[3].date, date(2017, 1, 11))
+        self.assertEqual(eh1[3].enrl_vals, (13, 15, 3))
+        self.assertEqual(eh1[3].wait_vals, (0, 0, 1))
 
         eh2 = EnrolmentHistory.objects.filter(offering=self.o2).order_by('date')
-        self.assertEqual(eh2.count(), 2)
+        self.assertEqual(eh2.count(), 4)
         self.assertEqual(eh2[0].date, date(2017, 1, 1))
         self.assertEqual(eh2[0].enrl_vals, (20, 25, 7))
-        self.assertEqual(eh2[1].date, date(2017, 1, 5))
-        self.assertEqual(eh2[1].enrl_vals, (20, 30, 7))
+        self.assertEqual(eh2[0].wait_vals, (0, 0, 0))
+        self.assertEqual(eh2[1].date, date(2017, 1, 3))
+        self.assertEqual(eh2[1].enrl_vals, (20, 25, 7))
+        self.assertEqual(eh2[1].wait_vals, (0, 1, 0))
+        self.assertEqual(eh2[2].date, date(2017, 1, 5))
+        self.assertEqual(eh2[2].enrl_vals, (20, 30, 7))
+        self.assertEqual(eh2[2].wait_vals, (0, 0, 0))
+        self.assertEqual(eh2[3].date, date(2017, 1, 6))
+        self.assertEqual(eh2[3].enrl_vals, (20, 30, 7))
+        self.assertEqual(eh2[3].wait_vals, (1, 0, 0))
 
 
 class SearchTest(TestCase):

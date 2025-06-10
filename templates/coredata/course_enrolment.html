@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}{% load compress %}
+{% block title %}Enrolment Data: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
+{% block h1 %}Enrolment Data: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
+
+{% block subbreadcrumbs %}<li>Enrolment Data: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
+
+{% block headextra %}
+<script src="https://www.gstatic.com/charts/loader.js" referrerpolicy="no-referrer"></script>
+<script nonce="{{ CSP_NONCE }}">
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+function drawChart() {
+    var data = google.visualization.arrayToDataTable({{ data|safe }});
+
+    var options = {
+        title: 'Course Enrolment',
+        curveType: 'function',
+        legend: { position: 'bottom'},
+        chartArea: { top: 50, left: 50, right:50, bottom:50},
+        hAxis: { title: 'Date' },
+        vAxis: { title: 'Number of Students',
+                viewWindow: {
+                    min: 0, max: {{ enrolment_cap }}
+                },
+        },
+        width: 1100,
+        height: 800,
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('line_chart'));
+    chart.draw(data,options);
+}
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+      $('#enrolment_history').dataTable( {
+        'bPaginate': false,
+        'bInfo': false,
+        "bJQueryUI": true,
+        "ordering": false,
+        "searching": false,
+      } );
+      $('#drop_history').dataTable( {
+        'bPaginate': false,
+        'bInfo': false,
+        "bJQueryUI": true,
+        "ordering": false,
+        "searching": false,
+      } );
+    }  );
+</script>
+{% endblock %}
+
+{% block content %}
+<table class="info" id="courseinfo"><tbody>
+  <tr><th scope="row">Instructor</th><td>{{ offering.instructors_printing_str }}</td></tr>
+  <tr><th scope="row">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
+  <tr><th scope="row">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
+  <tr><th scope="row">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
+  <tr><th scope="row">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
+  {% if offering.url %}
+  <tr><th scope="row">Course Home Page</th><td><a href="{{ offering.url }}">{{ offering.url }}</a></td></tr>
+  {% endif %}
+</tbody></table>
+<p class="helptext">* updated overnight only: see <a href="https://sims.sfu.ca/">goSFU</a> for updated data.</p>
+{% if table_data %}
+<h2 id="histo">Enrolment Line Chart</h2>
+<div id="line_chart"></div>
+
+<h2 id="histo">Enrolment Table</h2>
+
+Courses begin: {{ courses_start }}
+
+<div class="datatable_container">
+<table id="enrolment_history" class="display">
+  <thead><tr><th scope="col">Date</th><th scope="col">Enrolment Total</th><th scope="col">Enrolment Cap.</th><th scope="col">Wait List</th><th scope="col">Dropped Course Total</th><th scope="col">Dropped Waitlist Total</th><th scope="col">Added to Waitlist Total</th></thead>
+  <tbody>
+  {% for eh in table_data %}
+    <tr>
+    <td>{{eh.0}}</td>
+    <td>{{eh.1}}</td>
+    <td>{{eh.2}}</td>
+    <td>{{eh.3}}</td>
+    <td>{{eh.4}}</td>
+    <td>{{eh.5}}</td>
+    <td>{{eh.6}}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<a href="{% url "browse:course_enrolment_download" course_slug=offering.slug %}">Download CSV</a>
+{% else %}
+No data to show.
+{% endif %}
+{% if dropped_data %}
+<h2 id="histo">Course Drops after {{ enrolment_end }}</h2>
+Courses end: {{ courses_end }}
+
+<div class="datatable_container">
+  <table id="drop_history" class="display">
+    <thead><tr><th scope="col">Date</th><th scope="col">Dropped Course</th></thead>
+    <tbody>
+    {% for eh in dropped_data %}
+      <tr>
+      <td>{{eh.0}}</td>
+      <td>{{eh.1}}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+{% endif %}
+{% endblock %}
+
