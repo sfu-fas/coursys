@@ -68,7 +68,7 @@
         {% for s in students %}
         <tr>
             <td scope="row">{{s.person.last_name}}</td>
-            <td scope="row">{{s.person.first_name}}</td>
+            <td scope="row">{{s.person.first_with_pref}}</td>
             <td>{{s.person.userid}}</td>
             <td><a href="{{s.get_absolute_url}}">{{s.person.emplid}}</a></td>
             {% if course.labtut %}<td>{{s.labtut_section}}</td>{% endif %}
