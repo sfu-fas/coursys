@@ -295,7 +295,7 @@ class ScheduleRule(models.Model):
                                      null=False,
                                      default="ONE")
     last_run = models.DateTimeField(null=True) # the last time this ScheduleRule was run
-    next_run = models.DateTimeField() # the next time to run this ScheduleRule
+    next_run = models.DateTimeField(null=True) # the next time to run this ScheduleRule
 
     config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -314,8 +314,9 @@ class ScheduleRule(models.Model):
             self.next_run = None
 
         # if this doesn't get the run to past the current date, try again. 
-        if self.next_run < datetime.datetime.now():
-            self.set_next_run()
+        if self.schedule_type != 'ONE':
+            if self.next_run < datetime.datetime.now():
+                self.set_next_run()
 
 
 def schedule_ping():
