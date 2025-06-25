@@ -3,7 +3,7 @@ sys.path.append(".")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, get_reqmnt_designtn, import_person,\
-    userid_to_emplid, cache_by_args, REQMNT_DESIGNTN_FLAGS
+    userid_to_emplid, cache_by_args, REQMNT_DESIGNTN_FLAGS, get_waitlist_info
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, Holiday
 from coredata.models import CombinedOffering, EnrolmentHistory, CAMPUSES, COMPONENTS, INSTR_MODE
 from django.db import transaction, IntegrityError
@@ -104,6 +104,13 @@ def get_unit(acad_org, create=False):
 
     return unit
 
+def get_waitlist_data(c):
+    enrl_drp, wait_drp, wait_add = get_waitlist_info(c)
+    data = {}
+    data["enrl_drp"] = enrl_drp
+    data["wait_drp"] = wait_drp
+    data["wait_add"] = wait_add
+    return data
 
 REQ_DES = None
 @transaction.atomic
@@ -202,7 +209,8 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
             crs.title = c.title
             crs.save()
 
-        EnrolmentHistory.from_offering(c, save=True)
+        extra_waitlist_data = get_waitlist_data(c)
+        EnrolmentHistory.from_offering(c, extra_waitlist_data, save=True)
 
         return c
 
