@@ -346,7 +346,8 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         raise Http404()
 
     if request.method == 'POST':
-        form = Form(instance=post, data=request.POST, member=request.member, offering_identity=request.forum.identity)
+        form = Form(instance=post, data=request.POST, member=request.member, offering_identity=request.forum.identity,
+                    initial_identity=post.identity)
         if form.is_valid():
             post = form.save(commit=False)
             post.offering = request.offering
@@ -368,9 +369,10 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     else:
         if thread:
             form = Form(instance=post, offering_identity=request.forum.identity, member=request.member,
-                                     initial={'title': thread.title, 'privacy': thread.privacy})
+                        initial_identity=post.identity, initial={'title': thread.title, 'privacy': thread.privacy})
         else:
-            form = Form(instance=post, offering_identity=request.forum.identity, member=request.member)
+            form = Form(instance=post, offering_identity=request.forum.identity, member=request.member,
+                        initial_identity=post.identity)
 
     context = {
         'view': 'edit_post',
