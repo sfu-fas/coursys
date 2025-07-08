@@ -1627,6 +1627,9 @@ def course_home_admin(request, course_slug):
 def _course_enrolment_data(offering):
     data_start = offering.semester.start - datetime.timedelta(days=60)
     data_end = offering.semester.start + datetime.timedelta(days=20)
+    today = datetime.date.today()
+    if today < data_end:
+        data_end = today
     enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gt=data_start, date__lte=data_end)
     data = []
 
@@ -1651,7 +1654,10 @@ def _course_drop_data(offering):
     # drops after the enrolment period
     data_start = offering.semester.start + datetime.timedelta(days=20)
     data_end = offering.semester.end
-    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gte=data_start, date__lte=data_end)
+    today = datetime.date.today()
+    if today < data_end:
+        data_end = today
+    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gte=data_start, date__lte=data_end, enrl_drp__gt=0)
     data = []
 
     if enrolment_history.count() > 0:
