@@ -1676,7 +1676,8 @@ def course_enrolment_download(request, course_slug):
     """
     Download enrolment data for a course offering
     """
-    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    subunits = Unit.sub_unit_ids(request.units)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=subunits)
     data = _course_enrolment_data(offering)
 
     response = HttpResponse(content_type='text/csv')
@@ -1701,7 +1702,8 @@ def course_enrolment(request, course_slug):
     enrolment_cap_buffer = 10
     enrolment_cap_column = 2
 
-    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    subunits = Unit.sub_unit_ids(request.units)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=subunits)
     table_data = _course_enrolment_data(offering)
     data = [['Date', 'Total Enrolled', 'Enrolment Cap', 'Waitlist', 'Dropped Course', 'Dropped Waitlist', 'Added to Waitlist']] + table_data
     
