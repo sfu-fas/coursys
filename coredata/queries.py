@@ -701,7 +701,7 @@ def get_waitlist_info(offering, date=None):
     wait_add = None
 
     query = """
-        SELECT COALESCE(D1.STUDENT_DROP, 0) AS S_DROP, COALESCE(D2.STUDENT_DRWL, 0) AS S_DRWL, COALESCE(D3.STUDENT_EWAT, 0) AS S_EWAT
+        SELECT COALESCE(D1.STUDENT_DROP, 0) AS S_DROP, COALESCE(D2.STUDENT_DRWL, 0) AS S_DRWL, COALESCE(D3.STUDENT_FULL, 0) AS S_FULL
         FROM (
             SELECT %s AS CLASS_NBR, %s AS STRM, %s AS STATUS_DATE
             ) D0
@@ -720,20 +720,20 @@ def get_waitlist_info(offering, date=None):
                 GROUP BY CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON
             ) D2 ON D0.CLASS_NBR = D2.CLASS_NBR AND D0.STRM = D2.STRM
             LEFT OUTER JOIN (
-            SELECT CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS STUDENT_EWAT
+            SELECT CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON, COUNT(E.EMPLID) AS STUDENT_FULL
                 FROM PS_STDNT_ENRL E 
                 JOIN PS_CLASS_TBL CT ON E.CLASS_NBR = CT.CLASS_NBR AND E.STRM = CT.STRM
-                WHERE CT.CLASS_NBR = %s AND E.STRM = %s AND E.ENRL_STATUS_REASON IN ('EWAT') AND E.LAST_ENRL_DT_STMP = %s
+                WHERE CT.CLASS_NBR = %s AND E.STRM = %s AND E.ENRL_STATUS_REASON IN ('FULL') AND E.LAST_ENRL_DT_STMP = %s
                 GROUP BY CT.CLASS_NBR, E.STRM, E.ENRL_STATUS_REASON
             ) D3 ON D0.CLASS_NBR = D3.CLASS_NBR AND D0.STRM = D3.STRM
         """
     
     db.execute(query, (offering.class_nbr, offering.semester.name, date) * 4)
 
-    for S_DROP, S_DRWL, S_EWAT in db:
+    for S_DROP, S_DRWL, S_FULL in db:
         enrl_drp = S_DROP
         wait_drp = S_DRWL
-        wait_add = S_EWAT
+        wait_add = S_FULL
 
     return enrl_drp, wait_drp, wait_add
 

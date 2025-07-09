@@ -1627,6 +1627,9 @@ def course_home_admin(request, course_slug):
 def _course_enrolment_data(offering):
     data_start = offering.semester.start - datetime.timedelta(days=60)
     data_end = offering.semester.start + datetime.timedelta(days=20)
+    today = datetime.date.today()
+    if today < data_end:
+        data_end = today
     enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gt=data_start, date__lte=data_end)
     data = []
 
@@ -1651,7 +1654,7 @@ def _course_drop_data(offering):
     # drops after the enrolment period
     data_start = offering.semester.start + datetime.timedelta(days=20)
     data_end = offering.semester.end
-    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gte=data_start, date__lte=data_end)
+    enrolment_history = EnrolmentHistory.objects.filter(offering=offering, date__gte=data_start, date__lte=data_end, enrl_drp__gt=0)
     data = []
 
     if enrolment_history.count() > 0:
@@ -1670,7 +1673,8 @@ def course_enrolment_download(request, course_slug):
     """
     Download enrolment data for a course offering
     """
-    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    subunits = Unit.sub_unit_ids(request.units)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=subunits)
     data = _course_enrolment_data(offering)
 
     response = HttpResponse(content_type='text/csv')
@@ -1695,7 +1699,8 @@ def course_enrolment(request, course_slug):
     enrolment_cap_buffer = 10
     enrolment_cap_column = 2
 
-    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    subunits = Unit.sub_unit_ids(request.units)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=subunits)
     table_data = _course_enrolment_data(offering)
     data = [['Date', 'Total Enrolled', 'Enrolment Cap', 'Waitlist', 'Dropped Course', 'Dropped Waitlist', 'Added to Waitlist']] + table_data
     
