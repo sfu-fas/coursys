@@ -17,6 +17,8 @@ from courselib.auth import requires_role, has_role, ForbiddenResponse, user_pass
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from visas.models import Visa
+from tacontracts.models import TAContract
+from ta.models import TAContract as OldTAContract
 from log.models import LogEntry
 from dashboard.letters import ra_form, ra_paf, FASOfficialLetter, OfficialLetter, LetterContents
 from django import forms
@@ -652,7 +654,8 @@ def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
     appointments = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=True, draft=False).order_by("-created_at")
     historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
     grads = GradStudent.objects.filter(person=person, program__unit__in=request.units)
-    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person, 'grads': grads}
+    tacontracts = TAContract.objects.filter(person=person, status__in=['NEW', 'SGN']).count() + OldTAContract.objects.filter(application__person=person).count()
+    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person, 'grads': grads, 'tacontracts': tacontracts}
     return render(request, 'ra/search/appointee_appointments.html', context)
 
 @requires_role("FUND")
