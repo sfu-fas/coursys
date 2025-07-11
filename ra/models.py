@@ -299,8 +299,8 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 )
 
 RA_PAYMENT_METHOD_CHOICES = (
-    ('BW', 'Yes (The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
-    ('H', 'No (The Appointee will receive 4% vacation pay. Timesheet must be submitted biweekly for the Appointee to be paid.)')
+    ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
+    ('H', 'No (Hourly - The Appointee will receive 4% vacation pay. Timesheet must be submitted biweekly for the Appointee to be paid.)')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
