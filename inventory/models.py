@@ -27,7 +27,6 @@ CATEGORY_CHOICES = {
     ('RESR', 'Research'),
     ('ADMN', 'Admin Support'),
     ('TECH', 'Tech Support'),
-    ('ELEC', 'Electronics'),
     ('PPE', 'PPE')
 }
 
