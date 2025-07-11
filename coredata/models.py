@@ -79,7 +79,7 @@ ROLES = dict(ROLE_CHOICES)
 UNIT_ROLES = ['ADVS', 'ADVM', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDMA', 'FDCC', 'GRPD',
               'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
-SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
+SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD', 'FDRE', 'FDMA']
 
 # discipline-related roles.  We notify someone else on top of the DAs for those.
 DISC_ROLES = ['DISC', 'DICC']
