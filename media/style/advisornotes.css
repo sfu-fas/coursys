@@ -3,3 +3,30 @@
     margin-right: 5px;
     margin-left: 0px;
 }
+
+.form_section {
+    background-color: #eee;
+    padding-top: 10px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    padding-left: 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin:3px;
+}
+
+.notification {
+    color: #777;
+    font-size: 1em;
+    font-family: sans-serif;
+    background-color: #eee;
+    padding-left: 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+  }
+  
+  .form_section textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+  }

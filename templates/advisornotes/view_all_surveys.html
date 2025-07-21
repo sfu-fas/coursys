@@ -1,0 +1,75 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% block title %}Post-Advising Surveys{% endblock %}
+{% block h1 %}Post-Advising Surveys{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+    $('#surveys').dataTable( {
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    'aaSorting': [[3, 'desc']],
+    'scrollY': false, 
+    "columnDefs": [
+    { "width": "20%", "targets": [0, 1] },
+    { "width": "20%", "targets": [2, 3, 4] },
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li>Prospective Students</li>
+{% endblock %}
+
+{% block content %}
+{% if incomplete_surveys > 0 %}
+<div class="notification">
+<p>There are currently {{ incomplete_surveys }} surveys that are are still valid but have not yet been completed. <i class="fa fa-group"></i>
+</div>
+{% endif %}
+
+{% if surveys %}
+<table id="surveys" class="display">
+    <thead>
+        <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Advisor</th>
+            <th scope="col">Appointment Began</th>
+            <th scope="col">Survey Sent</th>
+            <th scope="col">Overall Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for survey in surveys %}
+        <tr>
+            <td>
+                {% if survey.visit %}
+                <a href="{% url "advising:view_survey" key=survey.key %}">{{ survey.visit.get_full_name }}</a>
+                {% else %}
+                <a href="{% url "advising:view_survey" key=survey.key %}">Test Visit </a>(<a href="{% url "advising:delete_survey" key=survey.key %}">Delete</a>)
+                {% endif %}</td>
+            <td>{% if survey.visit %}{{ survey.visit.advisor}}{% endif %}</td>
+            <td>{% if survey.visit %}{{ survey.visit.created_at }}{% endif %}</td>
+            <td>{{ survey.created_at }}</td>
+            <td>{{ survey.get_overall_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no surveys to show.</p>
+{% endif %}
+
+<div class="actionlist">
+    <a class="btn" href="{% url "advising:send_test_survey" %}">Send Myself a Test Survey</a>
+</div>
+
+{% endblock %}

@@ -1,6 +1,6 @@
 from courselib.celerytasks import task
 from coredata.queries import SIMSConn, PLAN_QUERY, SUBPLAN_QUERY
-from advisornotes.models import AdvisorVisit
+from advisornotes.models import AdvisorVisit, AdvisorVisitSurvey
 import datetime
 from collections import defaultdict
 
@@ -41,3 +41,10 @@ def program_info_for_advisorvisits():
 
     if visit_ids:
         update_program_info.delay(visit_ids)
+
+@task()
+def cleanup_advising_surveys():
+    """
+    Find any AdvisorVisits that need their sims_programs filled in; start a task to do that.
+    """
+    AdvisorVisitSurvey.delete_expired()
