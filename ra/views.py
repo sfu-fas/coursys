@@ -49,11 +49,16 @@ def _can_view_ras():
     def auth_test(request, **kwargs):
         supervisor = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username).exists()
         request.is_supervisor = supervisor
-        return has_role('FUND', request, **kwargs) or has_role('FDMA', request, **kwargs) or supervisor
+        return _has_admin_role(request) or supervisor
 
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator
 
+def _has_admin_role(request, **kwargs):
+    """
+    RA Roles with Administrator Access
+    """
+    return _has_admin_role(request, **kwargs) or has_role('FDMA', request, **kwargs)
 
 def can_create():
     """
@@ -62,7 +67,7 @@ def can_create():
     Request object gets .units and .is_supervisor set along the way.
     """
     def auth_test(request, **kwargs):
-        return has_role('FUND', request, **kwargs) or has_role('FDMA', request, **kwargs)
+        return _has_admin_role(request)
 
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator
@@ -76,7 +81,7 @@ def _can_view_ra_requests():
         author = RARequest.objects.filter(author__userid=request.user.username, draft=False, deleted=False).exists()
         request.is_supervisor = supervisor
         request.is_author = author
-        return has_role('FDRE', request, **kwargs) or has_role('FUND', request, **kwargs) or has_role('FDMA', request, **kwargs) or author or supervisor
+        return has_role('FDRE', request, **kwargs) or _has_admin_role(request) or author or supervisor
     
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator
@@ -119,7 +124,7 @@ def check_nc(wizard):
 # grad funding requestors should not be able to reappoint any appointees that they are not authors or supervisors for
 def _reappointment_req(request, ra_slug):
     req = None
-    if has_role('FUND', request) or has_role('FDMA', request):
+    if _has_admin_role(request):
         req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     elif has_role('FDRE', request):
         req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, draft=False, deleted=False)
@@ -215,9 +220,9 @@ class RANewRequestWizard(SessionWizardView):
         if reappoint:
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
-            context.update({'reappoint': True, 'slug': ra_slug, 'admin': has_role('FUND', self.request) or has_role('FDMA', self.request)})
+            context.update({'reappoint': True, 'slug': ra_slug, 'admin': _has_admin_role(self.request)})
         else: 
-            context.update({'admin': has_role('FUND', self.request) or has_role('FDMA', self.request)})
+            context.update({'admin': _has_admin_role(self.request)})
         context.update({'draft_option': True})
         return context
 
@@ -435,7 +440,7 @@ class RAEditRequestWizard(SessionWizardView):
             context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
         ra_slug = self.kwargs['ra_slug']
         req = _edit_req(self.request, ra_slug)
-        context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'admin': has_role('FUND', self.request) or has_role('FDMA', self.request), 'status': req.status()})
+        context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'admin': _has_admin_role(self.request), 'status': req.status()})
         return context
 
     def get_form_kwargs(self, step):
@@ -650,7 +655,7 @@ def browse_appointments(request):
     drafts = RARequest.objects.filter(author__userid=request.user.username, deleted=False, complete=False, draft=True)
     processing = RARequest.objects.filter(processor__userid=request.user.username, deleted=False, complete=False, draft=False)
     form = RABrowseForm()
-    admin = has_role('FUND', request) or has_role('FDMA', request)
+    admin = _has_admin_role(request)
     context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts, 'processing': processing}
     return render(request, 'ra/dashboards/browse_appointments.html', context)
 
@@ -718,7 +723,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to view a RA request.
     """
-    admin = has_role('FUND', request) or has_role('FDMA', request)
+    admin = _has_admin_role(request)
     user = get_object_or_404(Person, userid=request.user.username)
 
     if admin:
@@ -1381,7 +1386,7 @@ class RARequestDataJson(BaseDatatableView):
         GET = self.request.GET
 
         # limit to those visible to this user
-        admin = has_role('FUND', self.request) or has_role('FDMA', self.request)
+        admin = _has_admin_role(self.request)
 
         if admin:
             qs = qs.filter(Q(unit__in=self.request.units))
