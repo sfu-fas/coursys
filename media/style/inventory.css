@@ -10,14 +10,29 @@
     color: green;
 }
 
+#filterform ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#filterform li {
+    padding-left: 15px;
+    padding-right:15px;
+    padding-top: 5px;
+    padding-bottom:5px;
+}
+  
+#filterform select {
+    height: 2.25em;
+    padding: .4em;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    box-shadow: 0 0 5px -2px #777;
+    gap:20px;
+}
+
 #filterform li span.field label {
     margin-left: 0.5em;
     white-space: nowrap;
-}
-
-.filter {
-    border: 1px solid black;
-    float: left;
-    margin-bottom: 0.5em;
-    margin-right: 0.5em;
 }

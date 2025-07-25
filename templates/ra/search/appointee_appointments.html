@@ -71,13 +71,22 @@
         </tr>
         {% if grads %}
         <tr>
-          <th scope="row">Financial Summary</th>
+          <th scope="row">Grad Student Records</th>
           <td>
           	{% for gs in grads %}
-            <a href="{% url "grad:financials" grad_slug=gs.slug %}">{{ gs.program.label }}</a> ({{ gs.get_current_status_display }})
+              <a href="{% url "grad:view" grad_slug=gs.slug %}">{{ gs.program.label }} </a> ({{ gs.get_current_status_display }})
+              <a href="{% url "grad:financials" grad_slug=gs.slug %}"> - View Financial Summary</a><br>
             {% endfor %}
           </td>
-        </tr>        
+        </tr>
+        {% if tacontracts %}  
+        <tr>
+          <th scope="row">TA Contracts</th>
+            <td>
+              {% if tacontracts %}<a href="{% url "grad:view" grad_slug=grads.0.slug %}#!tacontracts">{{ tacontracts }}</a>{% endif %}
+            </td>
+        </tr>
+        {% endif %}
         {% endif %}
       </tbody>
     </table>
