@@ -32,7 +32,7 @@ $(document).ready(function() {
 
     {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad:index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
 
-    {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra:dashboard" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
+    {% if 'FUND' in roles or 'FDMA' in roles %}<li class="newsec"><a href="{% url "ra:dashboard" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles or 'TAAD' in roles or is_instructor %}<li><a href="{% url "tugs:all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
     <li class='newsec'><a href="{% url "onlineforms:index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
