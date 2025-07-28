@@ -218,7 +218,7 @@ class GrantForm(forms.ModelForm):
         super(GrantForm, self).__init__(*args, **kwargs)
         self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
         self.fields['unit'].choices = [(str(u.id), str(u)) for u in units]
-        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"], role__unit__in=units).distinct()
+        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND", "FDMA"], role__unit__in=units).distinct()
         self.fields['owners'].queryset = owners
 
     class Meta:
