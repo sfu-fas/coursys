@@ -29,6 +29,8 @@ ADVISING_MODE_CHOICES = (
         ('N', '')
         )
 
+SURVEY_EXPIRY_DAYS = 3
+
 
 def attachment_upload_to(instance, filename):
     return upload_path('advisornotes', filename)
@@ -367,9 +369,6 @@ class AdvisorVisit(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def get_absolute_url(self):
-        return reverse('advising:view_visit', kwargs={'visit_slug': self.slug})
-
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.
         assert self.student or self.nonstudent or self.program
@@ -415,6 +414,19 @@ class AdvisorVisit(models.Model):
 
     def get_created_at_display(self):
         return self.created_at.strftime("%Y/%m/%d %H:%M")
+    
+    def get_created_at_with_location_display(self):
+        if self.mode == "IP":
+            if self.campus != "OFFCA":
+                location = " at " + self.get_campus_display() + " Campus"
+            else:
+                location = " (" + self.get_campus_display() + ")"
+        else:
+            location = " (remotely)"
+        return self.created_at.strftime("%A, %B %-d at %-I:%M %p") + location
+
+    def get_survey(self):
+        return getattr(self, "survey", None)
 
     def get_end_time_display(self):
         if self.end_time:
@@ -493,14 +505,14 @@ class AdvisorVisitSurvey(models.Model):
     Record a students thoughts on an AdvisorVisit
     """
     key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    visit = models.OneToOneField(AdvisorVisit, on_delete=models.PROTECT, null=True, blank=True)
+    visit = models.OneToOneField(AdvisorVisit, on_delete=models.PROTECT, null=True, blank=True, related_name='survey')
     created_at = models.DateTimeField(default=datetime.datetime.now)
     created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     time = models.CharField(null=True, blank=True, choices=SURVEY_TIME_CHOICES, max_length=2)
     overall = models.IntegerField(null=True, blank=True, choices=SURVEY_OVERALL_CHOICES)
-    reason = models.CharField(null=True, blank=True, choices=SURVEY_REASON_CHOICES, max_length=2)
+    reason = models.CharField(null=True, blank=True, max_length=50)
     questions_answered = models.CharField(null=True, blank=True, choices=SURVEY_QUESTIONS_ANSWERED_CHOICES, max_length=2)
     support = models.IntegerField(null=True, blank=True, choices=SURVEY_SUPPORT_CHOICES)
     advisor_review = models.CharField(null=True, blank=True, max_length=50)
@@ -519,20 +531,31 @@ class AdvisorVisitSurvey(models.Model):
         return reverse('advising:student_survey', kwargs={'key': self.key})
     
     @property
-    def is_completed(self):
+    def is_complete(self):
         return self.completed_at is not None
     
     def reason_display(self):
-        answer = self.reason
-        if answer == "OT":
-            return "Other: " + self.other_reason
-        else:
-            return self.get_reason_display()
+        answers = self.reason.split(',') if self.reason else []
+        display = []
+        for answer in answers:
+            if answer == "OT":
+                if self.other_reason == "":
+                    display.append("Other: Did not specify")
+                else:
+                    display.append("Other: " + self.other_reason)
+            else:
+                display.append(dict(SURVEY_REASON_CHOICES).get(answer, answer))
+        return display
     
     def questions_unanswered_display(self):
         answer = self.questions_unanswered
         if answer == "OT":
-            return "Other: " + self.other_questions_unanswered
+            if self.other_questions_unanswered == "":
+                return "Other: Did not specify"
+            else:
+                return "Other: " + self.other_questions_unanswered
+        elif answer == None:
+            return "N/A - The advisor fully answered my questions"
         else:
             return self.get_questions_unanswered_display()
         
@@ -541,18 +564,40 @@ class AdvisorVisitSurvey(models.Model):
         display = []
         for answer in answers:
             if answer == "OT":
-                display.append("Other: " + self.other_advisor_review)
+                if self.other_advisor_review == "":
+                    display.append("Other: Did not specify")
+                else:
+                    display.append("Other: " + self.other_advisor_review)
             else:
                 display.append(dict(SURVEY_ADVISOR_REVIEW_CHOICES).get(answer, answer))
         return display
+    
+    def get_advisor(self):
+        if self.visit:
+            return self.visit.advisor.name_pref()
+        else:
+            return self.created_by.name_pref()
+
+    def get_time_and_place(self):
+        if self.visit:
+            return self.visit.get_created_at_with_location_display()
+        else:
+            return self.created_at.strftime("%-I:%M %p on %A, %B %-d") + " at Test Campus"
+        
+    def get_survey_expiry(self):
+        return (self.created_at + datetime.timedelta(days=SURVEY_EXPIRY_DAYS)).strftime("%A, %B %-d at %-I:%M %p")
+
+    @property
+    def is_expired(self):
+        return self.created_at < (datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))
 
     @classmethod
     def delete_expired(cls, dry_run=False):
         """
-        Remove any surveys that were not filled or are tests after 30 days.
+        Remove any surveys that were not filled or are tests after 3 days.
         """
-        expiry_date = datetime.datetime.today() - datetime.timedelta(days=30)
-        expired_surveys = AdvisorVisitSurvey.objects.filter(Q(complete=False) | Q(visit__isnull=True), end_date__lte=expiry_date).order_by('created_at')
+        expiry_date = datetime.datetime.today() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)
+        expired_surveys = AdvisorVisitSurvey.objects.filter(Q(completed_at__isnull=True) | Q(visit__isnull=True), created_at__lte=expiry_date).order_by('created_at')
 
         for survey in expired_surveys:
             if not dry_run:

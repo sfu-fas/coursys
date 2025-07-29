@@ -1,0 +1,5 @@
+An advising visit received feedback that needs review.
+
+Details: {{ visit.get_full_name }} met with {{ survey.get_advisor }} on {{ survey.get_time_and_place }}
+Survey Results: {{ url }}
+

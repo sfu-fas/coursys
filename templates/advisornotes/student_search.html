@@ -33,9 +33,14 @@ $(function() {
         {% if advisor_admin %}
             <li><a href="{% url "advising:manage_categories" %}">Manage advisor visit categories</a></li>
             <li><a href="{% url "advising:all_visits" %}">All Visits</a></li>
-            {% if show_survey_info %}<li><a href="{% url "advising:view_all_surveys" %}" %>Surveys</a></li>{% endif %}
+            {% if show_survey_info %}
+            <li><a href="{% url "advising:view_all_surveys" %}" %>All Surveys</a></li>
+            {% endif %}
         {% endif %}
-        <li><a href="{% url "advising:my_visits" %}" %>My visits</a></li>
+        <li><a href="{% url "advising:my_visits" %}" %>My Visits</a></li>
+        {% if show_survey_info %}
+            <li><a href="{% url "advising:view_my_surveys" %}" %>My Surveys</a></li>
+        {% endif %}
         <li><a href="{% url "advising:news" %}" %>News</a></li>
     </ul>
 </div>

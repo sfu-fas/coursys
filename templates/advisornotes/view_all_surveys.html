@@ -1,7 +1,8 @@
 {% extends "base-wide.html" %}
 {% load static %}
-{% block title %}Post-Advising Surveys{% endblock %}
-{% block h1 %}Post-Advising Surveys{% endblock %}
+
+{% block title %}{% if mine %}My Post-Advising Surveys{% elif admin %}All Post-Advising Surveys{% endif %}{% endblock %}
+{% block h1 %}{% if mine %}My Post-Advising Surveys{% elif admin %}All Post-Advising Surveys{% endif %}{% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
@@ -26,15 +27,10 @@ $(function() {
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li>Prospective Students</li>
+<li>Post-Advising Surveys</li>
 {% endblock %}
 
 {% block content %}
-{% if incomplete_surveys > 0 %}
-<div class="notification">
-<p>There are currently {{ incomplete_surveys }} surveys that are are still valid but have not yet been completed. <i class="fa fa-group"></i>
-</div>
-{% endif %}
 
 {% if surveys %}
 <table id="surveys" class="display">
@@ -58,8 +54,13 @@ $(function() {
                 {% endif %}</td>
             <td>{% if survey.visit %}{{ survey.visit.advisor}}{% endif %}</td>
             <td>{% if survey.visit %}{{ survey.visit.created_at }}{% endif %}</td>
-            <td>{{ survey.created_at }}</td>
-            <td>{{ survey.get_overall_display }}</td>
+            <td><span class="sort">{{ survey.created_at.isoformat }}</span>{{ survey.created_at }}</td>
+            <td class="{% if survey.overall == 5 %} excellent
+                       {% elif survey.overall == 4 %} verygood
+                       {% elif survey.overall == 3 %} good
+                       {% elif survey.overall == 2 %} fair
+                       {% elif survey.overall == 1 %} needsimprovement
+                       {% endif %}"><span class="sort">{{ survey.overall }}</span>{{ survey.get_overall_display }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -68,8 +69,15 @@ $(function() {
 <p>There are no surveys to show.</p>
 {% endif %}
 
+{% if admin %}
+{% if incomplete_surveys > 0 %}
+<div class="notification">
+<p>There are currently {{ incomplete_surveys }} surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i>
+</div>
+{% endif %}
 <div class="actionlist">
     <a class="btn" href="{% url "advising:send_test_survey" %}">Send Myself a Test Survey</a>
 </div>
+{% endif %}
 
 {% endblock %}

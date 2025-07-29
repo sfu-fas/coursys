@@ -1,5 +1,11 @@
-Thank you for attending an advising appointment with the Faculty of Applied Sciences. We'd love to hear how it went. Please complete the following 2-minute survey to provide your feedback.  You will automatically be entered into a draw for a $20 Amazon gift card (drawn monthly) after you complete the survey.  
+Thank you for attending an academic advising appointment with the Faculty of Applied Sciences. You met with {{ survey.get_advisor }} on {{ survey.get_time_and_place }}.
+
+We'd love to hear how it went. Please take 2 minutes to complete a short feedback survey. After submitting, you'll be entered into a monthly draw for a $20 Amazon gift card.  
 
 Complete Survey: {{ url }}
 
-Don't forget, FAS Advising is here for you. You can access resources like academic planning, course selection support, and success strategies anytime. Visit our website or reach out if you need further help: www.sfu.ca/fas/advising.
+Please note the survey is not anonymous as your contact information will be visible to our team. The survey link will automatically expire in 3 days.
+
+Thanks again for stopping by.
+FAS Advising Team
+www.sfu.ca/fas/advising.

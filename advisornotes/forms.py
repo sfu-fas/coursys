@@ -325,17 +325,17 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
 class StudentSurveyForm(ModelForm):
     time = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_TIME_CHOICES, label="Was 15 minutes enough time for your appointment?") 
     overall = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_OVERALL_CHOICES, label="How would you rate your appointment overall?")
-    reason = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_REASON_CHOICES, label="What was the main reason for your advising appointment?")
+    reason = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=SURVEY_REASON_CHOICES, label="Why did you meet with an advisor?")
     questions_answered = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_QUESTIONS_ANSWERED_CHOICES, label="Did the advisor answer your question(s)?")
     support = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_SUPPORT_CHOICES, label="I felt supported during my advising appointment?")
     advisor_review = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=SURVEY_ADVISOR_REVIEW_CHOICES, label="The advisor… (select all that apply)")
-    questions_unanswered = forms.ChoiceField(required=False, widget=forms.RadioSelect(), choices=SURVEY_QUESTIONS_UNANSWERED_CHOICES, label="If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience) ")
-    comments = forms.CharField(required=False, label="Any other comments? (Optional)", widget=forms.Textarea(attrs={'rows': 10}))
+    questions_unanswered = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=(('none', 'N/A - The advisor fully answered my questions'),)  + SURVEY_QUESTIONS_UNANSWERED_CHOICES, label="If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience) ")
+    comments = forms.CharField(required=False, label="Any other comments? (Optional)", widget=forms.Textarea(attrs={'rows': 5}), max_length=500, help_text="Maximum 500 Characters")
 
     # extra info
-    other_questions_unanswered = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
-    other_advisor_review = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
-    other_reason = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
+    other_questions_unanswered = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 2}), max_length=200, help_text="Maximum 200 Characters")
+    other_advisor_review = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 2}), max_length=200, help_text="Maximum 200 Characters")
+    other_reason = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 2}), max_length=200, help_text="Maximum 200 Characters")
 
     class Meta:
         model = AdvisorVisitSurvey
@@ -345,29 +345,35 @@ class StudentSurveyForm(ModelForm):
 
     def clean_advisor_review(self):
         return ",".join(self.cleaned_data['advisor_review'])
+    
+    def clean_reason(self):
+        return ",".join(self.cleaned_data['reason'])
+    
+    def clean_questions_unanswered(self):
+        value = self.cleaned_data['questions_unanswered']
+        if self.cleaned_data['questions_unanswered'] == 'none':
+            return None
+        else:
+            return value
 
     def clean(self):
         cleaned_data = super().clean()
+
         config_clean = ['other_questions_unanswered', 'other_advisor_review', 'other_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 
-        """
+        if 'advisor_review' or 'reason' in self.errors: 
+            return cleaned_data
+
         questions_unanswered = cleaned_data.get('questions_unanswered')
         advisor_review = cleaned_data.get('advisor_review')
         reason = cleaned_data.get('reason')
-        other_questions_unanswered = cleaned_data.get('other_questions_unanswered')
-        other_advisor_review = cleaned_data.get('other_advisor_review')
-        other_reason = cleaned_data.get('other_reason')
 
-        error_message = "If other, please specify."
-        if questions_unanswered == "OT" and other_questions_unanswered == "":
-            self.add_error('other_questions_unanswered', error_message)
-        if "OT" in advisor_review.split(",") and other_advisor_review == "":
-            self.add_error('other_advisor_review', error_message)
-        if reason == "OT" and other_reason == "":
-            self.add_error('other_reason', error_message)
-        """
-
-        
+        if questions_unanswered and questions_unanswered != "OT": 
+            setattr(self.instance, 'other_questions_unanswered', '')
+        if advisor_review and "OT" not in advisor_review.split(","): 
+            setattr(self.instance, 'other_advisor_review', '')
+        if reason and "OT" not in reason.split(","):
+            setattr(self.instance, 'other_reason', '')

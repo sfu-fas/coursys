@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
 {% endblock %}
 
-{% block title %}View Post-Advising Survey Results{% endblock %}
-{% block h1 %}View Post-Advising Survey Results{% endblock %}
+{% block title %}View Post-Advising Survey Results {% if not survey.visit %}(Test){% endif %}{% endblock %}
+{% block h1 %}View Post-Advising Survey Results {% if not survey.visit %}(Test){% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
@@ -31,23 +31,28 @@
 
 <div class="form_section">
 {% if survey %}
-    {% if survey.is_completed %}
+    {% if survey.is_complete %}
     <p><i>Survey completed on {{ survey.completed_at }}</i><br></p>
     <p><b>Was 15 minutes enough time for your appointment?</b></p><p>{{ survey.get_time_display }}</p>
     <p><b>How would you rate your appointment overall?</b></p><p>{{ survey.get_overall_display }}</p>
-    <p><b>What was the main reason for your advising appointment?</b></p><p>{{ survey.reason_display }}</p>
+    <p><b>Why did you meet with an advisor?</b></p>
+        <ul>
+        {% for answer in survey.reason_display %}
+        <li>{{ answer }}</li>
+        {% endfor %}
+        </ul>
     <p><b>Did the advisor answer your question(s)?</b></p><p>{{ survey.get_questions_answered_display }}</p>
     <p><b>I feel supported during my advising appointment?</b></p><p>{{ survey.get_support_display }} </p>
-    <p><b>The advisor… (select all that apply)</b>
+    <p><b>The advisor… (select all that apply)</b></p>
         <ul>
         {% for answer in survey.advisor_review_display %}
-        {{ answer }}</p>
+        <li>{{ answer }}</li>
         {% endfor %}
         </ul>
     <p><b>If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience)</b></p><p>{{ survey.questions_unanswered_display }}</p>
     <p><b>Any other comments? (Optional)</p></b></p><p>{{ survey.comments }}</p>
     {% else %}
-    Survey has been sent, but not yet completed. Expiry date: {{ survey_expiry }} URL: {{ url }}
+    Survey has been sent, but not yet completed. Expiry date: {{ visit.survey.get_survey_expiry }} URL: {{ url }}
     {% endif %}
 {% elif not survey and visit.survey_sent %}
     Survey was sent, but never completed.

@@ -45,6 +45,6 @@ def program_info_for_advisorvisits():
 @task()
 def cleanup_advising_surveys():
     """
-    Find any AdvisorVisits that need their sims_programs filled in; start a task to do that.
+    Purge any expired incomplete surveys or tests.
     """
     AdvisorVisitSurvey.delete_expired()
