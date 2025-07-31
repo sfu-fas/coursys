@@ -38,6 +38,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(day_of_month="10,20,30", hour=2, minute=0),
     },
 
+    'advisornotes.tasks.cleanup_advising_surveys': {
+        'task': 'advisornotes.tasks.cleanup_advising_surveys',
+        'schedule': crontab(minute=0, hour='2'),
+    },
     'advisornotes.tasks.program_info_for_advisorvisits': {
         'task': 'advisornotes.tasks.program_info_for_advisorvisits',
         'schedule': crontab(minute=0, hour='2'),
