@@ -969,7 +969,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     Swtich appointment to science alive, or not science alive.
     Impacts offer letter generation.
     """
-    queryset = RARequest.objects.filter(hiring_category__in=['RA', 'NC'])
+    queryset = RARequest.objects.filter(hiring_category__in=['RA', 'NC'], backdated=False)
     req = _manage_req(request, ra_slug, queryset) 
     if request.method == 'POST':
         
