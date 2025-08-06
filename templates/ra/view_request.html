@@ -27,8 +27,7 @@
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      {% if admin %}
-        <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this {{ status }}</a></li> 
+      {% if can_edit %}<li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this {{ status }}</a></li>
         <li><a href="{% url "ra:request_paf" ra_slug=req.slug %}">Payroll Appointment Form</a></li>
         {% if req.backdated and not graduate_research_assistant %}
         <li><i>Offer letters are not available for backdated appointments.</i></li>
@@ -74,12 +73,14 @@
       {% if not req.complete %}
         <form action="{% url "ra:update_processor" ra_slug=req.slug %}" class="lineform" method="post"> 
           {% csrf_token %}
-          {% if not req.processor %}
-            <p><input type="submit" value="Assign Myself" /></p>
-          {% elif is_processor %}
-            <p><input type="submit" value="Unassign Myself" /></p>
-          {% else %}
-            <p><input type="submit" value="Unassign Current Processor and Assign Myself" /></p>
+          {% if can_edit %}
+            {% if not req.processor %}
+              <p><input type="submit" value="Assign Myself" /></p>
+            {% elif is_processor %}
+              <p><input type="submit" value="Unassign Myself" /></p>
+            {% else %}
+              <p><input type="submit" value="Unassign Current Processor and Assign Myself" /></p>
+            {% endif %}
           {% endif %}
         </form>
       {%endif %}
@@ -516,7 +517,7 @@
       {% if req.funding_available %}
           <table class="form_section_complete"><tr><td><b>Funding Available</b></td>
             <td class="checkbox">
-            {% if admin %}
+            {% if can_edit %}
             {{ adminform|as_dl_includefields:"funding_available"}}
             {% else %}
               <i>Complete</i>
@@ -526,7 +527,7 @@
       {% else %}
           <table class="form_section_incomplete"><tr><td><b>Funding Available</b></td>
             <td class="checkbox">
-            {% if admin %}
+            {% if can_edit %}
             {{ adminform|as_dl_includefields:"funding_available"}}
             {% else %}
               <i>Incomplete</i>
@@ -538,7 +539,7 @@
       {% if req.grant_active %}
         <table class="form_section_complete"><tr><td><b>Grant is Active for Duration of Appointment</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"grant_active"}}
           {% else %}
             <i>Complete</i>
@@ -548,7 +549,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>Grant is Active for Duration of Appointment</b></td>
           <td class="checkbox">
-          {% if admin %}  
+          {% if can_edit %}  
           {{ adminform|as_dl_includefields:"grant_active"}}
           {% else %}
             <i>Incomplete</i>
@@ -560,7 +561,7 @@
       {% if req.salary_allowable %}
         <table class="form_section_complete"><tr><td><b>Salary is an Allowable Expense</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"salary_allowable"}}
           {% else %}
             <i>Complete</i>
@@ -570,7 +571,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>Salary is an Allowable Expense</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"salary_allowable"}}
           {% else %}
             <i>Incomplete</i>
@@ -582,7 +583,7 @@
       {% if req.supervisor_check %}
         <table class="form_section_complete"><tr><td><b>Supervisor has Signing Authority - (If Not, Individual with Signing Authority is Identified)</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"supervisor_check"}}
           {% else %}
             <i>Complete</i>
@@ -592,7 +593,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>Supervisor has Signing Authority - (If Not, Individual with Signing Authority is Identified)</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"supervisor_check"}}
           {% else %}
             <i>Incomplete</i>
@@ -604,7 +605,7 @@
       {% if req.visa_valid %}
         <table class="form_section_complete"><tr><td><b>Visa is Valid</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"visa_valid"}}
           {% else %}
             <i>Complete</i>
@@ -614,7 +615,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>Visa is Valid</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"visa_valid"}}
           {% else %}
             <i>Incomplete</i>
@@ -626,7 +627,7 @@
       {% if req.payroll_collected %}
         <table class="form_section_complete"><tr><td><b>Payroll Forms are Collected/Already on File</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"payroll_collected"}}
           {% else %}
             <i>Complete</i>
@@ -636,7 +637,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>Payroll Forms are Collected/Already on File</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"payroll_collected"}}
           {% else %}
             <i>Incomplete</i>
@@ -648,7 +649,7 @@
       {% if req.paf_signed %}
         <table class="form_section_complete"><tr><td><b>PAF and Offer Letter (If Applicable) are Signed by Supervisor</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"paf_signed"}}
           {% else %}
             <i>Complete</i>
@@ -658,7 +659,7 @@
       {% else %}
         <table class="form_section_incomplete"><tr><td><b>PAF and Offer Letter (If Applicable) are Signed by Supervisor</b></td>
           <td class="checkbox">
-          {% if admin %}
+          {% if can_edit %}
           {{ adminform|as_dl_includefields:"paf_signed"}}
           {% else %}
             <i>Incomplete</i>
@@ -667,14 +668,14 @@
         </tr></table>
       {% endif %}
 
-      {% if admin %}
+      {% if can_edit %}
       <p><input type="submit" class="submit" value="Update Checklist" /></p>
       {% endif %}
     </fieldset>
   </form>  
 </div>
 
-{% if admin %}
+{% if can_edit %}
 <div class="bottom_admin">
 <h2>Delete</h2>
 <form action="{% url "ra:delete_request" ra_slug=req.slug %}" class="subtle" method="post">
