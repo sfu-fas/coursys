@@ -139,7 +139,7 @@ def _edit_req(request, ra_slug):
     if has_role('FDMA', request):
         req = get_object_or_404(RARequest, Q(draft=False) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
     elif has_role('FUND', request):
-        req = get_object_or_404(RARequest, Q(draft=False) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units, hiring_category__in=["NC", "GRAS"])
+        req = get_object_or_404(RARequest, Q(draft=False, hiring_category__in=["NC", "GRAS"]) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
     elif has_role('FDRE', request):
         req = get_object_or_404(RARequest, author__userid=request.user.username, slug=ra_slug, deleted=False, draft=True)
     return req
