@@ -1,6 +1,7 @@
 from typing import Iterable
 
-from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory
+from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, AdvisorVisitSurvey, \
+SURVEY_TIME_CHOICES, SURVEY_OVERALL_CHOICES, SURVEY_REASON_CHOICES, SURVEY_QUESTIONS_ANSWERED_CHOICES, SURVEY_SUPPORT_CHOICES, SURVEY_ADVISOR_REVIEW_CHOICES, SURVEY_QUESTIONS_UNANSWERED_CHOICES
 from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
@@ -320,3 +321,52 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         elif end_time and end_time > datetime.datetime.now():
             raise ValidationError("Cannot end a meeting in the future.")
         return end_time
+    
+class StudentSurveyForm(ModelForm):
+    time = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_TIME_CHOICES, label="Was 15 minutes enough time for your appointment?") 
+    overall = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_OVERALL_CHOICES, label="How would you rate your appointment overall?")
+    reason = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_REASON_CHOICES, label="What was the main reason for your advising appointment?")
+    questions_answered = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_QUESTIONS_ANSWERED_CHOICES, label="Did the advisor answer your question(s)?")
+    support = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=SURVEY_SUPPORT_CHOICES, label="I felt supported during my advising appointment?")
+    advisor_review = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=SURVEY_ADVISOR_REVIEW_CHOICES, label="The advisor… (select all that apply)")
+    questions_unanswered = forms.ChoiceField(required=True, widget=forms.RadioSelect(), choices=(('none', 'N/A - The advisor fully answered my questions'),)  + SURVEY_QUESTIONS_UNANSWERED_CHOICES, label="If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience) ")
+    comments = forms.CharField(required=False, label="Any other comments? (Optional)", widget=forms.Textarea(attrs={'rows': 10}), max_length=100)
+
+    # extra info
+    other_questions_unanswered = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
+    other_advisor_review = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
+    other_reason = forms.CharField(required=False, label="", widget=forms.Textarea(attrs={'rows': 1}), max_length=100)
+
+    class Meta:
+        model = AdvisorVisitSurvey
+        fields = ['time', 'overall', 'reason', 'questions_answered', 'support', 'advisor_review', 'questions_unanswered', 'comments']
+
+    field_order = ['time', 'overall', 'reason', 'other_reason', 'questions_answered', 'support', 'advisor_review', 'other_advisor_review', 'questions_unanswered', 'other_questions_unanswered', 'comments']
+
+    def clean_advisor_review(self):
+        return ",".join(self.cleaned_data['advisor_review'])
+    
+    def clean_questions_unanswered(self):
+        value = self.cleaned_data['questions_unanswered']
+        if self.cleaned_data['questions_unanswered'] == 'none':
+            return None
+        else:
+            return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['other_questions_unanswered', 'other_advisor_review', 'other_reason']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+        questions_unanswered = cleaned_data.get('questions_unanswered')
+        advisor_review = cleaned_data.get('advisor_review')
+        reason = cleaned_data.get('reason')
+
+        if questions_unanswered != "OT": 
+            setattr(self.instance, 'other_questions_unanswered', '')
+        if "OT" not in advisor_review.split(","): 
+            setattr(self.instance, 'other_advisor_review', '')
+        if reason != "OT": 
+            setattr(self.instance, 'other_reason', '')
