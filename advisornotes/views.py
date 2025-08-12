@@ -288,8 +288,6 @@ def _initialize_test_survey(request: HttpRequest) -> HttpResponse:
     l.save()
     email = user.email()
     _send_survey_email(survey, email)
-    # TESTING STUFF
-    _test_stuff(request, survey, email) 
 
     return survey
 
@@ -336,9 +334,6 @@ def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit) -> Htt
     email = visit.student.email()
 
     _send_survey_email(survey, email)
-
-    # TESTING STUFF
-    _test_stuff(request, survey, email) 
     
     visit.mark_survey_sent()
 
@@ -429,23 +424,6 @@ def _email_student_note(note):
                                   cc=[from_email], attachments=attach)
     mail.attach_alternative(content_html, 'text/html')
     mail.send()
-
-# TEST STUFF FOR TESTERS, TO BE REMOVED
-def _test_stuff(request, survey, email):
-    # TEST STUFF
-    subject = "FAS Academic Advising: Post-Appointment Feedback Survey"
-    from_email = settings.DEFAULT_FROM_EMAIL
-    url = settings.BASE_ABS_URL + survey.get_absolute_url()
-    context = {'url': url, 'survey': survey}
-    text_template = get_template('advisornotes/emails/survey.txt')
-    text_content = text_template.render(context)
-    messages.add_message(request, messages.SUCCESS, 'FOR TESTING:')
-    messages.add_message(request, messages.SUCCESS, 'URL: %s' % (settings.BASE_ABS_URL + survey.get_absolute_url()))
-    messages.add_message(request, messages.SUCCESS, 'SUBJECT: %s' % (subject))
-    messages.add_message(request, messages.SUCCESS, 'TO EMAIL: %s' % (email))
-    messages.add_message(request, messages.SUCCESS, 'FROM EMAIL: %s' % (from_email))
-    messages.add_message(request, messages.SUCCESS, 'CONTENT: %s' % (text_content))
-    return
 
 def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     """
