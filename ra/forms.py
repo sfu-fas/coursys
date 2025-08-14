@@ -215,13 +215,14 @@ class RARequestDatesForm(forms.ModelForm):
         end_date = cleaned_data.get('end_date')
         hiring_category = self.initial['hiring_category']
         edit = self.initial['edit']
+        manager = self.initial['manager']
 
         if start_date and end_date:
             if end_date < start_date:
                 error_message = "Start date must be before end date."
                 self.add_error('end_date', error_message)
                 self.add_error('start_date', error_message)
-            if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA":
+            if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA" and not manager:
                 self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
         if start_date and hiring_category == "RA" and not edit:
             if start_date <= datetime.date.today():
