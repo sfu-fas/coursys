@@ -39,13 +39,13 @@
     </table>
 {% endif %}
 {% if show_survey_info %}
-    {% if survey and survey.is_completed %}
+    {% if survey and survey.is_complete %}
     <div class="actionlist">
         <a class="btn" href="{% url "advising:view_survey" key=survey.key %}">View Survey Results</a>
     </div>
-    {% elif survey and not survey.is_completed %}
-    Post-advising survey has been sent, but not yet completed. Expiry date: {{ survey.get_survey_expiry }}
-    {% elif not survey and visit.survey_sent %}
+    {% elif survey and not survey.is_complete and not survey.is_expired %}
+    Post-advising survey has been sent, but not yet completed. Expiry: {{ survey.get_survey_expiry }}
+    {% elif visit.survey_sent %}
     Post-advising survey was sent, but never completed.
     {% else %}
     A post-advising survey was never sent for this visit.

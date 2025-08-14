@@ -12,7 +12,6 @@ from courselib.auth import requires_role, HttpResponseRedirect, \
 from courselib.search import find_userid_or_emplid, get_query
 from grades.views import has_photo_agreement
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMultiAlternatives
 from django.urls import reverse
@@ -403,28 +402,6 @@ def _email_manager_survey_alert(survey: AdvisorVisitSurvey) -> HttpResponse:
         mail.attach_alternative(html_content, 'text/html')
         mail.send()
 
-def _email_student_note(note):
-    """
-    Email advising note to student.
-    """
-    subject = "SFU Advising Note"
-    from_email = note.advisor.email()
-    if note.student is not None:
-        email = note.student.email()
-    else:
-        email = note.nonstudent.email()
-    content_html = note.html_content()
-    content_text = note.text  # the creole/markdown is good enough for the plain-text version?
-    attach = []
-    if note.file_attachment:
-        note.file_attachment.open()
-        attach = [(note.attachment_filename(), note.file_attachment.read(), note.file_mediatype)]
-
-    mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email],
-                                  cc=[from_email], attachments=attach)
-    mail.attach_alternative(content_html, 'text/html')
-    mail.send()
-
 def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     """
     View for student to fill out post-advising survey
@@ -434,23 +411,22 @@ def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     except:
         return render(request, 'advisornotes/student_survey.html', {'expired': True})
 
+    if survey.is_expired:
+        return render(request, 'advisornotes/student_survey.html', {'expired': True})
+
     visit = survey.visit
     advisor = survey.get_advisor()
     time_and_place = survey.get_time_and_place()
 
-    # check: might be over 3 days old but not yet purged, still expired if not complete
-    if survey.created_at < (datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)) and not survey.completed_at:
-        return render(request, 'advisornotes/student_survey.html', {'expired': True})
-
-    if request.method == "POST" and not survey.completed_at:
+    if request.method == "POST" and not survey.is_complete:
         form = StudentSurveyForm(request.POST, instance=survey)
         if form.is_valid():
             survey.completed_at = datetime.datetime.now()
             survey.save()
             messages.add_message(request, messages.SUCCESS, 'Survey submitted.')
             l = LogEntry(userid=request.user.username,
-                     description="%s submitted advising survey" % str(request.user.username),
-                     related_object=survey)
+                    description="%s submitted advising survey" % (visit.get_userid()),
+                    related_object=survey)
             l.save()
 
             try:

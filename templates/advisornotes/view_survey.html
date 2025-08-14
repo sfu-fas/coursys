@@ -31,7 +31,7 @@
 
 <div class="form_section">
 {% if survey %}
-    {% if survey.is_completed %}
+    {% if survey.is_complete %}
     <p><i>Survey completed on {{ survey.completed_at }}</i><br></p>
     <p><b>Was 15 minutes enough time for your appointment?</b></p><p>{{ survey.get_time_display }}</p>
     <p><b>How would you rate your appointment overall?</b></p><p>{{ survey.get_overall_display }}</p>

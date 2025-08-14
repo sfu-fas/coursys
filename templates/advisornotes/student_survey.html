@@ -17,7 +17,7 @@
 {% if expired %}
 This survey either doesn't exist or has expired. 
 {% else %}
-    {% if survey.completed_at %}
+    {% if survey.is_complete %}
         <p>Your response has been recorded. Thank you for your feedback!</p>
     {% else %}
         <p>Thank you for attending an advising appointment with the Faculty of Applied Sciences. You met with <b>{{ survey.get_advisor }} on {{ survey.get_time_and_place }}</b>.

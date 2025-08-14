@@ -369,9 +369,6 @@ class AdvisorVisit(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def get_absolute_url(self):
-        return reverse('advising:view_visit', kwargs={'visit_slug': self.slug})
-
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.
         assert self.student or self.nonstudent or self.program
@@ -534,7 +531,7 @@ class AdvisorVisitSurvey(models.Model):
         return reverse('advising:student_survey', kwargs={'key': self.key})
     
     @property
-    def is_completed(self):
+    def is_complete(self):
         return self.completed_at is not None
     
     def reason_display(self):
@@ -588,7 +585,11 @@ class AdvisorVisitSurvey(models.Model):
             return self.created_at.strftime("%-I:%M %p on %A, %B %-d") + " at Test Campus"
         
     def get_survey_expiry(self):
-        return (self.created_at + datetime.timedelta(days=SURVEY_EXPIRY_DAYS)).strftime('%m/%d/%Y')
+        return (self.created_at + datetime.timedelta(days=SURVEY_EXPIRY_DAYS)).strftime("%A, %B %-d at %-I:%M %p")
+
+    @property
+    def is_expired(self):
+        return self.created_at < (datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))
 
     @classmethod
     def delete_expired(cls, dry_run=False):
