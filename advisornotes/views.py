@@ -344,7 +344,7 @@ def _send_survey_email(survey: AdvisorVisitSurvey, email) -> HttpResponse:
 
     # SEND EMAIL #
     subject = "FAS Academic Advising: Post-Appointment Feedback Survey"
-    from_email = settings.DEFAULT_FROM_EMAIL
+    from_email = survey.get_advisor_email()
     cc = None
 
     url = settings.BASE_ABS_URL + survey.get_absolute_url()

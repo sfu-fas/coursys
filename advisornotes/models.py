@@ -577,6 +577,12 @@ class AdvisorVisitSurvey(models.Model):
             return self.visit.advisor.name_pref()
         else:
             return self.created_by.name_pref()
+        
+    def get_advisor_email(self):
+        if self.visit:
+            return self.visit.advisor.email()
+        else:
+            return self.created_by.email()
 
     def get_time_and_place(self):
         if self.visit:
