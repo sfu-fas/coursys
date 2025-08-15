@@ -51,8 +51,10 @@
         </ul>
     <p><b>If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience)</b></p><p>{{ survey.questions_unanswered_display }}</p>
     <p><b>Any other comments? (Optional)</p></b></p><p>{{ survey.comments }}</p>
+    {% elif survey.is_expired and survey.visit %}
+    Post-advising survey was sent, but never completed.
     {% else %}
-    Survey has been sent, but not yet completed. Expiry date: {{ visit.survey.get_survey_expiry }} URL: {{ url }}
+    Survey has been sent, but not yet completed. Expiry date: {{ survey.get_survey_expiry }}
     {% endif %}
 {% elif not survey and visit.survey_sent %}
     Survey was sent, but never completed.
