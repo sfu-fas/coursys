@@ -578,6 +578,12 @@ class AdvisorVisitSurvey(models.Model):
         else:
             return self.created_by.name_pref()
         
+    def get_student_userid(self):
+        if self.visit:
+            return self.visit.get_userid()
+        else:
+            return self.created_by.userid_or_emplid()
+        
     def get_advisor_email(self):
         if self.visit:
             return self.visit.advisor.email()

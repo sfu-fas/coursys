@@ -425,7 +425,7 @@ def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
             survey.save()
             messages.add_message(request, messages.SUCCESS, 'Survey submitted.')
             l = LogEntry(userid=request.user.username,
-                    description="%s submitted advising survey" % (visit.get_userid()),
+                    description="%s submitted advising survey" % (survey.get_student_userid()),
                     related_object=survey)
             l.save()
 
@@ -447,7 +447,7 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     View for Advisor Managers to review survey results
     """
     user = get_object_or_404(Person, userid=request.user.username)
-    surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=request.units) | Q(created_by=user)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
+    surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=user)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
     incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units).count()
     return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 'admin': True, 'mine': False})
 
