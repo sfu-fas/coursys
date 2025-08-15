@@ -45,6 +45,13 @@
     cursor: default;
 }
 
+.btn.submitted {
+    background-color: #b4e277;
+    border-bottom: 3px solid rgb(100, 138, 57);
+    padding: 5px 9px;
+    cursor: default;
+}
+
 .excellent {
     color: #327e36;
 }

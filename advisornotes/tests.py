@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from django.urls import reverse
 from coredata.models import Person, Unit
-from advisornotes.models import NonStudent, AdvisorNote
+from advisornotes.models import NonStudent, AdvisorNote, AdvisorVisit, AdvisorVisitSurvey
 from courselib.testing import basic_page_tests, Client, freshen_roles
 
 
@@ -105,6 +105,10 @@ class AdvisorNotestest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
+        # my surveys
+        url = reverse('advising:view_my_surveys', kwargs={})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
 
     def test_new_nonstudent_not_advisor(self):
         client = Client()
@@ -158,3 +162,28 @@ class AdvisorNotestest(TestCase):
             except:
                 print("with view==" + repr(view))
                 raise
+
+    def test_surveys(self):
+        freshen_roles()
+        client = Client()
+        client.login_user("dzhao")
+
+        # create visit
+        p1 = Person.objects.get(userid='0aaa1')
+        unit = Unit.objects.get(slug='cmpt')
+        adv = Person.objects.get(userid='dzhao')
+        visit = AdvisorVisit(student=p1, nonstudent=None, unit=unit, advisor=adv, version=1)
+        visit.save()
+
+        # advisor can view visit
+        url = reverse('advising:view_visit', kwargs={'visit_slug': visit.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
+        survey = AdvisorVisitSurvey(visit=visit, created_by=adv)
+        survey.save()
+
+        # advisor can view survey results
+        url = reverse('advising:view_survey', kwargs={'key': survey.key})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)

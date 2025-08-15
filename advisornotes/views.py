@@ -294,9 +294,7 @@ def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit) -> Htt
     """
     Create new post-advising survey and notify student.
     """
-    # FOR FIRST ITERATION, DO NOT SEND TO STUDENTS
-    #return 
-
+    
     # no visit no survey
     if not visit:
         return
@@ -344,7 +342,7 @@ def _send_survey_email(survey: AdvisorVisitSurvey, email) -> HttpResponse:
 
     # SEND EMAIL #
     subject = "FAS Academic Advising: Post-Appointment Feedback Survey"
-    from_email = settings.DEFAULT_FROM_EMAIL
+    from_email = survey.get_advisor_email()
     cc = None
 
     url = settings.BASE_ABS_URL + survey.get_absolute_url()
@@ -425,7 +423,7 @@ def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
             survey.save()
             messages.add_message(request, messages.SUCCESS, 'Survey submitted.')
             l = LogEntry(userid=request.user.username,
-                    description="%s submitted advising survey" % (visit.get_userid()),
+                    description="%s submitted advising survey" % (survey.get_student_userid()),
                     related_object=survey)
             l.save()
 
@@ -447,9 +445,24 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     View for Advisor Managers to review survey results
     """
     user = get_object_or_404(Person, userid=request.user.username)
-    surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=request.units) | Q(created_by=user)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
-    incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units).count()
+    surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=user, visit__isnull=True)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
+    incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units, created_at__gt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))).count()
     return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 'admin': True, 'mine': False})
+
+@requires_role('ADVM')
+def download_all_surveys(request) -> HttpResponse:
+    limit = datetime.datetime.now() - datetime.timedelta(days=365)
+    surveys = AdvisorVisitSurvey.objects.filter(visit__unit__in=Unit.sub_units(request.units), completed_at__gte=limit).exclude(visit__isnull=True).order_by("-created_at")
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-advising-surveys.csv"' % datetime.datetime.now().strftime('%Y%m%d')
+    writer = csv.writer(response)
+
+    writer.writerow(['Student', 'Student Email', 'Advisor', 'Mode', 'Campus', 'Appointment Began', 'Appointment Ended', 'Survey Sent At', 'Survey Completed At', 'Enough Time?', 'Overall', 'Reason', 'Questions Answered', 'Supported?', 'Advisor...', 'Questions Unanswered', 'Other Comments'])
+    for s in surveys:
+        writer.writerow([s.visit.get_full_name(), s.visit.get_email(), s.visit.advisor.sortname_pref_only(), s.visit.get_mode_display(), s.visit.get_campus_display(), s.visit.created_at.strftime("%Y/%m/%d %H:%M"), s.visit.end_time.strftime("%Y/%m/%d %H:%M"), s.created_at.strftime("%Y/%m/%d %H:%M"), s.completed_at.strftime("%Y/%m/%d %H:%M"), s.get_time_display(), s.get_overall_display(), ",".join(s.reason_display()), s.get_questions_answered_display(), s.get_support_display(), ",".join(s.advisor_review_display()), s.questions_unanswered_display(), s.comments])
+
+    return response
 
 @requires_role(['ADVS', 'ADVM'])
 def view_my_surveys(request: HttpRequest) -> HttpResponse:
@@ -462,7 +475,12 @@ def view_my_surveys(request: HttpRequest) -> HttpResponse:
 
 @requires_role(['ADVS', 'ADVM'])
 def view_survey(request: HttpRequest, key: uuid) -> HttpResponse:
-    survey = get_object_or_404(AdvisorVisitSurvey, key=key)
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
+    if advisor_admin:
+        survey = get_object_or_404(AdvisorVisitSurvey, Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=advisor, visit__isnull=True), key=key)
+    else:
+        survey = get_object_or_404(AdvisorVisitSurvey, key=key, visit__unit__in=request.units, visit__advisor=advisor)
     return render(request, 'advisornotes/view_survey.html', {'survey': survey})
 
 @requires_role('ADVM')
@@ -470,7 +488,8 @@ def delete_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     """ 
     Only possible to delete test surveys at this time (surveys without AdvisorVisits)
     """
-    survey = get_object_or_404(AdvisorVisitSurvey, key=key, visit__isnull=True)
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    survey = get_object_or_404(AdvisorVisitSurvey, key=key, visit__isnull=True, created_by=advisor)
     survey.delete()
     messages.add_message(request, messages.SUCCESS, 'Survey deleted.')
     return HttpResponseRedirect(reverse('advisornotes:view_all_surveys'))
@@ -648,7 +667,7 @@ def student_notes(request, userid):
         nonstudent = False
     else:
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=Unit.sub_units(request.units)).order_by("-created_at")
-        visits = AdvisorVisit.objects.filter(nonstudent=student, unit__in=request.units).select_related('survey').order_by('-created_at')
+        visits = AdvisorVisit.objects.filter(nonstudent=student, unit__in=request.units).select_related('survey', 'advisor').order_by('-created_at')
         for n in notes:
             n.entry_type = 'NOTE'
         items = notes
@@ -659,9 +678,11 @@ def student_notes(request, userid):
     # if 'UNIV' in [u.label for u in request.units]:
     #    show_transcript = True
 
+    advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
+
     template = 'advisornotes/student_notes.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
-               'show_transcript': show_transcript, 'units': request.units, 'visits': visits}
+               'show_transcript': show_transcript, 'units': request.units, 'visits': visits, 'advisor_admin': advisor_admin}
     return render(request, template, context)
 
 
@@ -979,7 +1000,9 @@ def view_visit(request, visit_slug):
     visit = AdvisorVisit.objects.visible(request.units).get(slug=visit_slug)
     survey = visit.get_survey()
     show_survey_info = visit.unit.label in SURVEY_UNITS
-    return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit, 'survey': survey, 'show_survey_info': show_survey_info})
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    show_survey_link = Role.objects_fresh.filter(role='ADVM', person=advisor, unit__in=request.units).exists() or visit.advisor==advisor
+    return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit, 'survey': survey, 'show_survey_info': show_survey_info, 'show_survey_link': show_survey_link})
 
 
 @requires_role('ADVM')

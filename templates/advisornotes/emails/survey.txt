@@ -7,5 +7,6 @@ Complete Survey: {{ url }}
 Please note the survey is not anonymous as your contact information will be visible to our team. The survey link will automatically expire in 3 days.
 
 Thanks again for stopping by.
+
 FAS Advising Team
-www.sfu.ca/fas/advising.
+https://www.sfu.ca/fas/study/support-services/academic-advising.html

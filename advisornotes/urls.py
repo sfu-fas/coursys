@@ -79,6 +79,7 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^surveys/view$', advisornotes_views.view_all_surveys, name='view_all_surveys'),
     url(r'^surveys/view_mine$', advisornotes_views.view_my_surveys, name='view_my_surveys'),
     url(r'^surveys/send_test$', advisornotes_views.send_test_survey, name='send_test_survey'),
+    url(r'^surveys/download$', advisornotes_views.download_all_surveys, name='download_all_surveys'),
 
     url(r'^news$', advisornotes_views.news, name='news'),
     url(r'^news/delete/(?P<entry_id>\d+)$', advisornotes_views.delete_announcement, name='delete_announcement'),

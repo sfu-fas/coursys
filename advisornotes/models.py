@@ -421,8 +421,10 @@ class AdvisorVisit(models.Model):
                 location = " at " + self.get_campus_display() + " Campus"
             else:
                 location = " (" + self.get_campus_display() + ")"
-        else:
+        elif self.mode == "R":
             location = " (remotely)"
+        else:
+            location = ""
         return self.created_at.strftime("%A, %B %-d at %-I:%M %p") + location
 
     def get_survey(self):
@@ -577,6 +579,18 @@ class AdvisorVisitSurvey(models.Model):
             return self.visit.advisor.name_pref()
         else:
             return self.created_by.name_pref()
+        
+    def get_student_userid(self):
+        if self.visit:
+            return self.visit.get_userid()
+        else:
+            return self.created_by.userid_or_emplid()
+        
+    def get_advisor_email(self):
+        if self.visit:
+            return self.visit.advisor.email()
+        else:
+            return self.created_by.email()
 
     def get_time_and_place(self):
         if self.visit:
@@ -596,7 +610,7 @@ class AdvisorVisitSurvey(models.Model):
         """
         Remove any surveys that were not filled or are tests after 3 days.
         """
-        expiry_date = datetime.datetime.today() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)
+        expiry_date = datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)
         expired_surveys = AdvisorVisitSurvey.objects.filter(Q(completed_at__isnull=True) | Q(visit__isnull=True), created_at__lte=expiry_date).order_by('created_at')
 
         for survey in expired_surveys:

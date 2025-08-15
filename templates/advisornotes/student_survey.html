@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-{% if expired %}
+{% if expired or survey.expired %}
 This survey either doesn't exist or has expired. 
 {% else %}
     {% if survey.is_complete %}
