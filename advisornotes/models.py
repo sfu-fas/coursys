@@ -458,9 +458,9 @@ SURVEY_REASON_CHOICES = (
     ('CP', 'Course Planning'),
     ('GC', 'Graduation Check'),
     ('ES', 'Enrolment Support'),
-    ('CP', 'Course Substitution'),
+    ('CS', 'Course Substitution'),
     ('AS', 'Academic Standing'),
-    ('IT', 'Internal Transer'),
+    ('IT', 'Internal Transfer'),
     ('TC', 'Transfer Credit'),
     ('OT', 'Other (please specify)')
 )
@@ -514,10 +514,10 @@ class AdvisorVisitSurvey(models.Model):
 
     time = models.CharField(null=True, blank=True, choices=SURVEY_TIME_CHOICES, max_length=2)
     overall = models.IntegerField(null=True, blank=True, choices=SURVEY_OVERALL_CHOICES)
-    reason = models.CharField(null=True, blank=True, max_length=50)
+    reason = models.CharField(null=True, blank=True, max_length=255)
     questions_answered = models.CharField(null=True, blank=True, choices=SURVEY_QUESTIONS_ANSWERED_CHOICES, max_length=2)
     support = models.IntegerField(null=True, blank=True, choices=SURVEY_SUPPORT_CHOICES)
-    advisor_review = models.CharField(null=True, blank=True, max_length=50)
+    advisor_review = models.CharField(null=True, blank=True, max_length=255)
     questions_unanswered = models.CharField(null=True, blank=True, choices=SURVEY_QUESTIONS_UNANSWERED_CHOICES, max_length=2)
     comments = models.CharField(blank=True, max_length=500, default="")
 

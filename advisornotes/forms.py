@@ -362,9 +362,10 @@ class StudentSurveyForm(ModelForm):
         config_clean = ['other_questions_unanswered', 'other_advisor_review', 'other_reason']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            if field in cleaned_data:
+                setattr(self.instance, field, cleaned_data[field])
 
-        if 'advisor_review' or 'reason' in self.errors: 
+        if ('advisor_review' in self.errors) or ('reason' in self.errors): 
             return cleaned_data
 
         questions_unanswered = cleaned_data.get('questions_unanswered')
