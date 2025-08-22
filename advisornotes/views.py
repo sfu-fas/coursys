@@ -274,7 +274,7 @@ def _email_student_note(note):
     mail.attach_alternative(content_html, 'text/html')
     mail.send()
 
-def _initialize_test_survey(request: HttpRequest) -> HttpResponse:
+def _initialize_test_survey(request: HttpRequest):
     """
     Create new test survey and notify manager.
     """
@@ -290,7 +290,7 @@ def _initialize_test_survey(request: HttpRequest) -> HttpResponse:
 
     return survey
 
-def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit) -> HttpResponse:
+def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit):
     """
     Create new post-advising survey and notify student.
     """
@@ -336,7 +336,7 @@ def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit) -> Htt
 
     return survey
 
-def _send_survey_email(survey: AdvisorVisitSurvey, email) -> HttpResponse:
+def _send_survey_email(survey: AdvisorVisitSurvey, email):
     html_template = get_template('advisornotes/emails/survey.html')
     text_template = get_template('advisornotes/emails/survey.txt')
 
@@ -365,7 +365,7 @@ def send_test_survey(request: HttpRequest) -> HttpResponse:
     messages.add_message(request, messages.SUCCESS, 'Survey sent to %s' % str(email))
     return HttpResponseRedirect(reverse('advisornotes:view_all_surveys'))
 
-def _email_manager_survey_alert(survey: AdvisorVisitSurvey) -> HttpResponse:
+def _email_manager_survey_alert(survey: AdvisorVisitSurvey):
     if not survey.visit:
         return
     
