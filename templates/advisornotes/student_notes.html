@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
 {% block h1 %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
@@ -9,6 +11,7 @@
 {% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script nonce="{{ CSP_NONCE }}">
     var show_deleted = false;
@@ -209,11 +212,34 @@ This prospective student was created on {{student.created_at}}.
                 <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
                 <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname_pref_only }}</td>
-                <td><a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                <td>
+                    <a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
                     <button type='submit' class='btn' title="View visit">
                         <i class='fa fa-eye'></i>
                     </button>
-                </a></td>
+                    </a>
+                    {% if visit.survey and visit.survey.is_complete %}
+                        {% if visit.advisor.userid == request.user.username or advisor_admin %}
+                        <a class="lineform" class="btn" href="{% url "advising:view_survey" key=visit.survey.key %}">
+                        <button type='submit' class='btn' title="View survey results">
+                            <i class='fa fa-clipboard-list'></i>
+                        </button>
+                        </a>
+                        {% else %}
+                        <div class="lineform">
+                            <div class='btn submitted'><i class='fa fa-clipboard-list' title="Survey results submitted"></i></div>
+                        </div>
+                        {% endif %}
+                    {% elif visit.survey and not visit.survey.is_complete and not visit.survey.is_expired %}
+                    <div class="lineform">
+                        <div class="btn waiting"><i class='fa fa-envelope' title="Survey has been sent, but not yet completed. Expiry: {{ visit.survey.get_survey_expiry }}"></i></div>
+                    </div>
+                    {% elif visit.survey_sent %}                             
+                    <div class="lineform">
+                        <div class="btn expired" title="Survey was sent, but never completed (expired)."><i class='fa fa-envelope'></i></div>
+                    </div>
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
         </tbody>
