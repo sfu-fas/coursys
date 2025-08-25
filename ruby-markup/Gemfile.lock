@@ -1,25 +1,25 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (2.3.2)
-    bunny (2.18.0)
-      amq-protocol (~> 2.3, >= 2.3.1)
+    amq-protocol (2.3.4)
+    bunny (2.24.0)
+      amq-protocol (~> 2.3)
       sorted_set (~> 1, >= 1.0.2)
     commonmarker (0.23.10)
-    github-markup (4.0.0)
-    rbtree (0.4.4)
-    set (1.0.1)
+    github-markup (4.0.2)
+    rbtree (0.4.6)
+    set (1.1.2)
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
 
 PLATFORMS
-  x86_64-linux
+  x86_64-linux-gnu
 
 DEPENDENCIES
   bunny
-  commonmarker
-  github-markup
+  commonmarker (= 0.23.10)
+  github-markup (= 4.0.2)
 
 BUNDLED WITH
-   2.2.15
+   2.4.20
