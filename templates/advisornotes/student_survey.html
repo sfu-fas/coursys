@@ -20,9 +20,9 @@ This survey either doesn't exist or has expired.
     {% if survey.is_complete %}
         <p>Your response has been recorded. Thank you for your feedback!</p>
     {% else %}
-        <p>Thank you for attending an advising appointment with the Faculty of Applied Sciences. You met with <b>{{ survey.get_advisor }} on {{ survey.get_time_and_place }}</b>.
+        <p>Thank you for attending an advising appointment with the Faculty of Applied Sciences. You met with <b>{{ survey.get_advisor }} on {{ survey.get_time_and_place }}</b>.</p>
         <p>We'd love to hear how it went. Your responses help us improve our advising services.</p>
-        {% if not visit %}<p>This is a test, and your respones will not be included in any reports.</p>{% endif %}
+        {% if not visit %}<p>This is a test, and your responses will not be included in any reports.</p>{% endif %}
         <div class="form_container">
             <form action="{% url "advising:student_survey" key=survey.key %}" method="post" class="subtle">{% csrf_token %}
                 <div class="form_section">
