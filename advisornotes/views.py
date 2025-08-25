@@ -343,7 +343,6 @@ def _send_survey_email(survey: AdvisorVisitSurvey, email):
     # SEND EMAIL #
     subject = "FAS Academic Advising: Post-Appointment Feedback Survey"
     from_email = survey.get_advisor_email()
-    cc = None
 
     url = settings.BASE_ABS_URL + survey.get_absolute_url()
 
@@ -352,7 +351,7 @@ def _send_survey_email(survey: AdvisorVisitSurvey, email):
     text_content = text_template.render(context)
     html_content = html_template.render(context)
 
-    mail = EmailMultiAlternatives(subject=subject, body=text_content, from_email=from_email, to=[email], cc=[cc])
+    mail = EmailMultiAlternatives(subject=subject, body=text_content, from_email=from_email, to=[email])
     mail.attach_alternative(html_content, 'text/html')
     mail.send()
     return
@@ -388,7 +387,6 @@ def _email_manager_survey_alert(survey: AdvisorVisitSurvey):
         # SEND EMAIL #
         subject = "Feedback For Review: Post-Appointment Feedback Survey"
         from_email = settings.DEFAULT_FROM_EMAIL
-        cc = None
 
         url = settings.BASE_ABS_URL + reverse('advising:view_survey', kwargs={'key': survey.key})
         context = {'url': url, 'survey': survey, 'visit': visit}
