@@ -131,7 +131,7 @@ class RARequestIntroForm(forms.ModelForm):
         config_clean = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # add error messages
         nonstudent = cleaned_data.get('nonstudent')
@@ -270,7 +270,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
         config_clean = ['fs1_amount', 'fs2_option', 'fs2_amount', 'fs3_option', 'fs3_amount']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # for fund 11s, do not require fund
         project_exception_fund = '11'
@@ -525,7 +525,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                        'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # add error messages
         error_message = "You must answer this question."
@@ -636,7 +636,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
         config_clean = ['nc_duties', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         error_message = "You must answer this question."
 
@@ -804,7 +804,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 'backdate_reason']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         error_message = "You must answer this question."
 
