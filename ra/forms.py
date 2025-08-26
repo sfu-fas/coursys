@@ -131,7 +131,7 @@ class RARequestIntroForm(forms.ModelForm):
         config_clean = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # add error messages
         nonstudent = cleaned_data.get('nonstudent')
