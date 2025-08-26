@@ -1,5 +1,5 @@
 source "https://rubygems.org"
 
-gem 'commonmarker'
-gem 'github-markup'
+gem 'commonmarker', '0.23.10'
+gem 'github-markup', '4.0.2'
 gem 'bunny'

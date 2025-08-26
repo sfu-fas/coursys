@@ -1,4 +1,4 @@
-FROM ruby:3.0
+FROM ruby:3
 
 RUN bundle config --global frozen 1
 
