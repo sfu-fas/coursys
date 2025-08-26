@@ -30,7 +30,7 @@ DEPT_CHOICES = (
 )
 
 PROGRAM_CHOICES = (
-    ('', '-----------'), (00000, '00000 - None'), (90140, '90140 - Research Support'), (20015, '20015 - FAS Outreach Programming'), (90010, '90010 - Communication and Marketing'), (90160, 'Student Affairs')
+    ('', '-----------'), (00000, '00000 - None'), (90140, '90140 - Research Support'), (20015, '20015 - FAS Outreach Programming'), (90010, '90010 - Communication and Marketing'), (90160, '90160 - Student Affairs')
 )
 
 OBJECT_CHOICES = (
