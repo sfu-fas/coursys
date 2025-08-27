@@ -246,8 +246,6 @@ def group_data(request, course_slug):
             continue
         response.write('%s: ' % (g.slug))
         response.write(','.join(userids))
-        if offering.uses_svn():
-            response.write('; ' + g.svn_url())
         response.write('\n')
 
     return response

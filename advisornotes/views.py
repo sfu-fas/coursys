@@ -26,7 +26,6 @@ from django.template.loader import get_template
 from django.conf import settings
 import datetime
 import json
-from . import rest
 from timeit import itertools
 import csv
 import urllib.parse
