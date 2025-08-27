@@ -1,4 +1,0 @@
-{
- "sfu_db2" : { "users":["coursys"] },
- "run_list": ["apt", "coursys", "coursys_deployed", "coursys_proddev", "coursys_demo", "sfu-db2"]
-}
