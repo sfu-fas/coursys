@@ -24,7 +24,6 @@ from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
 import json
-from . import rest
 from timeit import itertools
 import csv
 import urllib.parse
