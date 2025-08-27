@@ -1135,27 +1135,6 @@ def offering_by_id(request):
     return HttpResponse(offering.search_label_value())
 
 
-from coredata.queries import find_person
-@login_required
-def XXX_sims_person_search(request):
-    # check permissions
-    roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
-    if not(roles & allowed):
-        # doesn't have any allowed roles
-        return ForbiddenResponse(request, "Not permitted to do person search.")
-    
-    if 'emplid' not in request.GET:
-        return ForbiddenResponse(request, "Must provide 'emplid' query.")
-    emplid = request.GET['emplid']
-    response = HttpResponse(content_type='application/json')
-
-    data = find_person(emplid)
-    
-    json.dump(data, response, indent=1)
-    return response
-
-
 def browse_courses(request, unit_slug=None, campus=None):
     """
     Interactive CourseOffering browser
