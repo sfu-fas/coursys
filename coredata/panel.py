@@ -254,7 +254,7 @@ def deploy_checks(request=None):
     except SIMSProblem as e:
         failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (str(e))))
     except ImportError:
-        failed.append(('Reporting DB connection', "couldn't import DB2 module"))
+        failed.append(('Reporting DB connection', "couldn't import pyodbc module"))
     except Exception as e:
         failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 

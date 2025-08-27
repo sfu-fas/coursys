@@ -1,8 +1,6 @@
 # do the import with fake data for development
 
 # setup:
-#   need courses/secrets.py to have SIMS_USER, SIMS_PASSWORD, EMPLID_API_SECRET
-#   ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 #   Do reporting DB setup as described in the first set of shell commands: instructions/REPORTING_DATABASE.md
 
 # setup test:

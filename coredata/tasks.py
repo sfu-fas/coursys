@@ -128,7 +128,7 @@ def check_sims_task() -> Optional[str]:
     except SIMSProblem as e:
         return 'SIMSProblem, %s' % (str(e),)
     except ImportError:
-        return "couldn't import DB2 module"
+        return "couldn't import pyodbc module"
     except Exception as e:
         return 'Generic exception, %s' % (str(e))
 

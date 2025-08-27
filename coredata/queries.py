@@ -149,64 +149,6 @@ class SIMSConnMSSQL(DBConn):
             return v
 
 
-class SIMSConnDB2(DBConn):
-    """
-    Singleton object representing SIMS DB connection
-    """
-    DatabaseError = ReferenceError # placeholder until we have the DB2 module
-    DB2Error = ReferenceError
-
-    def get_connection(self):
-        if settings.DISABLE_REPORTING_DB:
-            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
-
-        try:
-            import ibm_db_dbi
-        except ImportError:
-            raise SIMSProblem("could not import DB2 module")
-        SIMSConnDB2.DatabaseError = ibm_db_dbi.DatabaseError
-        SIMSConnDB2.DB2Error = ibm_db_dbi.Error
-        try:
-            dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
-        except ibm_db_dbi.Error:
-            raise #SIMSProblem("Could not communicate with reporting database.")
-        cursor = dbconn.cursor()
-        cursor.execute("SET SCHEMA "+self.schema)
-        return dbconn, cursor
-
-    def escape_arg(self, a):
-        """
-        Escape argument for DB2
-        """
-        # Based on description of PHP's db2_escape_string
-        if type(a) in (int,int):
-            return str(a)
-        if type(a) in (tuple, list, set):
-            return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
-        
-        # assume it's a string if we don't know any better
-        a = str(a)
-        a = a.replace("\\", "\\\\")
-        a = a.replace("'", "\\'")
-        a = a.replace('"', '\\"')
-        a = a.replace("\r", "\\r")
-        a = a.replace("\n", "\\n")
-        a = a.replace("\x00", "\\\x00")
-        a = a.replace("\x1a", "\\\x1a")
-        return "'" + a + "'"
-
-    def prep_value(self, v):
-        """
-        get DB2 value into a useful format
-        """
-        if isinstance(v, str):
-            return v.strip()
-        elif isinstance(v, decimal.Decimal):
-            return float(v)
-        else:
-            return v
-
-
 class SIMSProblem(Exception):
     """
     Class used to pass back problems with the SIMS connection.
@@ -230,27 +172,6 @@ def SIMS_problem_handler_MSSQL(func):
             return func(*args, **kwargs)
         except pyodbc.ProgrammingError as e:
             raise SIMSProblem("reporting database error: " + str(e))
-
-    wrapped.__name__ = func.__name__
-    return wrapped
-
-
-def SIMS_problem_handler_DB2(func):
-    """
-    Decorator to deal somewhat gracefully with any SIMS database problems.
-    Any decorated function may raise a SIMSProblem instance to indicate a
-    problem with the database connection.
-
-    Should be applied to any functions that use a SIMSConn object.
-    """
-    def wrapped(*args, **kwargs):
-        # check for the types of errors we know might happen and return an error message in a SIMSProblem
-        try:
-            return func(*args, **kwargs)
-        except SIMSConn.DatabaseError as e:
-            raise SIMSProblem("could not connect to reporting database")
-        except SIMSConn.DB2Error as e:
-            raise SIMSProblem("problem with connection to reporting database")
 
     wrapped.__name__ = func.__name__
     return wrapped
