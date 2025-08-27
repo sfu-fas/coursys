@@ -363,9 +363,6 @@ DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
-SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # TODO: remove after DB2 transition
-SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # TODO: remove after DB2 transition
-SIMS_DB_SCHEMA = "dbcsown"  # TODO: remove after DB2 transition
 
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)

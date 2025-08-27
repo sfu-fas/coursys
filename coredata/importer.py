@@ -381,7 +381,7 @@ def import_meeting_times(offering):
     found_mtg = set()
     
     for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in db:
-        # dates come in as strings from DB2/reporting DB
+        # dates come in as strings from reporting DB
         if not start or not end:
             # some meeting times exist with no start/end time
             continue
