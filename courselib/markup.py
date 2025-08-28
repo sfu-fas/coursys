@@ -15,13 +15,13 @@ from django.utils.html import linebreaks
 from django.conf import settings
 from cache_utils.decorators import cached
 
-from courselib.github_markdown import markdown_to_html
 from grades.models import Activity
 
 import re
 import pytz
 import creoleparser
 import bleach
+import cmarkgfm
 from textile import textile_restricted
 
 
@@ -161,6 +161,16 @@ def hide_llm_text(html: str) -> str:
     tail = html[prev_end:]
     chunks.append(tail)
     return ''.join(chunks)
+
+
+def markdown_to_html(md: str) -> str:
+    """
+    Convert github markdown to HTML with the specific extensions and options that
+    our users are accustomed to from the previous Ruby-based commonmarker conversion.
+    """
+    options = cmarkgfm.Options.CMARK_OPT_GITHUB_PRE_LANG
+    extensions = ['table', 'autolink', 'tagfilter', 'strikethrough']
+    return cmarkgfm.markdown_to_html_with_extensions(md, options=options, extensions=extensions)
 
 
 @cached(36000)

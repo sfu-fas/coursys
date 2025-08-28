@@ -40,7 +40,7 @@ whoosh==2.7.4
 #git+git://github.com/gregbaker/django-oauth-plus@3c47dc758dd1eacd17deceb54ec7a69a8986f263
 #oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 #django-rest-swagger==2.2.0
-markdown # for markup fallback
+cmarkgfm==2024.11.20
 django-ipware==3.0.2
 psutil==5.8.0
 intervaltree==3.1.0
