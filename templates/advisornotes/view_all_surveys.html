@@ -1,0 +1,84 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}{% if mine %}My Post-Advising Surveys{% elif admin %}All Post-Advising Surveys{% endif %}{% endblock %}
+{% block h1 %}{% if mine %}My Post-Advising Surveys{% elif admin %}All Post-Advising Surveys{% endif %}{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+    $('#surveys').dataTable( {
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    'aaSorting': [[3, 'desc']],
+    'scrollY': false, 
+    "columnDefs": [
+    { "width": "20%", "targets": [0, 1] },
+    { "width": "20%", "targets": [2, 3, 4] },
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li>Post-Advising Surveys</li>
+{% endblock %}
+
+{% block content %}
+
+{% if surveys %}
+<table id="surveys" class="display">
+    <thead>
+        <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Advisor</th>
+            <th scope="col">Appointment Began</th>
+            <th scope="col">Survey Sent</th>
+            <th scope="col">Overall Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for survey in surveys %}
+        <tr>
+            <td>
+                {% if survey.visit %}
+                <a href="{% url "advising:view_survey" key=survey.key %}">{{ survey.visit.get_full_name }}</a>
+                {% else %}
+                <a href="{% url "advising:view_survey" key=survey.key %}">Test Visit </a>(<a href="{% url "advising:delete_survey" key=survey.key %}">Delete</a>)
+                {% endif %}</td>
+            <td>{% if survey.visit %}{{ survey.visit.advisor}}{% endif %}</td>
+            <td>{% if survey.visit %}{{ survey.visit.created_at }}{% endif %}</td>
+            <td><span class="sort">{{ survey.created_at.isoformat }}</span>{{ survey.created_at }}</td>
+            <td class="{% if survey.overall == 5 %} excellent
+                       {% elif survey.overall == 4 %} verygood
+                       {% elif survey.overall == 3 %} good
+                       {% elif survey.overall == 2 %} fair
+                       {% elif survey.overall == 1 %} needsimprovement
+                       {% endif %}"><span class="sort">{{ survey.overall }}</span>{{ survey.get_overall_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no surveys to show.</p>
+{% endif %}
+
+{% if admin %}
+{% if incomplete_surveys > 0 %}
+<div class="notification">
+<p>There are currently {{ incomplete_surveys }} surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i>
+</div>
+{% endif %}
+<div class="actionlist">
+    <a class="btn" href="{% url "advising:send_test_survey" %}">Send Myself a Test Survey</a>
+    <a class="btn" href="{% url "advising:download_all_surveys" %}" title="Past 1 year only">Download Surveys</a>
+</div>
+{% endif %}
+
+{% endblock %}

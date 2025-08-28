@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
+{% endblock %}
+
+{% block title %}View Post-Advising Survey Results {% if not survey.visit %}(Test){% endif %}{% endblock %}
+{% block h1 %}View Post-Advising Survey Results {% if not survey.visit %}(Test){% endif %}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:view_all_surveys" %}">Surveys</a></li>
+<li>Survey</li>
+{% endblock %}
+
+{% block content %}
+{% if survey.visit %}
+<table class="info">
+    <tr><th>Student</th><td>{{ survey.visit.get_full_name }}</td></tr>
+    <tr><th>Advisor</th><td>{{ survey.visit.advisor.sortname_pref_only }}</td></tr>
+    <tr><th>Unit</th><td>{{ survey.visit.unit }}</td></tr>
+    <tr><th>Start Time</th><td>{{ survey.created_at }}</td></tr>
+    <tr><th>End Time</th><td>{{ survey.visit.end_time }}</td></tr>
+    <tr><th>Duration</th><td>{{ survey.visit.get_duration }}</td></tr>
+    {% if survey.visit.mode %}<tr><th>Mode</th><td>{{ survey.visit.get_mode_display }}</td></tr>{% endif %}
+    {% if survey.visit.campus %}<tr><th>Campus</th><td>{{ survey.visit.get_campus_display }}</td></tr>{% endif %}
+    {% if survey.visit.has_categories %}<tr><th>Categories</th><td>{{ survey.visit.categories_display }}</td></tr>{% endif %}
+</table>
+{% endif %}
+
+<div class="form_section">
+{% if survey %}
+    {% if survey.is_complete %}
+    <p><i>Survey completed on {{ survey.completed_at }}</i><br></p>
+    <p><b>Was 15 minutes enough time for your appointment?</b></p><p>{{ survey.get_time_display }}</p>
+    <p><b>How would you rate your appointment overall?</b></p><p>{{ survey.get_overall_display }}</p>
+    <p><b>Why did you meet with an advisor?</b></p>
+        <ul>
+        {% for answer in survey.reason_display %}
+        <li>{{ answer }}</li>
+        {% endfor %}
+        </ul>
+    <p><b>Did the advisor answer your question(s)?</b></p><p>{{ survey.get_questions_answered_display }}</p>
+    <p><b>I feel supported during my advising appointment?</b></p><p>{{ survey.get_support_display }} </p>
+    <p><b>The advisor… (select all that apply)</b></p>
+        <ul>
+        {% for answer in survey.advisor_review_display %}
+        <li>{{ answer }}</li>
+        {% endfor %}
+        </ul>
+    <p><b>If your question wasn't fully answered during your appointment, what was the main reason? (Select the option that best describes your experience)</b></p><p>{{ survey.questions_unanswered_display }}</p>
+    <p><b>Any other comments? (Optional)</p></b></p><p>{{ survey.comments }}</p>
+    {% elif survey.is_expired and survey.visit %}
+    Post-advising survey was sent, but never completed.
+    {% else %}
+    Survey has been sent, but not yet completed. Expiry date: {{ survey.get_survey_expiry }}
+    {% endif %}
+{% elif not survey and visit.survey_sent %}
+    Survey was sent, but never completed.
+{% endif %}
+</div>
+{% if survey.visit %}
+<div class="actionlist">
+    <a class="btn" href="{% url "advising:student_notes" userid=survey.visit.get_userid %}">View Student Notes</a>
+</div>
+{% endif %}
+{% endblock %}

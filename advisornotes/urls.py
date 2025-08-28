@@ -72,6 +72,15 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + USERID_OR_EMPLID + '/transfers$', advisornotes_views.student_transfers, name='student_transfers'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-download$', advisornotes_views.student_transfers_download, name='student_transfers_download'),
     
+    # surveys
+    url(r'^surveys/(?P<key>[0-9a-fA-F-]{36})/$', advisornotes_views.student_survey, name='student_survey'),
+    url(r'^surveys/(?P<key>[0-9a-fA-F-]{36})/delete$', advisornotes_views.delete_survey, name='delete_survey'),
+    url(r'^surveys/(?P<key>[0-9a-fA-F-]{36})/view$', advisornotes_views.view_survey, name='view_survey'),
+    url(r'^surveys/view$', advisornotes_views.view_all_surveys, name='view_all_surveys'),
+    url(r'^surveys/view_mine$', advisornotes_views.view_my_surveys, name='view_my_surveys'),
+    url(r'^surveys/send_test$', advisornotes_views.send_test_survey, name='send_test_survey'),
+    url(r'^surveys/download$', advisornotes_views.download_all_surveys, name='download_all_surveys'),
+
     url(r'^news$', advisornotes_views.news, name='news'),
     url(r'^news/delete/(?P<entry_id>\d+)$', advisornotes_views.delete_announcement, name='delete_announcement'),
     url(r'^new_announcement$', advisornotes_views.new_announcement, name='new_announcement'),

@@ -5,10 +5,12 @@ from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
 from courselib.storage import UploadedFileStorage, upload_path
 from courselib.markup import markup_to_html
+from django.urls import reverse
 from datetime import date
 import datetime
 import os.path
-
+import uuid
+from django.db.models import Q
 
 # Used to determine if you have any non-end-dated visit, but only of the newer type, with end-dates added by a view.
 # All the older visits will not have an end-date.
@@ -26,6 +28,8 @@ ADVISING_MODE_CHOICES = (
         ('R', 'Remote'),
         ('N', '')
         )
+
+SURVEY_EXPIRY_DAYS = 3
 
 
 def attachment_upload_to(instance, filename):
@@ -356,6 +360,7 @@ class AdvisorVisit(models.Model):
     credits = config_property('credits', '')
     gender = config_property('gender', '')
     citizenship = config_property('citizenship', '')
+    survey_sent = config_property('survey_sent', False)
 
     objects = AdvisorVisitQuerySet.as_manager()
 
@@ -409,9 +414,207 @@ class AdvisorVisit(models.Model):
 
     def get_created_at_display(self):
         return self.created_at.strftime("%Y/%m/%d %H:%M")
+    
+    def get_created_at_with_location_display(self):
+        if self.mode == "IP":
+            if self.campus != "OFFCA":
+                location = " at " + self.get_campus_display() + " Campus"
+            else:
+                location = " (" + self.get_campus_display() + ")"
+        elif self.mode == "R":
+            location = " (remotely)"
+        else:
+            location = ""
+        return self.created_at.strftime("%A, %B %-d at %-I:%M %p") + location
+
+    def get_survey(self):
+        return getattr(self, "survey", None)
 
     def get_end_time_display(self):
         if self.end_time:
             return self.end_time.strftime("%Y/%m/%d %H:%M")
         else:
             return ''
+
+    def mark_survey_sent(self):
+        self.config['survey_sent'] = True
+        self.save()
+
+SURVEY_TIME_CHOICES = (
+    ('Y', 'Yes'),
+    ('N', 'No'),
+    ('U', 'Unsure'),
+)
+
+SURVEY_OVERALL_CHOICES = (
+    (5, 'Excellent'),
+    (4, 'Very Good'),
+    (3, 'Good'),
+    (2, 'Fair'),
+    (1, 'Needs Improvement'),
+)
+
+SURVEY_REASON_CHOICES = (
+    ('CP', 'Course Planning'),
+    ('GC', 'Graduation Check'),
+    ('ES', 'Enrolment Support'),
+    ('CS', 'Course Substitution'),
+    ('AS', 'Academic Standing'),
+    ('IT', 'Internal Transfer'),
+    ('TC', 'Transfer Credit'),
+    ('OT', 'Other (please specify)')
+)
+
+SURVEY_QUESTIONS_ANSWERED_CHOICES = (
+    ('Y', 'Yes, Completely'),
+    ('PY', 'Partially, they said they would follow up'),
+    ('PN', 'Partially, they did not say they would follow up'),
+    ('N', 'No'),
+    ('NA', 'Not Applicable/No Specific Question'),
+)
+
+SURVEY_SUPPORT_CHOICES = (
+    (5, 'Strongly Agree'),
+    (4, 'Agree'),
+    (3, 'Neutral'),
+    (2, 'Disagree'),    
+    (1, 'Strongly Disagree'),
+)
+
+SURVEY_ADVISOR_REVIEW_CHOICES = (
+    ('FW', 'Was friendly and welcoming'),
+    ('CH', 'Gave clear and helpful information'),
+    ('LC', 'Listened to my concerns'),
+    ('HC', 'Helped me feel more confident about my next steps'),
+    ('SF', 'Suggested a follow-up or referral'),
+    ('DU', 'Did not fully understand my question or concern'),
+    ('UI', 'Gave unhelpful information'), 
+    ('NF', 'Was not friendly or approachable'),
+    ('OT', 'Other (please specify)'),
+)
+
+SURVEY_QUESTIONS_UNANSWERED_CHOICES = (
+    ('NT', 'There was not enough time in the appointment'),
+    ('NI', 'The advisor did not have the information needed'),
+    ('FU', 'The advisor needed to follow up or consult with another department'),
+    ('CC', 'The question related to curriculum (eg. course offerings, scheduling, substitutions), was not something advising could change'),
+    ('OR', "The question was outside the advisor's role or responsibilities"),
+    ('OT', "Other (please specify)")
+)
+
+class AdvisorVisitSurvey(models.Model): 
+    """
+    Record a students thoughts on an AdvisorVisit
+    """
+    key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    visit = models.OneToOneField(AdvisorVisit, on_delete=models.PROTECT, null=True, blank=True, related_name='survey')
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+    created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    time = models.CharField(null=True, blank=True, choices=SURVEY_TIME_CHOICES, max_length=2)
+    overall = models.IntegerField(null=True, blank=True, choices=SURVEY_OVERALL_CHOICES)
+    reason = models.CharField(null=True, blank=True, max_length=255)
+    questions_answered = models.CharField(null=True, blank=True, choices=SURVEY_QUESTIONS_ANSWERED_CHOICES, max_length=2)
+    support = models.IntegerField(null=True, blank=True, choices=SURVEY_SUPPORT_CHOICES)
+    advisor_review = models.CharField(null=True, blank=True, max_length=255)
+    questions_unanswered = models.CharField(null=True, blank=True, choices=SURVEY_QUESTIONS_UNANSWERED_CHOICES, max_length=2)
+    comments = models.CharField(blank=True, max_length=500, default="")
+
+    config = JSONField(null=False, blank=False, default=dict)
+    other_questions_unanswered = config_property('other_questions_unanswered', '')
+    other_advisor_review = config_property('other_advisor_review', '')
+    other_reason = config_property('other_reason', '')
+
+    def __str__(self):
+        return (str(self.visit.get_userid()) if self.visit else "test") + "@" + str(self.created_at) + ("-filled" if self.completed_at is not None else "-unfilled")
+
+    def get_absolute_url(self):
+        return reverse('advising:student_survey', kwargs={'key': self.key})
+    
+    @property
+    def is_complete(self):
+        return self.completed_at is not None
+    
+    def reason_display(self):
+        answers = self.reason.split(',') if self.reason else []
+        display = []
+        for answer in answers:
+            if answer == "OT":
+                if self.other_reason == "":
+                    display.append("Other: Did not specify")
+                else:
+                    display.append("Other: " + self.other_reason)
+            else:
+                display.append(dict(SURVEY_REASON_CHOICES).get(answer, answer))
+        return display
+    
+    def questions_unanswered_display(self):
+        answer = self.questions_unanswered
+        if answer == "OT":
+            if self.other_questions_unanswered == "":
+                return "Other: Did not specify"
+            else:
+                return "Other: " + self.other_questions_unanswered
+        elif answer == None:
+            return "N/A - The advisor fully answered my questions"
+        else:
+            return self.get_questions_unanswered_display()
+        
+    def advisor_review_display(self):
+        answers = self.advisor_review.split(',') if self.advisor_review else []
+        display = []
+        for answer in answers:
+            if answer == "OT":
+                if self.other_advisor_review == "":
+                    display.append("Other: Did not specify")
+                else:
+                    display.append("Other: " + self.other_advisor_review)
+            else:
+                display.append(dict(SURVEY_ADVISOR_REVIEW_CHOICES).get(answer, answer))
+        return display
+    
+    def get_advisor(self):
+        if self.visit:
+            return self.visit.advisor.name_pref()
+        else:
+            return self.created_by.name_pref()
+        
+    def get_student_userid(self):
+        if self.visit:
+            return self.visit.get_userid()
+        else:
+            return self.created_by.userid_or_emplid()
+        
+    def get_advisor_email(self):
+        if self.visit:
+            return self.visit.advisor.email()
+        else:
+            return self.created_by.email()
+
+    def get_time_and_place(self):
+        if self.visit:
+            return self.visit.get_created_at_with_location_display()
+        else:
+            return self.created_at.strftime("%-I:%M %p on %A, %B %-d") + " at Test Campus"
+        
+    def get_survey_expiry(self):
+        return (self.created_at + datetime.timedelta(days=SURVEY_EXPIRY_DAYS)).strftime("%A, %B %-d at %-I:%M %p")
+
+    @property
+    def is_expired(self):
+        return self.created_at < (datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))
+
+    @classmethod
+    def delete_expired(cls, dry_run=False):
+        """
+        Remove any surveys that were not filled or are tests after 3 days.
+        """
+        expiry_date = datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)
+        expired_surveys = AdvisorVisitSurvey.objects.filter(Q(completed_at__isnull=True) | Q(visit__isnull=True), created_at__lte=expiry_date).order_by('created_at')
+
+        for survey in expired_surveys:
+            if not dry_run:
+                survey.delete()
+            else:
+                print('delete', survey)

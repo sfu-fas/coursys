@@ -27,7 +27,7 @@ def _can_view_student(request, grad_slug, funding=False):
         return grad, 'admin', request.units
 
     # funding admins can view some pages within their unit
-    if funding and has_role('FUND', request):
+    if funding and (has_role('FUND', request) or has_role('FDMA', request)):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin', request.units
 
