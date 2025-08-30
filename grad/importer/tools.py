@@ -1,3 +1,4 @@
+from django.utils.functional import lazy
 from coredata.models import Semester
 import datetime
 import intervaltree
@@ -14,6 +15,6 @@ def _build_semester_lookup():
         for (name, (st, en)) in intervals)
     return intervaltree.IntervalTree(intervals)
 
-semester_lookup = _build_semester_lookup()
-
-STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
+# lazy here avoids db queries in tests before the test environment is initialized
+semester_lookup = lazy(_build_semester_lookup)()
+STRM_MAP = lazy(lambda: dict((s.name, s) for s in Semester.objects.all()))()
