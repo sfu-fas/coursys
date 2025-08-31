@@ -42,6 +42,9 @@ Typically, I start by just getting the tests to pass. There are often minor chan
 
 It's then time to check things in proddev deployment (see DOCKER_PRODDEV.md or VM_PRODDEV.md). Make sure Celery tasks run, etc.
 
+```shell
+python3 -Wdefault ./manage.py test
+```
 
 
 ### Celery

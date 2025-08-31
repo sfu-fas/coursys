@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from .base import SubmissionComponent, SubmittedComponent
 from submission.forms import ComponentForm as BaseComponentForm, SubmissionForm as BaseSubmissionForm
 
-import os, pipes, re
+import os, shlex, re
 
 def _tag_allowed(c):
     """
@@ -84,9 +84,9 @@ class SubmittedGitTag(SubmittedComponent):
         content = []
         content.append("# Submitted Git tag can be retrieved with the command below.")
         content.append("git clone %s %s && cd %s && git checkout tags/%s" % (
-            pipes.quote(self.url),
-            pipes.quote(dirname), pipes.quote(dirname),
-            pipes.quote(self.tag),
+            shlex.quote(self.url),
+            shlex.quote(dirname), shlex.quote(dirname),
+            shlex.quote(self.tag),
         ))
         content.append("# url:%s" % (self.url,))
         content.append("# tag:%s" % (self.tag,))

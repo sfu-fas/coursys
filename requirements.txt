@@ -1,5 +1,6 @@
 django==5.2.5
 # TODO possibly need to update .save overrides with : https://docs.djangoproject.com/en/5.2/topics/db/models/#overriding-predefined-model-methods
+# https://docs.djangoproject.com/en/5.2/releases/5.0/#migrating-existing-uuidfield-on-mariadb-10-7
 
 Creoleparser==0.7.5
 Genshi==0.7.9

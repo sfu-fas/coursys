@@ -394,7 +394,9 @@ class LibraryBehaviourTest(TestCase):
         from PIL import Image
         import io
 
-        data = open(DUMMY_IMAGE_FILE, 'rb').read()
+        fh = open(DUMMY_IMAGE_FILE, 'rb')
+        data = fh.read()
+        fh.close()
         img = Image.open(io.BytesIO(data))
         img.thumbnail((20, 20), Image.Resampling.BILINEAR)
         resize = io.BytesIO()
