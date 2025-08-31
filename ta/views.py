@@ -2285,22 +2285,21 @@ def edit_contract(request, post_slug, userid):
     if request.method == "POST":
         form = TAContractForm(request.POST, instance=contract)
         
-        if request.is_ajax():
-            if('appt_cat' in request.POST):
-                index = posting.cat_index(request.POST['appt_cat'])
-                results = posting.salary()[index] + ',' + posting.scholarship()[index] + ',' + str(posting.accounts()[index])
-                return HttpResponse(results)
-            if('course' in request.POST):
-                course = request.POST['course']
-                co = get_object_or_404(CourseOffering, pk=course)
-                req_bu = posting.required_bu(co)
-                assigned_bu = posting.assigned_bu(co)
-                #subtracting assigned_bu from req_bu
-                if(assigned_bu > req_bu):
-                    req_bu = 0.0
-                else:
-                    req_bu -= assigned_bu
-                return HttpResponse(str(req_bu))
+        if 'appt_cat' in request.POST:
+            index = posting.cat_index(request.POST['appt_cat'])
+            results = f'{posting.salary()[index]},{posting.scholarship()[index]},{posting.accounts()[index]}'
+            return HttpResponse(results)
+        elif 'course' in request.POST:
+            course = request.POST['course']
+            co = get_object_or_404(CourseOffering, pk=course)
+            req_bu = posting.required_bu(co)
+            assigned_bu = posting.assigned_bu(co)
+            #subtracting assigned_bu from req_bu
+            if(assigned_bu > req_bu):
+                req_bu = 0.0
+            else:
+                req_bu -= assigned_bu
+            return HttpResponse(str(req_bu))
         elif form.is_valid():
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
