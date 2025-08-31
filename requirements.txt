@@ -1,4 +1,5 @@
 django==5.2.5
+# TODO possibly need to update .save overrides with : https://docs.djangoproject.com/en/5.2/topics/db/models/#overriding-predefined-model-methods
 
 Creoleparser==0.7.5
 Genshi==0.7.9
@@ -41,7 +42,7 @@ ipython
 django-debug-toolbar
 
 # actually only needed in production-like environments...
-python-memcached==1.62
+pymemcache==4.0.0
 #django-dbdump==1.1  # TODO: could probably replace with basic CLI call
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0

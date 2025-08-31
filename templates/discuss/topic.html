@@ -79,7 +79,7 @@
 
 <h2 id="replies">Replies</h2>
 
-	{% if replies|length_is:0 and topic.status != 'CLO' %}
+	{% if not replies and topic.status != 'CLO' %}
 	<p class="empty">No replies yet.</p>
 	{% endif %}
 	{% if replies|length > 0 %}

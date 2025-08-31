@@ -34,7 +34,7 @@ Of course, Django is the most critical dependency, and often itself a sub-depend
 it's easiest to update *everything else* and then look at the Django version.
 
 Have a look at the Django release notes on major releases (x.0.0 or maybe x.y.0) for:
-* any incompatible changes (which are typically explicitly listed) for anything we actually use,
+* any "backwards incompatible changes" for anything we actually use,
 * supported Python versions (vs what we have in production),
 * supported database version (vs what we have in production).
 

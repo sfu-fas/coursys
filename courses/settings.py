@@ -237,7 +237,7 @@ NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': '127.0.0.1:11211',
     } }
     if getattr(localsettings, 'MEMCACHED_HOST', None):
