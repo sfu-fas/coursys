@@ -80,5 +80,5 @@ def privacy_da_redirect(request):
     """
     privacy_url = reverse('config:privacy_da')
     path = '%s?%s=%s' % (privacy_url, REDIRECT_FIELD_NAME,
-                         urlquote(request.get_full_path()))
+                         urllib.parse.quote(request.get_full_path()))
     return HttpResponseRedirect(path)

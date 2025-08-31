@@ -50,8 +50,6 @@ class GitURLField(TextField):
 
 
 class GitTagComponent(SubmissionComponent):
-    check = models.BooleanField(default=False, help_text="Check that the repository and tag really exists? Implies that all submitted repos must be public http:// or https:// URLs.")
-    # ^ currently unimplemented. See comment at bottom of this file.
     prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (e.g. "git@github.com:" or "https://github.com", blank for none.)')
 
     class Meta:
@@ -166,16 +164,7 @@ class GitTag:
                 if not url.startswith(self.component.prefix):
                     raise forms.ValidationError('Submitted URL must start with "%s".' % (self.component.prefix))
 
-            if self.component.check:
-                raise NotImplementedError()
             return url
 
 SubmittedGitTag.Type = GitTag
 GitTagComponent.Type = GitTag
-
-# Using gitpython, a check for the tag existing course be done like this, but the .fetch() could be arbitrarily expensive
-# import git
-# repo = git.Repo.init(tempdir)
-# origin = repo.create_remote('origin', REMOTE_URL)
-# origin.fetch()
-# print [t.name for t in repo.tags]
