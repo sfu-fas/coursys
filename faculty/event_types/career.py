@@ -534,8 +534,6 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         'credits_forward'
     ]
 
-    from django.conf.urls import url
-
     EXTRA_LINKS = {'Teaching Summary': 'faculty:teaching_summary'}
 
     @classmethod

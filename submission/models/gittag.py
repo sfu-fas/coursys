@@ -4,7 +4,7 @@ from django.http import HttpResponse
 
 from django.db.models.fields import TextField
 from django.core.validators import URLValidator
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.core.exceptions import ValidationError
 
 from .base import SubmissionComponent, SubmittedComponent
@@ -34,7 +34,7 @@ class GitURLValidator(URLValidator):
         r'\Z', re.IGNORECASE)
 
     def __call__(self, value):
-        value = force_text(value)
+        value = force_str(value)
         if value.startswith('http://') or value.startswith('https://'):
             # HTTP(S) URLs: superclass can handle it.
             return super(GitURLValidator, self).__call__(value)
