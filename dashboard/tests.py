@@ -421,6 +421,5 @@ class LibraryBehaviourTest(TestCase):
         from grad.importer.tools import semester_lookup
         s = Semester.current()
         d = s.start + datetime.timedelta(days=5)
-        result = semester_lookup[d]
-        found = result.pop()
-        self.assertEqual(found[2], s.name)
+        result = semester_lookup(d)
+        self.assertEqual(result, s.name)
