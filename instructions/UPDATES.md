@@ -22,19 +22,26 @@ they are working as expected may be wise.
 If anything is found that is **not** caught by tests, it's strongly encouraged to add a tests that exercises that
 package a little more.
 
+http://localhost:8000/frontend-check
 
+### Static Files, Compressor, NPM
+
+...
 
 ### Django
 
 Of course, Django is the most critical dependency, and often itself a sub-dependency of other packages we use. Likely
 it's easiest to update *everything else* and then look at the Django version.
 
-Have a look at the Django release notes for:
+Have a look at the Django release notes on major releases (x.0.0 or maybe x.y.0) for:
 * any incompatible changes (which are typically explicitly listed) for anything we actually use,
 * supported Python versions (vs what we have in production),
 * supported database version (vs what we have in production).
 
-(e.g. )
+Typically, I start by just getting the tests to pass. There are often minor changes: obscure methods that got renamed or sketchy things we did that are now caught as errors and should be tidied up.
+
+It's then time to check things in proddev deployment (see DOCKER_PRODDEV.md or VM_PRODDEV.md). Make sure Celery tasks run, etc.
+
 
 
 ### Celery
@@ -43,7 +50,11 @@ Have a look at the Django release notes for:
 
 ### Production-Only Requirements
 
+There are a couple of things that by necessity only happen in production.
 
+CAS authentication
+
+Reporting database/CSRPT access (which passes through the pyodbc module).
 
 
 ## NPM

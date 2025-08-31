@@ -32,7 +32,6 @@ from xml.etree.ElementTree import ParseError
 from ipware import get_client_ip
 import pytz
 import itertools
-import iso8601
 from urllib.parse import urlencode
 from urllib.error import HTTPError
 
@@ -506,9 +505,9 @@ def calendar_data(request):
     AJAX JSON results for the calendar (rendered by dashboard.views.calendar)
     """
     try:
-        st = iso8601.parse_date(request.GET['start'])
-        en = iso8601.parse_date(request.GET['end'])
-    except (KeyError, ValueError, iso8601.ParseError):
+        st = datetime.datetime.fromisoformat(request.GET['start'])
+        en = datetime.datetime.fromisoformat(request.GET['end'])
+    except (KeyError, ValueError):
         return NotFoundResponse(request, errormsg="Bad request")
 
     user = get_object_or_404(Person, userid=request.user.username)
@@ -1032,5 +1031,33 @@ def site_search(request):
 
 @requires_global_role('SYSA')
 def frontend_check(request):
+    if request.GET.get('page') == 'letter':
+        # Check for correct PDF generation
+        # Adapted from grad.views.get_letter
+
+        from coredata.models import Unit
+        from dashboard.letters import OfficialLetter, LetterContents
+
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="foo.pdf"'
+
+        doc = OfficialLetter(response, unit=Unit.objects.get(label='CMPT'))
+        l = LetterContents(to_addr_lines=['Recipient Name', 'The Address'],
+                        from_name_lines=['Sender Name', 'Different Address'],
+                        date=datetime.date.today(),
+                        closing='Bye',
+                        signer=request.user,
+                        use_sig=False,
+                        body_font_size=12)
+        content_lines = ['Hello.', 'Thank you for your attention.']
+        l.add_paragraphs(content_lines)
+        doc.add_letter(l)
+        doc.write()
+        return response
+
+    elif request.GET.get('page') == 'search' and settings.DEPLOY_MODE != 'production':
+        pass
+
+
     context = {}
     return render(request, "dashboard/frontend_check.html", context)

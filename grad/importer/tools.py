@@ -16,5 +16,5 @@ def _build_semester_lookup():
     return intervaltree.IntervalTree(intervals)
 
 # lazy here avoids db queries in tests before the test environment is initialized
-semester_lookup = lazy(_build_semester_lookup)()
-STRM_MAP = lazy(lambda: dict((s.name, s) for s in Semester.objects.all()))()
+semester_lookup = lazy(_build_semester_lookup, intervaltree.IntervalTree)()
+STRM_MAP = lazy(lambda: dict((s.name, s) for s in Semester.objects.all()), dict)()

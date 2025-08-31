@@ -35,7 +35,6 @@ import csv
 from ta.templatetags import ta_display
 import json
 from . import bu_rules
-import iso8601;
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from collections import OrderedDict
@@ -1962,9 +1961,9 @@ def all_contracts(request, post_slug):
             crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+" ("+str(course.total_bu)+")\n"
         contract.crs_list = crs_list
         if contract.status == 'ACC' and contract.config.get('accepted_date') is not None:            
-            contract.accrej_date = iso8601.parse_date(contract.config.get('accepted_date'))
+            contract.accrej_date = datetime.datetime.fromisoformat(contract.config.get('accepted_date'))
         if contract.status == 'REJ' and contract.config.get('rejected_date') is not None:
-            contract.accrej_date = iso8601.parse_date(contract.config.get('rejected_date'))    
+            contract.accrej_date = datetime.datetime.fromisoformat(contract.config.get('rejected_date'))    
             
     #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
@@ -2001,9 +2000,9 @@ def contracts_table_csv(request, post_slug):
 
         statusdate = ''
         if c.status == 'ACC' and c.config.get('accepted_date') is not None:            
-            statusdate = iso8601.parse_date(c.config.get('accepted_date')).strftime("%Y/%m/%d")
+            statusdate = datetime.datetime.fromisoformat(c.config.get('accepted_date')).strftime("%Y/%m/%d")
         if c.status == 'REJ' and c.config.get('rejected_date') is not None:
-            statusdate = iso8601.parse_date(c.config.get('rejected_date')).strftime("%Y/%m/%d")
+            statusdate = datetime.datetime.fromisoformat(c.config.get('rejected_date')).strftime("%Y/%m/%d")
 
         writer.writerow([c.application.person, c.application.person.email(), citizen, c.get_appt_category_display() + '(' + c.appt_category + ')',
                          c.application.rank, c.get_status_display(), statusdate, c.total_bu(), c.crs_list, c.deadline])

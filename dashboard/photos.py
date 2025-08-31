@@ -189,7 +189,7 @@ def possibly_resize(original):
         return original
 
     # resize
-    img.thumbnail((MAX_PHOTO_SIZE, MAX_PHOTO_SIZE), Image.ANTIALIAS)
+    img.thumbnail((MAX_PHOTO_SIZE, MAX_PHOTO_SIZE), Image.Resampling.BILINEAR)
 
     resize = io.BytesIO()
     img.save(resize, format='jpeg')

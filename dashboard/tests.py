@@ -382,3 +382,45 @@ class FulltextTest(TestCase):
         self.assertEqual(len(res), 0)
         res = SearchQuerySet().models(Page).filter(text='bobdazzles')
         self.assertEqual(len(res), 1)
+
+
+class LibraryBehaviourTest(TestCase):
+    fixtures = ['basedata', 'coredata']
+
+    def test_pillow(self):
+        # We don't use Pillow much, but we can check that the functionality we do use works.
+        # Immitates the image resize in dashboard.photos
+        from dashboard.photos import DUMMY_IMAGE_FILE
+        from PIL import Image
+        import io
+
+        data = open(DUMMY_IMAGE_FILE, 'rb').read()
+        img = Image.open(io.BytesIO(data))
+        img.thumbnail((20, 20), Image.Resampling.BILINEAR)
+        resize = io.BytesIO()
+        img.save(resize, format='jpeg')
+
+        resized = Image.open(resize)
+        self.assertEqual(resized.size, (20, 18))
+
+    def test_ipware(self):
+        # All we use from django-ipware is the get_client_ip function. It has changed return
+        # types in the past: let's be sure. If this test breaks, all usage of get_client_ip
+        # needs updating.
+        from log.models import RequestLog
+        person = Person.objects.filter(userid__isnull=False)[0]
+        c = Client()
+        c.login_user(person.userid)
+        test_views(self, c, 'dashboard:', ['index'], {})
+
+        rl = RequestLog.objects.all().order_by('-time').first()
+        self.assertEqual(rl.ip, '127.0.0.1')
+    
+    def test_intervaltree(self):
+        # The intervaltree library is used in one lonely place in the grad importer: make sure it's sane
+        from grad.importer.tools import semester_lookup
+        s = Semester.current()
+        d = s.start + datetime.timedelta(days=5)
+        result = semester_lookup[d]
+        found = result.pop()
+        self.assertEqual(found[2], s.name)

@@ -7,7 +7,6 @@ Unidecode>=1.4.0
 django-autoslug==1.9.9
 django-formtools==2.5.1
 django-dirtyfields==1.9.7
-django-debug-toolbar
 jsonfield==3.1.0  # TODO: needs newer django for 3.2.0
 pyparsing==3.2.3
 pytz>=2025.2
@@ -29,7 +28,6 @@ celery==5.5.3
 kombu  # let celery choose the version
 django-celery-email==3.0.0
 django_celery_beat==2.8.1
-iso8601==2.1.0  # TODO: can replace with Python 3.7 datetime.datetime.fromisoformat?
 django-haystack==3.3.0
 whoosh==2.7.4
 cmarkgfm==2024.11.20
@@ -38,14 +36,15 @@ psutil==7.0.0
 intervaltree==3.1.0
 requests
 ntplib==0.4.0
+
 ipython
+django-debug-toolbar
 
 # actually only needed in production-like environments...
 python-memcached==1.62
-#django-dbdump==1.1  # TODO: could probably replace with basic CLI
+#django-dbdump==1.1  # TODO: could probably replace with basic CLI call
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
-lxml==6.0.1
 gunicorn==23.0.0
 mysqlclient==2.2.7
 pyodbc==5.2.0
