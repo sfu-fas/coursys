@@ -7,7 +7,6 @@ from django.urls import reverse
 from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug
-from courselib.svn import update_group_repository
 import datetime, urllib.parse
 
 
@@ -30,7 +29,6 @@ class Group(models.Model):
             return 'g-' + s
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='courseoffering')
-    svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
     def __str__(self):
         return '%s' % (self.name)
@@ -48,12 +46,8 @@ class Group(models.Model):
     def confirmed_members(self):
         return self.groupmember_set.filter(confirmed=True).select_related('student__person')
 
-    def svn_url(self):
-        "SVN URL for this member (assuming offering.uses_svn())"
-        return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
-
     class Meta:
-        unique_together = (("name", "courseoffering"), ("slug", "courseoffering"), ("svn_slug", "courseoffering"))
+        unique_together = (("name", "courseoffering"), ("slug", "courseoffering"))
         ordering = ["name"]
 
 class GroupMember(models.Model):
@@ -67,15 +61,10 @@ class GroupMember(models.Model):
 
     def __str__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
+
     class Meta:
         unique_together = ("student", "activity")
         ordering = ["student__person", "activity"]
-
-    def save(self, *args, **kwargs):
-        super(GroupMember, self).save(*args, **kwargs)
-        # update group's SVN repo
-        if settings.SVN_DB_CONNECT: # don't try if not configured
-            update_group_repository(self.group.courseoffering, self.group)
 
     def student_editable(self, userid):
         """

@@ -281,9 +281,6 @@ if DEPLOY_MODE == 'production':
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/filestore/prod/submitted_files')
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    #SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
-    #        'db': 'coursesvn', 'port': 4000}
-    SVN_DB_CONNECT = None
 
 elif DEPLOY_MODE == 'proddev':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
@@ -293,13 +290,11 @@ elif DEPLOY_MODE == 'proddev':
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-    SVN_DB_CONNECT = None
 
 else:
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-    SVN_DB_CONNECT = None
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
@@ -363,9 +358,6 @@ DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
-SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # TODO: remove after DB2 transition
-SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # TODO: remove after DB2 transition
-SIMS_DB_SCHEMA = "dbcsown"  # TODO: remove after DB2 transition
 
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)

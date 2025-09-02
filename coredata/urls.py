@@ -10,14 +10,12 @@ import discipline.views as discipline_views
 import log.views as log_views
 
 data_patterns = [ # prefix /data/
-#    url(r'^courses/(?P<semester>\d{4})$', dashboard_views.courses_json, name='courses_json'),
     url(r'^offerings$', coredata_views.offerings_search, name='offerings_search'),
     url(r'^offerings_slug$', coredata_views.offerings_slug_search, name='offerings_slug_search'),
     url(r'^offerings_slug/'+SEMESTER+'$', coredata_views.offerings_slug_search, name='offerings_slug_search'),
     url(r'^courses$', coredata_views.course_search, name='course_search'),
     url(r'^offering$', coredata_views.offering_by_id, name='offering_by_id'),
     url(r'^students$', coredata_views.student_search, name='student_search'),
-    #url(r'^sims_people', coredata_views.sims_person_search, name='sims_person_search'),
     url(r'^scholarships/(?P<student_id>\d{9})$', ra_views.search_scholarships_by_student, name='search_scholarships_by_student'),
     url(r'^photos/' + EMPLID_SLUG + '$', grades_views.student_photo, name='student_photo'),
     url(r'^roles/' + EMPLID_SLUG + '$', coredata_views.roles, name='roles'),

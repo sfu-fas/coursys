@@ -22,11 +22,7 @@
 <div class="form_container">
   <form action="" method="post">{% csrf_token %}
   <fieldset>
-    {% if course.uses_svn %}
     {{ form|as_dl }}
-    {% else %}
-    {{ form|as_dl_excludefields:"indiv_svn" }}
-    {% endif %}
     <p><input class="submit" type="submit" value="Submit" /></p>
   </fieldset>
   </form>

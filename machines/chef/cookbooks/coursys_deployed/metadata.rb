@@ -1,1 +1,0 @@
-name        "coursys_deployed"
