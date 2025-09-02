@@ -179,8 +179,8 @@ class URLCustomField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         c = forms.URLField(required=self.config['required'],
-            label=self.config['label'], assume_scheme='https',
-            help_text=self.config['help_text'])
+            label=self.config['label'],
+            help_text=self.config['help_text']) # for Django 5.0: assume_scheme='https'
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']

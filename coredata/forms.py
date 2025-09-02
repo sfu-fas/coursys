@@ -431,7 +431,7 @@ class UnitAddressForm(forms.Form):
                             widget=forms.TextInput(attrs={'size': 12}))
     fax = CAPhoneNumberField(required=False, label="Fax Number", help_text='Fax number for the department',
                             widget=forms.TextInput(attrs={'size': 12}))
-    web = forms.URLField(required=True, label="Web", assume_scheme='https', help_text="URL of the department's web site")
+    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site") # for Django 5.0: assume_scheme='https'
     email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
@@ -647,7 +647,7 @@ class TemporaryPersonForm(forms.Form):
                     help_text='SIN number')
 
 class CourseHomePageForm(forms.Form):
-    url = forms.URLField(required=True, label="URL", assume_scheme='https', help_text="URL of the course's main web page")
+    url = forms.URLField(required=True, label="URL", help_text="URL of the course's main web page") # for Django 5.0: assume_scheme='https'
     maillist = forms.CharField(required=False, label="Mailing List", help_text="The course mailing list. Leave blank for the default. e.g. \"cmpt-100-bby\".")
 
 

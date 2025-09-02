@@ -13,7 +13,7 @@ from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDesc
 class HiringSemesterForm(forms.ModelForm):
     comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':625}))
     contact = forms.EmailField(required=False, label="Email Contact", help_text="Notification Email for Time Use Guidelines.")
-    tssu_link = forms.URLField(required=False, label="Link to TSSU Collective Agreement", help_text="Link to TSSU Collective Agreement for Time Use Guidelines.", assume_scheme='https')
+    tssu_link = forms.URLField(required=False, label="Link to TSSU Collective Agreement", help_text="Link to TSSU Collective Agreement for Time Use Guidelines.") # for Django 5.0: assume_scheme='https'
 
     def __init__(self, request, *args, **kwargs):
         super(HiringSemesterForm, self).__init__(*args, **kwargs)
