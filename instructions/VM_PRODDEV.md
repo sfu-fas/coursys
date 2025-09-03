@@ -14,7 +14,7 @@ vagrant ssh
 Then in the VM, get appropriate configuration in place. That is likely something like this:
 ```shell
 cd /coursys/
-echo -e "DEPLOY_MODE = 'proddev'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'localhost'\nEMAIL_PORT = 2525\nEMAIL_USE_SSL = False" | sudo tee courses/localsettings.py
+echo -e "DEPLOY_MODE = 'proddev'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'localhost'\nEMAIL_PORT = 2525\nEMAIL_USE_SSL = False\nMOSS_DISTRIBUTION_PATH = '/home/vagrant/moss'\nCSRF_TRUSTED_ORIGINS = ['http://localhost:8080']" | sudo tee courses/localsettings.py
 echo -e "RABBITMQ_PASSWORD = 'rabbitmq_password'" | sudo tee courses/secrets.py
 ```
 
