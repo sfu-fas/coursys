@@ -31,7 +31,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync', 'pkg-config', 'unzip']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -102,7 +102,8 @@ if deploy_mode != 'devel'
 
   # docker
   execute 'docker-key' do
-    command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -'
+    command 'mkdir -p /etc/apt/keyrings/ && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
+    creates '/etc/apt/keyrings/docker.gpg'
   end
   directory "/lib/systemd/system/docker.service.d" do
     owner 'root'
@@ -121,7 +122,7 @@ if deploy_mode != 'devel'
     components ['stable']
     distribution ubuntu_release
     arch 'amd64'
-    #key '7EA0A9C3F273FCD8'
+    key '7EA0A9C3F273FCD8'
     #keyserver 'keyserver.ubuntu.com'
     action :add
     deb_src false
