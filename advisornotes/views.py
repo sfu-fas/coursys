@@ -407,7 +407,7 @@ def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     except:
         return render(request, 'advisornotes/student_survey.html', {'expired': True})
 
-    if survey.is_expired:
+    if survey.is_expired and not survey.is_complete:
         return render(request, 'advisornotes/student_survey.html', {'expired': True})
 
     visit = survey.visit
