@@ -30,7 +30,7 @@ from dashboard.letters import ta_form, ta_forms, tug_form, taworkload_form, ta_e
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
-import datetime, decimal, locale 
+import datetime, decimal 
 import csv
 from ta.templatetags import ta_display
 import json
@@ -52,10 +52,9 @@ from tacontracts.models import HiringSemester
 # prod > 1247
 TUG_FORMAT_CUTOFF = '1247'
 
-locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
     """used to properly format money"""
-    return locale.currency(float(i), grouping=True)
+    return ta_display.to_dollars(i)
 
 
 def _create_news(person, url, from_user, accept_deadline, total_bu ):
@@ -2888,7 +2887,7 @@ def download_financial(request, post_slug):
                      'Total Amount'])
     for o in offerings:
         writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
-                         posting.ta_count(o), posting.assigned_bu(o), locale.currency(float(posting.total_pay(o)))])
+                         posting.ta_count(o), posting.assigned_bu(o), _format_currency(posting.total_pay(o))])
     return response
 
 def _contact_people(posting, statuses):
