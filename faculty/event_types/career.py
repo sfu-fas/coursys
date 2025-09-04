@@ -688,3 +688,49 @@ class ContractReviewEventHandler(CareerEventHandlerBase):
         return CONTRACT_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
     def short_summary(self):
         return "Contract Renewal: {0}".format(self.get_result_display(),)
+
+class RetirementEventHandler(CareerEventHandlerBase):
+    """
+    Retirement
+    """
+
+    EVENT_TYPE = 'RETIRE'
+    NAME = 'Retirement'
+
+    IS_EXCLUSIVE = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Retirement Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
+        <dt>Retirement Type</dt><dd>{{ handler|get_display:"type" }}</dd>
+        <dt>Emeritus Status</dt><dd>{{ handler|get_display:"emeritus_status"|yesno }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        RETIREMENT_TYPE_CHOICES = Choices(
+            ('REG', 'Regular Retirement'),
+            ('PHA', 'Phased Retirement'),
+            ('ENH', 'Enhanced Early Retirement'),
+        )
+
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Retirement")
+        request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Retirement Request Date")
+        type = forms.ChoiceField(initial='REG', required=True, choices=RETIREMENT_TYPE_CHOICES)
+        emeritus_status = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Emeritus Status")
+
+    SEARCH_RULES = {
+        'type': search.ChoiceSearchRule,
+        'emeritus_status': search.BooleanSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'type',
+        'emeritus_status'
+    ]
+
+    def get_type_display(self):
+        return self.EntryForm.RETIREMENT_TYPE_CHOICES.get(self.get_config('type'), 'N/A')
+
+    def short_summary(self):
+        return "Retirement"
