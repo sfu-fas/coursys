@@ -763,3 +763,38 @@ class ResignationEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return "Resignation"
+    
+class ProbationaryReviewEventHandler(CareerEventHandlerBase):
+    EVENT_TYPE = 'PROBATR'
+    NAME = "Probationary Review"
+    IS_INSTANT = True
+
+    TO_HTML_TEMPLATE = '''
+        {% extends "faculty/event_base.html" %}
+            {% load event_display %}{% block dl %}
+            <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+            <dt>Continuing Appointment Effective Date</dt><dd>{{ handler|get_display:"continuing_effective_date" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+
+        PROBATIONARY_REVIEW_CHOICES = Choices(
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Date of Application")
+        result = forms.ChoiceField(required=False, label='Result', choices=PROBATIONARY_REVIEW_CHOICES)
+        continuing_effective_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Continuing Appointment Effective Date")
+
+    SEARCH_RULES = {
+        'result': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.PROBATIONARY_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Probationary Review: {0}".format(self.get_result_display(),)
