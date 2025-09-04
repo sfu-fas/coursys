@@ -897,3 +897,46 @@ class AlternateCareerPathEventHandler(CareerEventHandlerBase):
     
     def short_summary(self):
         return "Alternate Career Path {0}".format(self.get_result_display(),)
+    
+class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
+    """
+    Modified Appointment
+    """
+
+    EVENT_TYPE = 'MODAPP'
+    NAME = 'Modified Appointment'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Reduction (%)</dt><dd>{{ handler|get_display:"reduction" }}</dd>
+        <dt>Permanent Modification?</dt><dd>{{ handler|get_display:"permanent"|yesno }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        
+        MODIFIED_RESULT_CHOICES = Choices(
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Forst Day of Modification", help_text="")
+        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Day of Modification (optional)", help_text="")
+        reduction = forms.DecimalField(required=False, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
+        permanent =  forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Permanent Modification?")
+        result = forms.ChoiceField(required=False, label='Result', choices=MODIFIED_RESULT_CHOICES)
+
+    SEARCH_RULES = {
+        'result': search.ComparableSearchRule,
+        'permanent': search.BooleanSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'permanent'
+    ]
+    def get_result_display(self):
+        return self.EntryForm.MODIFIED_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Modified Appointment {0}".format(self.get_result_display(),)
