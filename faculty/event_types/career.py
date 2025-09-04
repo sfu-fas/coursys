@@ -716,6 +716,7 @@ class RetirementEventHandler(CareerEventHandlerBase):
         )
 
         start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Retirement")
+        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Retirement Request Date")
         type = forms.ChoiceField(initial='REG', required=True, choices=RETIREMENT_TYPE_CHOICES)
         emeritus_status = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Emeritus Status")
@@ -754,6 +755,7 @@ class ResignationEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
 
         start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
+        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Resignation Request Date")
 
     SEARCH_RULES = {}
