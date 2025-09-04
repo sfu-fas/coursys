@@ -89,12 +89,12 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         )
 
         position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
-        spousal_hire = forms.BooleanField(initial=False, required=False)
+        spousal_hire = forms.BooleanField(initial=False, required=False, help_text='Found on Recommendation for Appointment form (AKA "RFAF")')
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
         degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
-                                                           'Recommendation for Appointment Forms (AKA "Yellow Form"). '
+                                                           'Recommendation for Appointment Forms (AKA "RFAF"). '
                                                            ' List the highest degree first.', required=False,
-                                  label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
+                                  label='Degree 1 (Highest Degree)', widget=forms.TextInput(attrs={'size': '13'}))
         year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))
         institution1 = forms.CharField(max_length=25, required=False, label='Institution 1')
         location1 = forms.CharField(max_length=23, required=False, label='City/Country 1')
@@ -109,8 +109,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
         location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
         teaching_semester_credits = forms.DecimalField(max_digits=3, decimal_places=0, required=False,
-                                                       help_text='Number of teaching semester credits, for the tenure '
-                                                       'track form')
+                                                       help_text='Number of teaching releases received with initial appointment. Found in Informal or Provisional Offer.')
 
 
     SEARCH_RULES = {
@@ -239,6 +238,7 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
 
         STIPEND_SOURCES = Choices(
             ('RETENTION', 'Retention Award'),
+            ('SALARY', 'Salary Anomaly'),
             ('MARKETDIFF', 'Market Differential'),
             ('RESEARCH', 'Research Chair Stipend'),
             ('OTHER', 'Other'),
@@ -278,7 +278,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     Tenure Application Career event
     """
     EVENT_TYPE = 'TENUREAPP'
-    NAME = "Tenure Application"
+    NAME = "Tenure Only Application"
     IS_INSTANT = False
 
     TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -307,7 +307,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
 
     def short_summary(self):
-        return "Tenure application: {0}".format(self.get_result_display(),)
+        return "Tenure only application: {0}".format(self.get_result_display(),)
 
 
 class PromotionApplicationEventHandler(CareerEventHandlerBase):
@@ -417,6 +417,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     class EntryForm(BaseEntryForm):
         REASONS = Choices(
             ('MEDICAL', 'Medical'),
+            ('CL', 'Compassionate Leave'),
             ('PARENTAL', 'Parental'),
             ('ADMIN', 'Admin'),
             ('LOA', 'Leave of Absence'),
@@ -474,8 +475,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Option</dt><dd>{{ handler|get_display:"option" }} </dd>
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
-        <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
-        <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
+        {% if handler|get_config:"report_received" %}<dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
+        <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>{% endif %}
         <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_decrease" }}</dd>
         <dt>Deferred Salary</dt><dd>{{ handler|get_display:"deferred_salary"|yesno }}</dd>
         <dt>Accumulated Credits</dt><dd>{{ handler|get_display:"accumulated_credits" }}</dd>
@@ -496,13 +497,13 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
-        teaching_decrease = fields.TeachingReductionField()
+        teaching_decrease = fields.TeachingReductionPeriodsField()
         deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
-        accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
+        accumulated_credits = forms.DecimalField(label='Accumulated Credits', min_value=0, max_value=99,
                                                  help_text='Accumulated unused credits', required=False)
         study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99,
                                                  help_text='Total number of Study Leave Credits spent for entire leave')
-        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
+        credits_forward = forms.DecimalField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
                                              max_value=10000,
                                              help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
@@ -517,6 +518,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 teaching_load = 0
 
             self.fields['teaching_decrease'].initial = teaching_load
+            self.fields['report_received'].initial = teaching_load
+            # retired fields
+            self.fields.pop('report_received')
+            self.fields.pop('report_received_date')
 
     SEARCH_RULES = {
         'pay_fraction': search.ComparableSearchRule,
@@ -588,6 +593,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'ACCRED'
     NAME = 'Accreditation Attribute'
+    IS_INSTANT = True
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}

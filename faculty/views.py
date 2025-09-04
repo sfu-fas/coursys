@@ -30,7 +30,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment, RARequest
 
-from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
+from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo, RETIRED_HANDLERS
 from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment, PositionDocumentAttachment
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, FACULTY_ROLE_EXPIRY
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
@@ -1614,6 +1614,9 @@ def create_event(request, userid, event_type):
     editor = get_object_or_404(Person, userid=request.user.username)
 
     Handler = _get_Handler_or_404(event_type.upper())
+
+    if Handler in RETIRED_HANDLERS:
+        raise Http404
 
     tmp = Handler.create_for(person)
     if not tmp.can_edit(editor):

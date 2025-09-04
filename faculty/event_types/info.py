@@ -31,6 +31,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         <dt>Organization Class</dt><dd>{{ handler|get_display:'org_class'}}</dd>
         <dt>Is Research Institute / Centre?</dt><dd>{{ handler|get_display:'is_research'|yesno }}</dd>
         <dt>Is Adjunct?</dt><dd>{{ handler|get_display:'is_adjunct'|yesno }}</dd>
+        {% if handler|get_config:"is_associate_member" != 'unknown' %}<dt>Is Associate Member?</dt><dd>{{ handler|get_display:'is_associate_member'|yesno }}</dd>{% endif %}
         {% endblock %}
     '''
 
@@ -51,18 +52,21 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         org_class = forms.ChoiceField(label='Organization Classification', choices=ORG_CLASSES)
         is_research = forms.BooleanField(label='Research Institute/Centre?', required=False)
         is_adjunct = forms.BooleanField(label='Adjunct?', required=False)
+        is_associate_member = forms.BooleanField(label='Associate Member?', required=False)
 
     SEARCH_RULES = {
         'org_name': search.StringSearchRule,
         'org_type': search.ChoiceSearchRule,
         'org_class': search.ChoiceSearchRule,
         'is_adjunct': search.BooleanSearchRule,
+        'is_associate_member': search.BooleanSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'org_name',
         'org_type',
         'org_class',
         'is_adjunct',
+        'is_associate_member',
     ]
 
     def get_org_type_display(self):
@@ -305,16 +309,16 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 class SpecialDealHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'SPCL_DEAL'
-    NAME = 'Special Deal'
+    NAME = 'Special Arrangements'
 
     class EntryForm(BaseEntryForm):
-        description = forms.CharField(help_text='A brief description of the deal', max_length=30)
+        description = forms.CharField(help_text='A brief description of the arrangements', max_length=30)
         def post_init(self):
-            self.fields['comments'].help_text = 'Enter details about the special deal.'
+            self.fields['comments'].help_text = 'Enter details about the special arrangements.'
             self.fields['comments'].required = True
 
     def short_summary(self):
-        return 'Special Deal: {}'.format(self.get_config('description'))
+        return 'Special Arrangements: {}'.format(self.get_config('description'))
 
 class OtherEventHandler(CareerEventHandlerBase):
 

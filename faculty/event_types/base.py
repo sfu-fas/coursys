@@ -80,8 +80,8 @@ class CareerEventMeta(abc.ABCMeta):
 
 
 class BaseEntryForm(forms.Form):
-    start_date = SemesterField(required=True, semester_start=True, help_text="Day this becomes effective: enter date or enter semester code on the right")
-    end_date = SemesterField(required=False, semester_start=False, help_text="Day this ends: enter date or enter semester code on the right")
+    start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="Day this becomes effective")
+    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="Day this ends")
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)

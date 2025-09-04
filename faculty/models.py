@@ -79,8 +79,17 @@ HANDLERS = [
     ContractReviewEventHandler,
     ResumeEventHandler
 ]
+
+RETIRED_HANDLERS = [
+    ExternalServiceHandler,
+    OneInNineHandler,
+    ResearchMembershipHandler,
+    ResumeEventHandler,
+    TeachingCreditEventHandler,
+]
+
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
-EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
+EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS if handler not in RETIRED_HANDLERS]
 
 EVENT_TAGS = {
                 'title': '"Mr", "Miss", etc.',
@@ -115,6 +124,7 @@ ADD_TAGS = {
                 'org_class': 'classification external/not-for-profit',
                 'is_research': 'yes/no - research institute?',
                 'is_adjunct': 'yes/no - adjunct?',
+                'is_associate_member': 'yes/no - associate member?',
                 'grant_name': 'name of the grant',
                 'load': 'teaching load',
                 'leave_fraction': 'Fraction of salary received during leave eg. "2/3"',
