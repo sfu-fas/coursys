@@ -798,3 +798,57 @@ class ProbationaryReviewEventHandler(CareerEventHandlerBase):
     
     def short_summary(self):
         return "Probationary Review: {0}".format(self.get_result_display(),)
+    
+class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
+    """
+    Tenure & Promotion to Associate Professor
+    """
+
+    EVENT_TYPE = 'TENPROAP'
+    NAME = 'Tenure and Promotion to Associate Professor'
+
+    IS_INSTANT = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Early Consideration?</dt><dd>{{ handler|get_display:"early_consideration"|yesno }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        <dt>Steps Year One</dt><dd>{{ handler|get_display:"steps_year_one" }}</dd>
+        <dt>Steps Year Two</dt><dd>{{ handler|get_display:"steps_year_two" }}</dd>
+        <dt>Tenure Effective Date</dt><dd>{{ handler|get_display:"tenure_effective" }}</dd>
+        <dt>Promotion Effective Date</dt><dd>{{ handler|get_display:"promotion_effective" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        TENURE_RESULT_CHOICES = Choices(
+            ('TPR', 'Tenured and Promoted'),
+            ('DEN', 'Denied'),
+        )
+
+        STEPS = [i * 0.5 for i in range(2,13)] # 1, 1.5, 2, 2.5 ...
+        STEP_CHOICES = [(str(step), str(step)) for step in STEPS]
+
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Application Date")
+        early_consideration = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Early Consideration?")
+        result = forms.ChoiceField(required=False, label='Result', choices=TENURE_RESULT_CHOICES)
+        steps_year_one = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year One")
+        steps_year_two = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year Two")
+        tenure_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Tenure Effective Date")
+        promotion_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Promotion Effective Date")
+
+    SEARCH_RULES = {
+        'result': search.ComparableSearchRule,
+        'early_consideration': search.BooleanSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'early_consideration',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.TENURE_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+
+    def short_summary(self):
+        return "Tenure and Promotion to Associate Professor {0}".format(self.get_result_display(),)
