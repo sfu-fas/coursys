@@ -852,3 +852,48 @@ class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return "Tenure and Promotion to Associate Professor {0}".format(self.get_result_display(),)
+    
+class AlternateCareerPathEventHandler(CareerEventHandlerBase):
+    """
+    Alternate Career Path
+    """
+
+    EVENT_TYPE = 'ALTCA'
+    NAME = 'Alternate Career Path'
+
+    IS_EXCLUSIVE = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Distribution of Workload: Teaching (%)</dt><dd>{{ handler|get_display:"teaching" }}</dd>
+        <dt>Distribution of Workload: Research (%)</dt><dd>{{ handler|get_display:"research" }}</dd>
+        <dt>Distribution of Workload: Service (%)</dt><dd>{{ handler|get_display:"service" }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        
+        CAREER_RESULT_CHOICES = Choices(
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+
+        #start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
+        #end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
+        teaching = forms.DecimalField(required=False, label='Distribution of Workload: Teaching (%)', min_value=0, max_value=100, decimal_places=1)
+        research = forms.DecimalField(required=False, label='Distribution of Workload: Research (%)', min_value=0, max_value=100, decimal_places=1)
+        service = forms.DecimalField(required=False, label='Distribution of Workload: Service (%)', min_value=0, max_value=100, decimal_places=1)
+        result = forms.ChoiceField(required=False, label='Result', choices=CAREER_RESULT_CHOICES)
+
+    SEARCH_RULES = {
+        'result': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
+    def get_result_display(self):
+        return self.EntryForm.CAREER_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Alternate Career Path {0}".format(self.get_result_display(),)
