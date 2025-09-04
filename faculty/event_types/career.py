@@ -734,3 +734,30 @@ class RetirementEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return "Retirement"
+        
+class ResignationEventHandler(CareerEventHandlerBase):
+    """
+    Resignation
+    """
+
+    EVENT_TYPE = 'RESIGN'
+    NAME = 'Resignation'
+
+    IS_EXCLUSIVE = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Resignation Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
+        request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Resignation Request Date")
+
+    SEARCH_RULES = {}
+    SEARCH_RESULT_FIELDS = []
+
+    def short_summary(self):
+        return "Resignation"

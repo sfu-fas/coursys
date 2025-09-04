@@ -39,6 +39,7 @@ from faculty.event_types.career import PromotionApplicationEventHandler
 from faculty.event_types.career import SalaryReviewEventHandler
 from faculty.event_types.career import ContractReviewEventHandler
 from faculty.event_types.career import RetirementEventHandler
+from faculty.event_types.career import ResignationEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
@@ -70,6 +71,7 @@ HANDLERS = [
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     RetirementEventHandler,
+    ResignationEventHandler,
     SalaryModificationEventHandler,
     SpecialDealHandler,
     StudyLeaveEventHandler,
