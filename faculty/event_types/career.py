@@ -921,7 +921,7 @@ class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
             ('DEN', 'Denied'),
         )
 
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Forst Day of Modification", help_text="")
+        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Modification", help_text="")
         end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Day of Modification (optional)", help_text="")
         reduction = forms.DecimalField(required=False, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
         permanent =  forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Permanent Modification?")
