@@ -409,6 +409,13 @@ def get_names(emplid):
         middle_name = middle
         title = prefix
     
+    # if there's a preferred name specified, always use it and ignore the first_name
+    if pref_first_name:
+        first_name = pref_first_name
+        pref_first_name = None
+    
+    # open question: if there's a PRI name that comes *after* a pref name, who wins?
+
     return last_name, first_name, middle_name, pref_first_name, title
 
 
