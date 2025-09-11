@@ -18,5 +18,10 @@ class Command(BaseCommand):
             print(p.sortname_pref_only())
             p.config['legal_first_name_do_not_use'] = p.first_name
             p.first_name = p.pref_first_name
+
+            # a few users have our manually-set pref_first_name: remove if appropriate
+            if 'pref_first_name' in p.config and p.config['pref_first_name'] == p.pref_first_name:
+                del p.config['pref_first_name']
+
             if not options['dry_run']:
                 p.save()
