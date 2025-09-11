@@ -383,7 +383,7 @@ def get_names(emplid):
     """
     Basic personal info to populate Person object
     
-    Returns (last_name, first_name, middle_name, pref_first_name, title).
+    Returns (last_name, first_name, middle_name, pref_first_name, title). Note that here first_name is deadname, not true first name.
     """
     db = SIMSConn()
     
@@ -408,13 +408,6 @@ def get_names(emplid):
         last_name = last
         middle_name = middle
         title = prefix
-    
-    # if there's a preferred name specified, always use it and ignore the first_name
-    if pref_first_name:
-        first_name = pref_first_name
-        pref_first_name = None
-    
-    # open question: if there's a PRI name that comes *after* a pref name, who wins?
 
     return last_name, first_name, middle_name, pref_first_name, title
 
@@ -1652,21 +1645,31 @@ def import_person(p, commit=True, grad_data=False):
     """
     Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
-    last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
+    last_name, legal_first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:
         # no name = no such person
         return None
-
+    
     userid = emplid_to_userid(p.emplid)
     #if userid and len(userid) > 8:
     #    raise ValueError('userid too long', "We have a userid >8 characters: %r" % (userid,))
 
     p.last_name = last_name
-    p.first_name = first_name
+    p.first_name = pref_first_name
     p.middle_name = middle_name
-    p.pref_first_name = pref_first_name
     p.title = title
     p.config['lastimport'] = int(time.time())
+
+    if not pref_first_name and legal_first_name:
+        # if there is no preferred first name in SIMS, accept the legal name as the only option: seems to not occur in practice
+        p.first_name = legal_first_name
+    elif legal_first_name != pref_first_name:
+        # where legal name is distinct, store it just in case a lawyer tells us it must be used somewhere
+        p.config['legal_first_name_do_not_use'] = legal_first_name
+    elif 'legal_first_name_do_not_use' in p.config:
+        del p.config['legal_first_name_do_not_use']
+
+    p.pref_first_name = p.first_name  # populate pref_first_name for code that assumes it exists: hopefully can be removed eventually
 
     # don't deactivate userids that have been deactivated by the University
     if userid:
