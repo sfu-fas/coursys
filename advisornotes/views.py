@@ -445,7 +445,18 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     user = get_object_or_404(Person, userid=request.user.username)
     surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=user, visit__isnull=True)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
     incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units, created_at__gt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))).count()
-    return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 'admin': True, 'mine': False})
+    
+    # response rate info
+    surveys_with_visits = AdvisorVisitSurvey.objects.filter(visit__unit__in=Unit.sub_units(request.units), created_at__lt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)))
+    surveys_with_visits_count = surveys_with_visits.count()
+    complete_surveys_with_visits_count = surveys_with_visits.filter(completed_at__isnull=False).count()
+    if surveys_with_visits_count > 0:
+        response_rate = round((complete_surveys_with_visits_count / surveys_with_visits_count), 3)
+    else:
+        response_rate = None
+    return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 
+                                                                  'surveys_with_visits': surveys_with_visits_count, 'complete_surveys_with_visits': complete_surveys_with_visits_count,
+                                                                  'response_rate': response_rate, 'expiry_days': SURVEY_EXPIRY_DAYS, 'admin': True, 'mine': False})
 
 @requires_role('ADVM')
 def download_all_surveys(request) -> HttpResponse:

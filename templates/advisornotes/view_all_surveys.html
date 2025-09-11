@@ -72,7 +72,12 @@ $(function() {
 {% if admin %}
 {% if incomplete_surveys > 0 %}
 <div class="notification">
-<p>There are currently {{ incomplete_surveys }} surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i>
+<p>There are currently <b>{{ incomplete_surveys }}</b> surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i></p>
+</div>
+{% endif %}
+{% if response_rate %}
+<div class="notification">
+<p>Response Rate (excluding the past {{ expiry_days }} days): <b>{{ complete_surveys_with_visits }}</b> Visits with Completed Surveys / <b>{{surveys_with_visits}}</b> Visits with Surveys = <b>% {{ response_rate }}</b> <i class="fa fa-laptop"></i></p>
 </div>
 {% endif %}
 <div class="actionlist">
