@@ -488,9 +488,11 @@ def view_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
     if advisor_admin:
         survey = get_object_or_404(AdvisorVisitSurvey, Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=advisor, visit__isnull=True), key=key)
+        next_survey = AdvisorVisitSurvey.objects.filter(visit__unit__in=Unit.sub_units(request.units), created_at__lt=survey.created_at).exclude(completed_at__isnull=True).order_by("-created_at").first()
     else:
         survey = get_object_or_404(AdvisorVisitSurvey, key=key, visit__unit__in=request.units, visit__advisor=advisor)
-    return render(request, 'advisornotes/view_survey.html', {'survey': survey})
+        next_survey = AdvisorVisitSurvey.objects.filter(visit__unit__in=request.units, visit__advisor=advisor, created_at__lt=survey.created_at).exclude(completed_at__isnull=True).order_by("-created_at").first()
+    return render(request, 'advisornotes/view_survey.html', {'survey': survey, 'next_survey': next_survey})
 
 @requires_role('ADVM')
 def delete_survey(request: HttpRequest, key: uuid) -> HttpResponse:

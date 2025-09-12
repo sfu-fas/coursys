@@ -4,6 +4,14 @@
     margin-left: 0px;
 }
 
+.actionlistflex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 5px;
+    margin-left: 0px;
+}
+
 .form_section {
     background-color: #eee;
     padding-top: 10px;

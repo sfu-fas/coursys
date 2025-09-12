@@ -61,8 +61,9 @@
 {% endif %}
 </div>
 {% if survey.visit %}
-<div class="actionlist">
+<div class="actionlistflex">
     <a class="btn" href="{% url "advising:student_notes" userid=survey.visit.get_userid %}">View Student Notes</a>
+    {% if next_survey %}<a class="btn" href="{% url "advising:view_survey" key=next_survey.key %}">Next Survey</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}
