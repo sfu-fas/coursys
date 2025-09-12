@@ -313,6 +313,9 @@ def userid_from_sims(emplid):
 def find_person(emplid, get_userid=True):
     """
     Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
+
+    This function quickly finds personal data from SIMS (typically where users are handling people
+    new to the system). Prefer build_person or import_person where possible.
     """
     db = SIMSConn()
     db.execute("SELECT EMPLID, LAST_NAME, FIRST_NAME, MIDDLE_NAME FROM PS_PERSONAL_DATA WHERE EMPLID=%s",
@@ -338,7 +341,7 @@ def find_external_email(emplid):
         return row[0]
 
 
-def add_person(emplid, commit=True, get_userid=True, external_email=False):
+def add_person(emplid, commit=True, external_email=False):
     """
     Add a Person object based on the found SIMS data
     """
@@ -348,12 +351,7 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             # person already there: ignore
             return ps[0]
 
-        data = find_person(emplid, get_userid=get_userid)
-        if not data:
-            return
-
-        p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
-                   pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
+        p = build_person(emplid, commit=False)
 
         if external_email:
             # used for fetching grad committee members: includes non-SFU people and we want
@@ -362,13 +360,9 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             if e:
                 p.config['external_email'] = e
 
-        if data['userid']:
-            ps = Person.objects.filter(userid=data['userid'])
-            if ps:
-                raise ValueError('Possibly re-used userid %r?' % (data['userid']))
-
         if commit:
             p.save()
+
     return p
 
 
@@ -1633,12 +1627,12 @@ def ensure_person_from_userid(userid):
     return build_person(emplid, userid)
 
 
-def build_person(emplid, userid=None):
+def build_person(emplid, userid=None, commit=True):
     """
     Build a Person object for this newly-discovered person
     """
     p = Person(emplid=emplid, userid=userid)
-    return import_person(p)
+    return import_person(p, commit=commit)
 
 
 def import_person(p, commit=True, grad_data=False):
