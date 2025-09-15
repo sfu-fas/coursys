@@ -55,6 +55,7 @@ def build_program_map():
     seeunit = Unit.objects.get(label="SEE")
     program_map['SEMAS'] = GradProgram.objects.get(label="SEE MASc", unit=seeunit)
     program_map['SEPHD'] = GradProgram.objects.get(label="SEE PhD", unit=seeunit)
+    program_map['SEEME'] = GradProgram.objects.get(label="SEE M.Eng", unit=seeunit)
     return program_map
 
 
