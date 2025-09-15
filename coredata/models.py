@@ -168,6 +168,10 @@ class Person(models.Model, ConditionalSaveMixin):
         # '2fa': do we require this user to do 2FA for all logins?
         # 'recovery_email': non-SFU recovery email for 2FA: should be present if config['2fa'].
 
+        # 'legal_first_name_do_not_use': the person's legal name from SIMS, if different from first_name.
+        #  Legal name should not be used because one of our stakeholders requests it. This may be a time to say no and refer to University policy on using names.
+        #  Legal name should only be used in consultation with appropriate data steward: Human Resources or Faculty Relations or Registrar's Office.
+
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
                 'sin': '000000000', 'phone_ext': None, 'birthdate': None}
