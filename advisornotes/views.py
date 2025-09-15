@@ -35,6 +35,7 @@ from django.db.models import Q
 
 # units participating in post-advising surveys
 SURVEY_UNITS = ['APSC', 'CMPT', 'ENSC', 'MSE', 'SEE']
+VISIT_AGE_MAX = 3
 
 def _redirect_to_notes(student):
     """
@@ -317,7 +318,7 @@ def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit):
     if visit.survey_sent:
         return
     # check that the visit occured within the last three days
-    if visit.created_at < (datetime.datetime.now() - datetime.timedelta(days=3)):
+    if visit.created_at < (datetime.datetime.now() - datetime.timedelta(days=VISIT_AGE_MAX)):
         return
     
     user = get_object_or_404(Person, userid=request.user.username)
@@ -447,16 +448,18 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units, created_at__gt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))).count()
     
     # response rate info
-    surveys_with_visits = AdvisorVisitSurvey.objects.filter(visit__unit__in=Unit.sub_units(request.units), created_at__lt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS)))
-    surveys_with_visits_count = surveys_with_visits.count()
-    complete_surveys_with_visits_count = surveys_with_visits.filter(completed_at__isnull=False).count()
-    if surveys_with_visits_count > 0:
-        response_rate = round((complete_surveys_with_visits_count / surveys_with_visits_count), 3)
+    days_buffer = SURVEY_EXPIRY_DAYS + VISIT_AGE_MAX
+    visits = AdvisorVisit.objects.filter(unit__in=Unit.sub_units(request.units), created_at__lt=(datetime.datetime.now() - datetime.timedelta(days=days_buffer)))
+    visits_with_surveys = visits.filter(id__in=[visit.id for visit in visits if visit.survey_sent])
+    visits_with_surveys_count = visits_with_surveys.count()
+    visits_with_complete_surveys_count = visits_with_surveys.filter(survey__completed_at__isnull=False).count()
+    if visits_with_surveys_count > 0:
+        response_rate = round((visits_with_complete_surveys_count / visits_with_surveys_count) * 100, 3)
     else:
         response_rate = None
     return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 
-                                                                  'surveys_with_visits': surveys_with_visits_count, 'complete_surveys_with_visits': complete_surveys_with_visits_count,
-                                                                  'response_rate': response_rate, 'expiry_days': SURVEY_EXPIRY_DAYS, 'admin': True, 'mine': False})
+                                                                  'visits_with_surveys': visits_with_surveys_count, 'complete_surveys_with_visits': visits_with_complete_surveys_count,
+                                                                  'response_rate': response_rate, 'expiry_days': days_buffer, 'admin': True, 'mine': False})
 
 @requires_role('ADVM')
 def download_all_surveys(request) -> HttpResponse:
