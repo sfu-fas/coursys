@@ -31,7 +31,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync', 'pkg-config', 'unzip']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync', 'pkg-config', 'unzip', 'libfreetype-dev']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -68,7 +68,7 @@ end
 
 # Python and JS deps
 execute "install_pip_requirements" do
-  command "python3 -m pip install -r #{coursys_dir}/requirements.txt"
+  command "python3 -m pip install -r #{coursys_dir}/requirements.txt || python3 -m pip install -r #{coursys_dir}/requirements.txt --break-system-packages"
   creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
