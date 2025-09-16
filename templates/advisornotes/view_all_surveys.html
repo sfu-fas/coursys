@@ -14,11 +14,10 @@ $(function() {
     "bJQueryUI": true,
     'bPaginate': true,
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
-    'aaSorting': [[3, 'desc']],
+    'aaSorting': [[1, 'desc']],
     'scrollY': false, 
     "columnDefs": [
-    { "width": "20%", "targets": [0, 1] },
-    { "width": "20%", "targets": [2, 3, 4] },
+    { "width": "25%", "targets": [0, 1, 2, 3] },
     ]
   } );
 } );
@@ -37,9 +36,8 @@ $(function() {
     <thead>
         <tr>
             <th scope="col">Student</th>
-            <th scope="col">Advisor</th>
-            <th scope="col">Appointment Began</th>
             <th scope="col">Survey Sent</th>
+            <th scope="col">Survey Completed</th>
             <th scope="col">Overall Rating</th>
         </tr>
     </thead>
@@ -48,13 +46,13 @@ $(function() {
         <tr>
             <td>
                 {% if survey.visit %}
-                <a href="{% url "advising:view_survey" key=survey.key %}">{{ survey.visit.get_full_name }}</a>
+                <a href="{% url "advising:view_survey" key=survey.key %}" title="{{survey.visit.programs}}">{{ survey.visit.get_full_name }}</a>
                 {% else %}
                 <a href="{% url "advising:view_survey" key=survey.key %}">Test Visit </a>(<a href="{% url "advising:delete_survey" key=survey.key %}">Delete</a>)
-                {% endif %}</td>
-            <td>{% if survey.visit %}{{ survey.visit.advisor}}{% endif %}</td>
-            <td>{% if survey.visit %}{{ survey.visit.created_at }}{% endif %}</td>
+                {% endif %}
+            </td>
             <td><span class="sort">{{ survey.created_at.isoformat }}</span>{{ survey.created_at }}</td>
+            <td>{{ survey.completed_at }}</td>
             <td class="{% if survey.overall == 5 %} excellent
                        {% elif survey.overall == 4 %} verygood
                        {% elif survey.overall == 3 %} good
@@ -72,7 +70,12 @@ $(function() {
 {% if admin %}
 {% if incomplete_surveys > 0 %}
 <div class="notification">
-<p>There are currently {{ incomplete_surveys }} surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i>
+<p>There are currently <b>{{ incomplete_surveys }}</b> surveys that are still valid but have not yet been completed. <i class="fa fa-group"></i></p>
+</div>
+{% endif %}
+{% if response_rate %}
+<div class="notification">
+<p>Response Rate (excluding the past {{ expiry_days }} days): <b>{{ visits_with_complete_surveys_count }}</b> Visits with Completed Surveys / <b>{{ visits_with_surveys_count }}</b> Visits with Sent Surveys = <b>{{ response_rate }}%</b> <i class="fa fa-laptop"></i></p>
 </div>
 {% endif %}
 <div class="actionlist">
