@@ -470,9 +470,9 @@ def download_all_surveys(request) -> HttpResponse:
     response['Content-Disposition'] = 'inline; filename="%s-advising-surveys.csv"' % datetime.datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
 
-    writer.writerow(['Student', 'Student Email', 'Advisor', 'Mode', 'Campus', 'Appointment Began', 'Appointment Ended', 'Survey Sent At', 'Survey Completed At', 'Enough Time?', 'Overall', 'Reason', 'Questions Answered', 'Supported?', 'Advisor...', 'Questions Unanswered', 'Other Comments'])
+    writer.writerow(['Student', 'Student Email', 'Programs', 'Advisor', 'Mode', 'Campus', 'Appointment Began', 'Appointment Ended', 'Survey Sent At', 'Survey Completed At', 'Duration', 'Enough Time?', 'Overall', 'Reason', 'Questions Answered', 'Supported?', 'Advisor...', 'Questions Unanswered', 'Other Comments'])
     for s in surveys:
-        writer.writerow([s.visit.get_full_name(), s.visit.get_email(), s.visit.advisor.sortname_pref_only(), s.visit.get_mode_display(), s.visit.get_campus_display(), s.visit.created_at.strftime("%Y/%m/%d %H:%M"), s.visit.end_time.strftime("%Y/%m/%d %H:%M"), s.created_at.strftime("%Y/%m/%d %H:%M"), s.completed_at.strftime("%Y/%m/%d %H:%M"), s.get_time_display(), s.get_overall_display(), ",".join(s.reason_display()), s.get_questions_answered_display(), s.get_support_display(), ",".join(s.advisor_review_display()), s.questions_unanswered_display(), s.comments])
+        writer.writerow([s.visit.get_full_name(), s.visit.get_email(), s.visit.programs, s.visit.advisor.sortname_pref_only(), s.visit.get_mode_display(), s.visit.get_campus_display(), s.visit.created_at.strftime("%Y/%m/%d %H:%M"), s.visit.end_time.strftime("%Y/%m/%d %H:%M"), s.created_at.strftime("%Y/%m/%d %H:%M"), s.completed_at.strftime("%Y/%m/%d %H:%M"), s.visit.get_duration(), s.get_time_display(), s.get_overall_display(), ",".join(s.reason_display()), s.get_questions_answered_display(), s.get_support_display(), ",".join(s.advisor_review_display()), s.questions_unanswered_display(), s.comments])
 
     return response
 

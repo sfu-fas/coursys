@@ -14,12 +14,10 @@ $(function() {
     "bJQueryUI": true,
     'bPaginate': true,
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
-    'aaSorting': [[3, 'desc']],
+    'aaSorting': [[1, 'desc']],
     'scrollY': false, 
     "columnDefs": [
-    { "width": "20%", "targets": [0, 2] },
-    { "width": "15%", "targets": [1, 3, 4] },
-    { "width": "15%", "targets": [5] },
+    { "width": "25%", "targets": [0, 1, 2, 3] },
     ]
   } );
 } );
@@ -38,8 +36,6 @@ $(function() {
     <thead>
         <tr>
             <th scope="col">Student</th>
-            <th scope="col">Program</th>
-            <th scope="col">Advisor</th>
             <th scope="col">Survey Sent</th>
             <th scope="col">Survey Completed</th>
             <th scope="col">Overall Rating</th>
@@ -50,13 +46,11 @@ $(function() {
         <tr>
             <td>
                 {% if survey.visit %}
-                <a href="{% url "advising:view_survey" key=survey.key %}">{{ survey.visit.get_full_name }}</a>
+                <a href="{% url "advising:view_survey" key=survey.key %}" title="{{survey.visit.programs}}">{{ survey.visit.get_full_name }}</a>
                 {% else %}
                 <a href="{% url "advising:view_survey" key=survey.key %}">Test Visit </a>(<a href="{% url "advising:delete_survey" key=survey.key %}">Delete</a>)
                 {% endif %}
             </td>
-            <td>Program</td>
-            <td>{% if survey.visit %}{{ survey.visit.advisor}}{% endif %}</td>
             <td><span class="sort">{{ survey.created_at.isoformat }}</span>{{ survey.created_at }}</td>
             <td>{{ survey.completed_at }}</td>
             <td class="{% if survey.overall == 5 %} excellent
