@@ -458,7 +458,7 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     else:
         response_rate = None
     return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 
-                                                                  'visits_with_surveys': visits_with_surveys_count, 'visits_with_complete_surveys_count': visits_with_complete_surveys_count,
+                                                                  'visits_with_surveys_count': visits_with_surveys_count, 'visits_with_complete_surveys_count': visits_with_complete_surveys_count,
                                                                   'response_rate': response_rate, 'expiry_days': days_buffer, 'admin': True, 'mine': False})
 
 @requires_role('ADVM')

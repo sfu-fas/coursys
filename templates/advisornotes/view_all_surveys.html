@@ -75,7 +75,7 @@ $(function() {
 {% endif %}
 {% if response_rate %}
 <div class="notification">
-<p>Response Rate (excluding the past {{ expiry_days }} days): <b>{{ visits_with_complete_surveys_count }}</b> Visits with Completed Surveys / <b>{{visits_with_surveys}}</b> Visits with Sent Surveys = <b>{{ response_rate }}%</b> <i class="fa fa-laptop"></i></p>
+<p>Response Rate (excluding the past {{ expiry_days }} days): <b>{{ visits_with_complete_surveys_count }}</b> Visits with Completed Surveys / <b>{{ visits_with_surveys_count }}</b> Visits with Sent Surveys = <b>{{ response_rate }}%</b> <i class="fa fa-laptop"></i></p>
 </div>
 {% endif %}
 <div class="actionlist">
