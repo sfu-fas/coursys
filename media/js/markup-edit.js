@@ -22,7 +22,8 @@ function wysiwyg_switcher(ev) {
                 bold: {inline : 'strong'},
                 italic: {inline : 'em'},
             },
-            promotion: false
+            promotion: false,
+            license_key: 'gpl',
         });
     } else {
         tinymce.remove('.markup-content textarea')
