@@ -829,7 +829,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 'him_her' : himher,
                 'Him_Her' : himher.title(),
                 # temporarily use legal first name here: this represents the past behaviour and is pending better logic for users to select which name should be used in this case
-                'first_name': self.person.config.get('legal_first_name_do_not_use') or self.person.first_name,
+                'first_name': self.person.legal_first_name_because_its_unavoidable(),
                 'last_name': self.person.last_name,
                 'emplid': emplid, 
                 'promise': promise,
