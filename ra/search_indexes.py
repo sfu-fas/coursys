@@ -30,9 +30,9 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
             ra.unit.label,
             ra.unit.name,
         ]
-        if 'legal_first_name_do_not_use' in grad.person.config:
+        if 'legal_first_name_do_not_use' in ra.person.config:
             # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
-            pieces.append(grad.person.config['legal_first_name_do_not_use'])
+            pieces.append(ra.person.config['legal_first_name_do_not_use'])
 
         return '\n'.join(pieces)
 
