@@ -24,7 +24,7 @@ def financials(request, grad_slug, style='complete'):
 
     current_status = GradStatus.objects.filter(student=grad, hidden=False).order_by('-start')[0]
     grad_status_qs = GradStatus.objects.filter(student=grad, hidden=False, status__in=STATUS_ACTIVE).select_related('start','end')
-    scholarships_qs = GradScholarship.objects.filter(student=grad, removed=False).select_related('semester','semester')
+    scholarships_qs = GradScholarship.objects.filter(student=grad, removed=False).select_related('semester')
     promises_qs = Promise.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
     other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
