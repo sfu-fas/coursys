@@ -10,7 +10,7 @@ COURSYS_STATIC_DIR="<%= @data_root %>/static"
 export COURSYS_STATIC_DIR
 COURSYS_DATA_ROOT="<%= @data_root %>"
 export COURSYS_DATA_ROOT
-LANG=en_CA.UTF-8
+LANG=en_CA.UTF-8  # make sure external environment uses UTF-8 strings (now unneeded after DB2 and ruby-markup removal?)
 export LANG
 
 <% if @http_proxy %>
@@ -20,21 +20,3 @@ export LANG
 #export https_proxy
 <% end %>
 
-# imitate ~/sqllib/db2profile
-# TODO: remove after DB2 transition
-DB2INSTANCE="<%= @coursys_user %>"
-export DB2INSTANCE
-DB2_HOME=/home/<%= @coursys_user %>/sqllib
-export DB2_HOME
-LD_LIBRARY_PATH=/home/<%= @coursys_user %>/sqllib/lib64:/home/<%= @coursys_user %>/sqllib/lib64/gskit:/home/<%= @coursys_user %>/sqllib/lib32
-export LD_LIBRARY_PATH
-DB2LIB=/home/<%= @coursys_user %>/sqllib/lib
-export DB2LIB
-IBM_DB_DIR=/home/<%= @coursys_user %>/sqllib
-export IBM_DB_DIR
-IBM_DB_HOME=/home/<%= @coursys_user %>/sqllib
-export IBM_DB_HOME
-IBM_DB_INCLUDE=/home/<%= @coursys_user %>/sqllib/include
-export IBM_DB_INCLUDE
-IBM_DB_LIB=/home/<%= @coursys_user %>/sqllib/lib
-export IBM_DB_LIB

@@ -819,26 +819,6 @@ def view_doc(request, doc_slug):
     return res
 
 
-# data export views
-# public data, so no authentication done
-@gzip_page
-def courses_json(request, semester):
-    offerings = CourseOffering.objects.filter(semester__name=semester)\
-        .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \
-        .select_related('semester').prefetch_related('meetingtime_set')
-    instructors = Member.objects.filter(role='INST', offering__semester__name=semester).select_related('person')
-    instr_by_offeringid = dict(
-        (oid, list(instr))
-        for oid, instr
-        in itertools.groupby(instructors, lambda m: m.offering_id)
-    )
-
-    resp = HttpResponse(content_type="application/json")
-    resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
-    crs_data = (o.export_dict(instructors=instr_by_offeringid.get(o.id, [])) for o in offerings)
-    json.dump({'courses': list(crs_data)}, resp, indent=1)
-    return resp
-
 @requires_role('ADVS')
 def enable_advisor_token(request):
     user = get_object_or_404(Person, userid=request.user.username)

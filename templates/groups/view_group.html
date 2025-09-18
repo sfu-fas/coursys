@@ -32,7 +32,6 @@ $(document).ready(function() {
 <li><a href="{% url "offering:groups:assign_student" course_slug=offering.slug group_slug=info.group.slug %}">Add Student</a></li>
 <li><a href="{% url "offering:groups:remove_student" course_slug=offering.slug group_slug=info.group.slug %}">Remove Student</a></li>
 <li><a href="mailto:{{ info.email|urlencode }}">Email Group</a></li>
-{% if offering.uses_svn %}<li><a href="{{info.group.svn_url}}">SVN repo</a></li>{% endif %}
 </ul>
 </div>
 {% endblock %}

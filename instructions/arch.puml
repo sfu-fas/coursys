@@ -37,7 +37,7 @@ package "CourSys Server" {
     
     package "Docker Containers" {
         queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
-        agent "<$ruby>\nMarkdown Converter" as markdown
+        'agent "<$ruby>\nMarkdown Converter" as markdown
         database "<$memcached>\nMemcached" as memcached
         database "<$elasticsearch>\nElasticsearch" as elasticsearch
     }
@@ -54,10 +54,10 @@ package "CourSys Server" {
     django <.. import : runs
     
     django ..> rabbitmq : tasks
-    django <--> rabbitmq : markdown\nconversions
+    'django <--> rabbitmq : markdown\nconversions
     celery <.. rabbitmq : tasks
     django <--> memcached : cache
-    rabbitmq <-> markdown : markdown\nconversions
+    'rabbitmq <-> markdown : markdown\nconversions
     django <--> elasticsearch : search/\nautocomplete
     celerybeat ..> rabbitmq : periodic\ntasks
 }

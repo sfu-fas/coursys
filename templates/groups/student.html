@@ -48,11 +48,6 @@
           <p><input type="submit" value="Reject Invitation" class="confirm-submit" data-submit-action="reject the invitation" /></p>
           </form>
           {% else %}
-            {% if course.uses_svn %}
-            <!--
-            <p>Group <a href="http://svnbook.red-bean.com/">Subversion</a> repository: {{ info.group.svn_url|urlize }}.  All group members, as well as instructors and TAs can access this repository.</p>
-            -->
-            {% endif %}
           <p>
           [<a href="{% url "offering:groups:invite" course_slug=course.slug group_slug=info.group.slug %}">Invite Member</a> |
           <a href="{% url "offering:groups:remove_student" course_slug=course.slug group_slug=info.group.slug %}">Remove Members</a>]
