@@ -1056,7 +1056,6 @@ def offerings_slug_search(request, semester=None):
     data = []
     query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
     offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
-    print(offerings)
     if semester:
         offerings = offerings.filter(semester__name=semester)
     for o in offerings:
