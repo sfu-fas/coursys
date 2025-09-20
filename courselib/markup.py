@@ -168,7 +168,9 @@ def markdown_to_html(md: str) -> str:
     Convert github markdown to HTML with the specific extensions and options that
     our users are accustomed to from the previous Ruby-based commonmarker conversion.
     """
-    options = cmarkgfm.Options.CMARK_OPT_GITHUB_PRE_LANG
+    # Using CMARK_OPT_UNSAFE here because (1) it matches past behaviour and
+    # (2) we sanitize the output through sanitize_html anyway.
+    options = cmarkgfm.Options.CMARK_OPT_GITHUB_PRE_LANG | cmarkgfm.Options.CMARK_OPT_UNSAFE
     extensions = ['table', 'autolink', 'tagfilter', 'strikethrough']
     return cmarkgfm.markdown_to_html_with_extensions(md, options=options, extensions=extensions)
 
