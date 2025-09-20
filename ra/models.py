@@ -886,6 +886,13 @@ class RARequest(models.Model):
         if self.person:
             name = self.person.name()
         return name
+
+    def get_legal_name(self):
+        if self.first_name and self.last_name:
+            name = "%s %s" % (self.first_name, self.last_name)
+        if self.person:
+            name = self.person.legal_full_name_because_its_unavoidable()
+        return name
     
     def get_sort_name(self):
         if self.first_name and self.last_name:

@@ -2095,7 +2095,7 @@ class TAForm(object):
             emplid=contract.application.person.emplid,
             sin=contract.sin,
             last_name=contract.application.person.last_name,
-            first_name=contract.application.person.first_name,
+            first_name=contract.application.person.legal_first_name_because_its_unavoidable(),
             unit_name=contract.application.posting.unit.informal_name(),
             deptid=contract.application.posting.unit.deptid(),
             appointment_start=contract.appointment_start,
@@ -2147,7 +2147,7 @@ class TAForm(object):
             emplid=contract.person.emplid,
             sin=contract.sin,
             last_name=contract.person.last_name,
-            first_name=contract.person.first_name,
+            first_name=contract.person.legal_first_name_because_its_unavoidable(),
             unit_name=contract.category.account.unit.informal_name(),
             deptid=contract.category.account.unit.deptid(),
             appointment_start=contract.appointment_start,
@@ -4331,7 +4331,7 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.rect(1, 215.5, 65, 6)
         self.label_filled(2, 217.5, contract.sessional.last_name())
         self.rect(68, 215.5, 62, 6)
-        self.label_filled(69, 217.5, contract.sessional.first_name())
+        self.label_filled(69, 217.5, contract.sessional.legal_first_name_because_its_unavoidable())
         self.label_mid(3, 211.2, 'Department of Employment')
         self.label_mid(68, 211.2, 'Position Number')
         self.rect(1, 203.5, 65, 6)

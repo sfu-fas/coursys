@@ -26,6 +26,9 @@ class GradIndex(indexes.SearchIndex, indexes.Indexable):
             grad.program.label, grad.program.unit.label,
             start_semester_name, start_semester_label,
         ]
+        if 'legal_first_name_do_not_use' in grad.person.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            pieces.append(grad.person.config['legal_first_name_do_not_use'])
         return '\n'.join(pieces)
 
     def prepare_url(self, grad):

@@ -30,6 +30,10 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
             ra.unit.label,
             ra.unit.name,
         ]
+        if 'legal_first_name_do_not_use' in ra.person.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            pieces.append(ra.person.config['legal_first_name_do_not_use'])
+
         return '\n'.join(pieces)
 
     def prepare_url(self, ra):
@@ -60,6 +64,10 @@ class RARequestIndex(indexes.SearchIndex, indexes.Indexable):
             ra.unit.label,
             ra.unit.name,
         ]
+        if ra.person and 'legal_first_name_do_not_use' in ra.person.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            pieces.append(ra.person.config['legal_first_name_do_not_use'])
+
         return '\n'.join(pieces)
 
     def prepare_url(self, ra):

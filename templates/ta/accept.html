@@ -5,8 +5,8 @@
 <li>{{ contract.application.person.first_name }}'s Contract Offer</li>
 {% endblock %}
 
-{% block title %}Contract Offer for {{ contract.application.person }}{% endblock %}
-{% block h1 %}Contract Offer for {{ contract.application.person }}{% endblock %}
+{% block title %}Contract Offer for {{ contract.application.person.name }}{% endblock %}
+{% block h1 %}Contract Offer for {{ contract.application.person.legal_full_name_because_its_unavoidable }}{% endblock %}
 
 {% block actions %}
 {% endblock %}

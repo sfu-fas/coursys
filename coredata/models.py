@@ -167,6 +167,8 @@ class Person(models.Model, ConditionalSaveMixin):
         # 'external_email': external email for non-SFU grad committee members
         # '2fa': do we require this user to do 2FA for all logins?
         # 'recovery_email': non-SFU recovery email for 2FA: should be present if config['2fa'].
+        # 'legal_first_name_do_not_use': the person's legal name from SIMS, if different from first_name.
+        #    Legal name should without reviewing instructions/NAME_USE.md for guidelines on its use.
 
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
@@ -239,6 +241,22 @@ class Person(models.Model, ConditionalSaveMixin):
             return self.config['letter_name']
         else:
             return self.name()
+    
+    def legal_first_name_because_its_unavoidable(self):
+        """
+        Produces the students legal name (first only) if it is required in a particular context.
+        
+        Do not use without reviewing instructions/NAME_USE.md for guidelines when it is appropriate to use.
+        """
+        return self.config.get('legal_first_name_do_not_use', self.first_name)
+
+    def legal_full_name_because_its_unavoidable(self):
+        """
+        Produces the students legal name ("First Last") if it is required in a particular context.
+        
+        Do not use without reviewing instructions/NAME_USE.md for guidelines when it is appropriate to use.
+        """
+        return f'{self.legal_first_name_because_its_unavoidable()} {self.last_name}'
 
     def get_title(self):
         if 'title' in self.config:
@@ -464,6 +482,17 @@ class AnyPerson(models.Model):
             return self.get_person().first_name
         except AttributeError:
             return None
+
+    def legal_first_name_because_its_unavoidable(self):
+        """
+        Produces the students legal name (first only) if it is required in a particular context.
+        
+        Do not use without reviewing instructions/NAME_USE.md for guidelines when it is appropriate to use.
+        """
+        if self.person:
+            return self.person.legal_first_name_because_its_unavoidable()
+        else:
+            return self.first_name()
 
     def middle_name(self):
         try:
