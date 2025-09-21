@@ -13,6 +13,8 @@ class Command(BaseCommand):
             if p.first_name == p.pref_first_name: # should be excluded by the query, but just in case
                 # already have no separate preferred name: that's the goal
                 continue
+            if p.pref_first_name is None:
+                continue
 
             # we're in a true preferred-name case now.
             print(p.sortname_pref_only())
