@@ -887,7 +887,7 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
     from_name_lines = [req.supervisor.letter_name(), req.unit.name]
-    to_addr_lines = [req.get_name(), req.unit.name]
+    to_addr_lines = [req.get_legal_name(), req.unit.name]
     extra_signature_prompt = None
     if req.additional_supervisor and req.additional_department:
         extra_from_name_lines = [req.additional_supervisor, req.additional_department]
@@ -905,8 +905,8 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
         extra_signature_prompt = extra_signature_prompt,
         closing="Yours truly", 
         signer=req.supervisor,
-        cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
-    contents.add_paragraphs(["Dear " + req.get_name()])
+        cosigner_lines=[req.get_cosigner_line(), req.get_legal_name()])
+    contents.add_paragraphs(["Dear " + req.get_legal_name()])
     try:
         contents.add_paragraphs(req.letter_paragraphs())
     except ValueError as e:
