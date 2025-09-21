@@ -1570,12 +1570,12 @@ def import_person(p, commit=True, grad_data=False):
     #    raise ValueError('userid too long', "We have a userid >8 characters: %r" % (userid,))
 
     p.last_name = last_name
-    p.first_name = pref_first_name
+    p.first_name = pref_first_name or legal_first_name  # if there's no preferred, legal is all we have so use it
     p.middle_name = middle_name
     p.title = title
     p.config['lastimport'] = int(time.time())
 
-    if legal_first_name != pref_first_name:
+    if legal_first_name != p.first_name:
         # where legal name is distinct, store it just in case a lawyer tells us it must be used somewhere
         p.config['legal_first_name_do_not_use'] = legal_first_name
     elif 'legal_first_name_do_not_use' in p.config:
