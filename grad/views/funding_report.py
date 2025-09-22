@@ -92,9 +92,9 @@ def _funding_tacontracts(units, semester, prog_lookup, student_programs, non_gra
 def _funding_schol(units, semester, prog_lookup):
     funding = []
     schols = GradScholarship.objects.filter(student__program__unit__in=units,
-                                            semester__name=semester.name,
+                                            semester=semester,
                                             removed=False, eligible=True) \
-                            .select_related('student', 'semester', 'semester')
+                            .select_related('student', 'semester')
     for sch in schols:
         prog_id = sch.student.program_id
         prog = prog_lookup[prog_id]
