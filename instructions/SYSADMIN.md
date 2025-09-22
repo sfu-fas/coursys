@@ -29,6 +29,19 @@ The services running in production are either docker containers (configured in `
 
 See `arch.png` for that in diagram form.
 
+## What's Stored
+
+There are only two places where important persistent data is stored:
+
+* The database (MariaDB managed by SFU IT Services and CSTS), i.e. `DATABASES['default']` from settings.py.
+* The files that have been uploaded, i.e. `SUBMISSION_PATH` from settings.py
+
+The search indices in ElasticSearch are managed by that Docker container (it has a volume for the database directory), but those can always be recreated with a `manage.py rebuild_index`.
+
+In theory the RabbitMQ messages can encode tasks in-flight that could lose data if lost: as long as no tasks are in motion then nothing important is in RabbitMQ. The easiest way to ensure this is probably `make 503; service start celery` and make sure any pending tasks complete.
+
+Memcached stores only ephemeral cache and can be freely purged.s
+
 
 ## System Checks
 
@@ -169,7 +182,7 @@ p.search_label_value()
 
 A database dump is done every few hours in production into `/filestore/prod/db_backup/`. In a worst-case scenario, these can be examined for changes in the database and/or information on what has been happening.
 
-running manage.py will often trigger whatever error is happening, in a more helpful environment
+Running manage.py will often trigger whatever error is happening, in a more helpful environment
 run things manually as a temporary last resort
 
 As a last resort, it's possible to run components of the system manually. This is almost certainly a bad idea, but may provide a way to diagnose problems that aren't otherwise visible.

@@ -89,7 +89,7 @@ class Randomizer(object):
     a sequence of choices from a seed, regardless of Python's random implementation, etc.
     """
 
-    # glibc parameters from
+    # ANSI C parameters from
     # https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
     def __init__(self, seed_str: str):
         seed = string_hash(seed_str, 7)
@@ -105,9 +105,9 @@ class Randomizer(object):
         x = (self.a * self.x + self.c) % self.m
         self.x = x
         if n:
-            return x % n
+            return (x >> 16) % n
         else:
-            return x
+            return x >> 16
 
     def permute(self, lst: List[Any]) -> List[Any]:
         """

@@ -459,43 +459,11 @@ def deploy_checks(request=None):
         else:
             passed.append(('Library sanity', 'okay'))
 
-    # github-flavoured markdown
-    from courselib.github_markdown import markdown_to_html_rpc, markdown_to_html_subprocess
-    from amqp import AMQPError
-    md = 'test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600'
-    correct = '<p>test <em>markup</em></p>\n<pre lang="python"><code>print(1)\n</code></pre>\n<p>\u2605\U0001F600</p>'
-
-    try:
-        # checks that ruby subprocess runs; does github-flavour correctly; does Unicode correctly.
-        html = markdown_to_html_subprocess(md, fallback=False)
-        if html.strip() == correct:
-            passed.append(('Markdown subprocess', 'okay'))
-        else:
-            failed.append(('Markdown subprocess', 'markdown script returned incorrect markup'))
-    except OSError:
-        failed.append(('Markdown subprocess', 'failed to start ruby command: ruby package probably not installed'))
-    except RuntimeError:
-        failed.append(('Markdown subprocess', 'markdown script failed'))
-
-    try:
-        # checks that docker RPC runs; does github-flavour correctly; does Unicode correctly.
-        html = markdown_to_html_rpc(md, fallback=False)
-        if html.strip() == correct:
-            passed.append(('Markdown RPC', 'okay'))
-        else:
-            failed.append(('Markdown RPC', 'markdown script returned incorrect markup'))
-    except OSError:
-        failed.append(('Markdown RPC', 'unable to connect for RPC: docker container may be down'))
-    except AttributeError:
-        failed.append(('Markdown RPC', 'unable to connect to RabbitMQ: not configured in settings.py'))
-    except AMQPError as e:
-        failed.append(('Markdown RPC', 'unable to connect to RabbitMQ: ' + str(e)))
-
     # MOSS subprocess
     from submission.moss import check_moss_executable
     check_moss_executable(passed, failed)
 
-    # locale is UTF-8 (matters for markdown script calls, the SIMS database connection)
+    # locale is UTF-8 (matters for the SIMS database connection)
     import locale
     _, encoding = locale.getdefaultlocale()
     if encoding == 'UTF-8':
