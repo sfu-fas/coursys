@@ -30,7 +30,7 @@ DEPT_CHOICES = (
 )
 
 PROGRAM_CHOICES = (
-    ('', '-----------'), (00000, '00000 - None'), (90140, '90140 - Research Support'), (20015, '20015 - FAS Outreach Programming'), (90010, '90010 - Communication and Marketing')
+    ('', '-----------'), (00000, '00000 - None'), (90140, '90140 - Research Support'), (20015, '20015 - FAS Outreach Programming'), (90010, '90010 - Communication and Marketing'), (90160, '90160 - Student Affairs')
 )
 
 OBJECT_CHOICES = (
@@ -131,7 +131,7 @@ class RARequestIntroForm(forms.ModelForm):
         config_clean = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # add error messages
         nonstudent = cleaned_data.get('nonstudent')
@@ -215,13 +215,14 @@ class RARequestDatesForm(forms.ModelForm):
         end_date = cleaned_data.get('end_date')
         hiring_category = self.initial['hiring_category']
         edit = self.initial['edit']
+        manager = self.initial['manager']
 
         if start_date and end_date:
             if end_date < start_date:
                 error_message = "Start date must be before end date."
                 self.add_error('end_date', error_message)
                 self.add_error('start_date', error_message)
-            if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA":
+            if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA" and not manager:
                 self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
         if start_date and hiring_category == "RA" and not edit:
             if start_date <= datetime.date.today():
@@ -269,7 +270,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
         config_clean = ['fs1_amount', 'fs2_option', 'fs2_amount', 'fs3_option', 'fs3_amount']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # for fund 11s, do not require fund
         project_exception_fund = '11'
@@ -524,7 +525,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                        'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         # add error messages
         error_message = "You must answer this question."
@@ -635,7 +636,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
         config_clean = ['nc_duties', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         error_message = "You must answer this question."
 
@@ -803,7 +804,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 'backdate_reason']
 
         for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
+            setattr(self.instance, field, cleaned_data.get(field, None))
 
         error_message = "You must answer this question."
 

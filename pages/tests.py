@@ -510,6 +510,11 @@ class PagesTest(TestCase):
         highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
         self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
 
+        html = markup_to_html('test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600', 'markdown')
+        correct = '<p>test <em>markup</em></p>\n<pre lang="python"><code>print(1)\n</code></pre>\n<p>\u2605\U0001F600</p>'
+        self.assertEqual(html, correct)
+
+
     def test_all_markup_langs(self):
         """
         Make sure each markup option returns the same way.
