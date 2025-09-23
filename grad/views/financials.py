@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from courselib.auth import ForbiddenResponse, NotFoundResponse
 from django.shortcuts import render
-from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
+from grad.models import Promise, OtherFunding, GradStatus, GradScholarship, \
         GradProgramHistory, FinancialComment, STATUS_ACTIVE
 from coredata.models import Semester
 from ta.models import TAContract, TACourse, STATUSES_NOT_TAING
@@ -24,7 +24,7 @@ def financials(request, grad_slug, style='complete'):
 
     current_status = GradStatus.objects.filter(student=grad, hidden=False).order_by('-start')[0]
     grad_status_qs = GradStatus.objects.filter(student=grad, hidden=False, status__in=STATUS_ACTIVE).select_related('start','end')
-    scholarships_qs = Scholarship.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
+    scholarships_qs = GradScholarship.objects.filter(student=grad, removed=False).select_related('semester')
     promises_qs = Promise.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
     other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
@@ -45,8 +45,7 @@ def financials(request, grad_slug, style='complete'):
                       (s.end for s in grad_status_qs),
                       (p.start_semester for p in promises_qs),
                       (p.end_semester for p in promises_qs),
-                      (s.start_semester for s in scholarships_qs),
-                      (s.end_semester for s in scholarships_qs),
+                      (s.semester for s in scholarships_qs),
                       (o.semester for o in other_fundings),
                       (c.posting.semester for c in contracts),
                       (c.semester for c in financial_comments),
@@ -85,22 +84,18 @@ def financials(request, grad_slug, style='complete'):
                 semester_total += other.amount
         
         # scholarships
-        semester_scholarships = scholarships_qs.filter(start_semester__name__lte=semester.name, end_semester__name__gte=semester.name)
-        semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__eligible=True)
+        semester_scholarships = scholarships_qs.filter(semester=semester)
+        semester_eligible_scholarships = semester_scholarships.filter(eligible=True)
         scholarships = []
 
         scholarship_total = 0
         for ss in semester_scholarships:
-            amt = ss.amount/(ss.end_semester-ss.start_semester+1)
-            scholarship_total += amt
+            amt = ss.amount
+            scholarship_total += ss.amount
             scholarships.append({'scholarship': ss, 'semester_amount': amt})
 
         for semester_eligible_scholarship in semester_eligible_scholarships:
-            if(semester_eligible_scholarship.start_semester != semester_eligible_scholarship.end_semester):
-                semester_span = semester_eligible_scholarship.end_semester - semester_eligible_scholarship.start_semester + 1
-                semester_total += semester_eligible_scholarship.amount/semester_span
-            else:
-                semester_total += semester_eligible_scholarship.amount
+            semester_total += semester_eligible_scholarship.amount
 
         # grad status        
         status = None

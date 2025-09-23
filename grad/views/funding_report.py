@@ -1,7 +1,7 @@
 from courselib.auth import requires_role
 from django.shortcuts import render, get_object_or_404
 from coredata.models import Semester
-from grad.models import GradProgram, GradStudent, Scholarship, OtherFunding
+from grad.models import GradProgram, GradStudent, GradScholarship, OtherFunding
 from grad.views.quick_search import ACTIVE_STATUS_ORDER
 from ta.models import TACourse
 from tacontracts.models import TAContract
@@ -91,16 +91,15 @@ def _funding_tacontracts(units, semester, prog_lookup, student_programs, non_gra
 
 def _funding_schol(units, semester, prog_lookup):
     funding = []
-    schols = Scholarship.objects.filter(student__program__unit__in=units,
-                                            start_semester__name__lte=semester.name, end_semester__name__gte=semester.name,
-                                            removed=False, scholarship_type__eligible=True) \
-                            .select_related('student', 'start_semester', 'end_semester')
+    schols = GradScholarship.objects.filter(student__program__unit__in=units,
+                                            semester=semester,
+                                            removed=False, eligible=True) \
+                            .select_related('student', 'semester')
     for sch in schols:
         prog_id = sch.student.program_id
         prog = prog_lookup[prog_id]
-        length = sch.end_semester - sch.start_semester + 1
-        pay = sch.amount / length
-        funding.append((sch, prog, pay, length))
+        pay = sch.amount
+        funding.append((sch, prog, pay))
     return funding
 
 def _funding_other(units, semester, prog_lookup):
@@ -242,11 +241,11 @@ def _build_funding_csv(semester, programs, units, type):
             funding, prog, pay = tac[0], tac[1], tac[2]
             writer.writerow([funding.category.hiring_semester.unit.label, funding.person.sortname(), funding.person.emplid, prog.label, "{:.2f}".format(pay), "!"])
     elif type == 'scholarships':
-        writer.writerow(['Unit', 'Name', 'ID', 'Program', 'Total Pay', 'Length (In Semesters)', str(semester) + " Pay"])
+        writer.writerow(['Unit', 'Name', 'ID', 'Program', 'Total Pay', str(semester) + " Pay"])
         funding_schol = _funding_schol(units, semester, prog_lookup)
         for sch in funding_schol:
-            funding, prog, pay, length = sch[0], sch[1], sch[2], sch[3]
-            writer.writerow([funding.student.program.unit.label, funding.student.person.sortname(), funding.student.person.emplid, prog.label, funding.amount, length, "{:.2f}".format(pay)])
+            funding, prog, pay = sch[0], sch[1], sch[2]
+            writer.writerow([funding.student.program.unit.label, funding.student.person.sortname(), funding.student.person.emplid, prog.label, funding.amount, "{:.2f}".format(pay)])
     elif type == 'other':
         writer.writerow(['Unit', 'Name', 'ID', 'Program', str(semester) + " Pay"])
         funding_other = _funding_other(units, semester, prog_lookup)

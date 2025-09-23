@@ -12,34 +12,6 @@
 </div>
 {% endblock %}
 
-{% block gradheadextra %}
-<script nonce="{{ CSP_NONCE }}">
-	$(document).ready(function() {
-		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
-		$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
-		{% endfor %}{% endfor %}
-		{% for semester in semesters %}
-		$('#comments-btn-{{semester.semester.name}}').click(function(){
-			{% for scholarship in semester.scholarship_details.scholarships %}
-			if ($('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').is(':hidden')){
-				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').show();
-			}else {
-				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
-			}
-			{% for other_funding in semester.scholarship_details.other_funding %}
-			if ($('#comment-{{semester.semester.name}}-{{other_funding.id}}').is(':hidden')){
-				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').show();
-			}else {
-				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').hide();
-			}			
-			{% endfor %}{% endfor %}			
-		});
-
-		{% endfor %}
-	});
-</script>
-{% endblock %}
-
 {% block subbreadcrumbs %}
 <li><a href="{% url "grad:index" %}">Grad</a></li>
 <li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
@@ -65,15 +37,14 @@
   {% endif %}
   {% if semester.scholarships %}
     <span class="label">Scholarships:</span> 
-    <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>
     <ul class="leaders">
     {% for scholarship in semester.scholarships %}
     <li>
-      {% if scholarship.scholarship.scholarship_type.eligible %}
-      <span>{{scholarship.scholarship.scholarship_type.name}}</span>
+      {% if scholarship.scholarship.eligible %}
+      <span>{{scholarship.scholarship.description}}</span>
       <span>${{ scholarship.semester_amount|floatformat:2 }}</span>
       {% else %}
-      <span>{{scholarship.scholarship.scholarship_type.name}} (${{ scholarship.semester_amount|floatformat:2 }})</span>
+      <span>{{scholarship.scholarship.description}} (${{ scholarship.semester_amount|floatformat:2 }})</span>
       <span>Not Eligible</span>
       {% endif %}
     </li>
@@ -122,8 +93,8 @@
       <span>Not Eligible</span>
       {% endif %}
       </li>
-      {% if other_funding.comment %}
-      <li class="helptext comment" id="comment-{{semester.semester.name}}-{{other_funding.id}}">{{ other_funding.comment }}</li>
+      {% if other_funding.comments %}
+      <li class="helptext comment" id="comment-{{semester.semester.name}}-{{other_funding.id}}">{{ other_funding.comments }}</li>
       {% endif %}
     {% endfor %}
     </ul>

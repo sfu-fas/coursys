@@ -1154,7 +1154,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
           object.promiseeligible: is eligible to count towards a promise?
         """
         from ta.models import TACourse
-        from ra.models import RAAppointment
+        from ra.models import RAAppointment, RARequest
         
         semesters = {}
         for sem in Semester.objects.filter(name__gte=start.name, name__lte=end.name):
@@ -1186,19 +1186,29 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                     semesters[sem]['ra'].append(ra)
                 sem = sem.next_semester()
         
+        reqs = RARequest.objects.filter(person=self.person, deleted=False, complete=True, draft=False)
+        for ra in reqs:
+            st = ra.start_semester()
+            en = ra.end_semester()
+            ra.semlength = ra.semester_length()
+            if ra.semlength == 0:
+                ra.semlength = 1
+            ra.semvalue = ra.total_pay / ra.semlength
+            ra.promiseeligible = True
+            sem = st
+            while sem <= en:
+                if sem in semesters:
+                    semesters[sem]['ra'].append(ra)
+                sem = sem.next_semester()
+        
         # scholarships
-        scholarships = Scholarship.objects.filter(student=self, start_semester__name__lte=end.name, end_semester__name__gte=start.name)
+        scholarships = GradScholarship.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)
         for schol in scholarships:
             # annotate object with useful fields
-            schol.semlength = schol.end_semester - schol.start_semester + 1
-            schol.semvalue = schol.amount / schol.semlength
-            schol.promiseeligible = schol.scholarship_type.eligible
-            
-            sem = schol.start_semester
-            while sem <= schol.end_semester:
-                if sem in semesters:
-                    semesters[sem]['scholarship'].append(schol)
-                sem = sem.next_semester()
+            schol.semlength = 1
+            schol.semvalue = schol.amount
+            schol.promiseeligible = schol.eligible
+            semesters[sem]['scholarship'].append(schol)
         
         # other funding
         others = OtherFunding.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)

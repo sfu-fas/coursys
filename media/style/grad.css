@@ -139,19 +139,10 @@ table#financial-compact tr.end-ay {
 table#financial-compact td.num {
   text-align: right;
 }
-table#financial-compact td.acad-year .value {
-/* http://css-tricks.com/snippets/css/text-rotation/ */
-transform: rotate(90deg);
-/* Safari */
--webkit-transform: rotate(90deg);
-/* Firefox */
--moz-transform: rotate(90deg);
-/* IE */
--ms-transform: rotate(90deg);
-/* Opera */
--o-transform: rotate(90deg);
-/* Internet Explorer */
-filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1); 
+table#financial-compact td.acad-year {
+  background-color:#dedede;
+  border-right: 1px #888 dotted;
+  font-weight: bold;
 }
 
 .actionlist {
