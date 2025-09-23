@@ -31,7 +31,8 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync', 'pkg-config', 'unzip', 'libfreetype-dev']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev',
+    'unixodbc-dev', 'rsync', 'libfreetype-dev']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
