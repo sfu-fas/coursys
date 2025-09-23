@@ -1202,13 +1202,13 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 sem = sem.next_semester()
         
         # scholarships
-        scholarships = GradScholarship.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)
+        scholarships = GradScholarship.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name, removed=False)
         for schol in scholarships:
             # annotate object with useful fields
             schol.semlength = 1
             schol.semvalue = schol.amount
             schol.promiseeligible = schol.eligible
-            semesters[sem]['scholarship'].append(schol)
+            semesters[schol.semester]['scholarship'].append(schol)
         
         # other funding
         others = OtherFunding.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)
