@@ -86,13 +86,6 @@ execute 'build_locale' do
   not_if 'locale -a | grep en_CA.utf8'
 end
 
-# ruby for markdown markup
-package ['ruby', 'ruby-dev']
-execute 'github-markdown' do
-  command 'gem install commonmarker -v 0.23.10 && gem install github-markup -v 4.0.2'
-  creates '/usr/local/bin/github-markup'
-end
-
 if deploy_mode != 'devel'
   # some swap, so unused processes can get out of the way
   execute 'create swapfile' do
