@@ -25,7 +25,6 @@ The services running in production are either docker containers (configured in `
 * RabbitMQ (docker container): message queue used by Celery.
 * ElasticSearch (docker container): used for the site search and autocomplete (through the Django haystack library).
 * Memcached (docker container): temporary caching (through the Django caching framework). May be safely restarted any time.
-* Ruby Markup microservice (docker container): a microservice to let us user the (Ruby-only) library for github-flavoured markdown.
 
 See `arch.png` for that in diagram form.
 

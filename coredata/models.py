@@ -1015,9 +1015,6 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'labtut': are there lab sections? (default False)
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'labtut_use': the instructor cares about labs/tutorials and wants them displayed more
-        # 'uses_svn': create SVN repos for this course? (default False)
-        # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
-        # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'group_min': minimum group size
         # 'group_max': maximum group size
         # 'group_span_activities': are groups allowed to last for multiple activities?
@@ -1029,9 +1026,9 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'redirect_pages': If a Page has a migrated_to, should we redirect to the new location? Set by copy_course_setup.
         # 'discussion': uses the (old) discussion module
 
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
-                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'joint_with': (), 'group_min': 1, 'group_max': 50,
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False,
+                'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
+                'joint_with': (), 'group_min': 1, 'group_max': 50,
                 'maillist': None, 'labtut_use': False, 'group_span_activities': True,
                 'contact_url': None}
     labtut, set_labtut = getter_setter('labtut')
@@ -1040,8 +1037,6 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     contact_url, set_contact_url = getter_setter('contact_url')
-    indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
-    instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
@@ -1052,7 +1047,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     group_span_activities, set_group_span_activities = getter_setter('group_span_activities')
     _, set_maillist = getter_setter('maillist')
     copy_config_fields = [ # fields that should be copied when instructor does "copy course setup"
-            'url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
+            'url', 'taemail', 'page_creators', 'discussion',
             'group_min', 'group_max', 'group_span_activities', 'contact_url'
     ] 
     
@@ -1229,17 +1224,6 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         
         if save:
             self.save()
-    
-    def uses_svn(self):
-        """
-        Should students and groups in this course get Subversion repositories created?
-        """
-        return False
-        #if 'uses_svn' in self.config and self.config['uses_svn']:
-        #    return True
-        #return self.subject == "CMPT" \
-        #    and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
-        #         or (self.semester.name >= "1121" and self.number >= "200"))
 
     def export_dict(self, instructors=None):
         """
@@ -1497,10 +1481,6 @@ class Member(models.Model, ConditionalSaveMixin):
         else:
             taeval = None
         return taeval
-
-    def svn_url(self):
-        "SVN URL for this member (assuming offering.uses_svn())"
-        return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.offering, self.person.userid))
 
     def get_origsection(self):
         """
