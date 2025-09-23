@@ -163,9 +163,6 @@ def course_config(request, course_slug):
         if form.is_valid():
             course.set_url(form.cleaned_data['url'])
             course.set_taemail(form.cleaned_data['taemail'])
-            #if course.uses_svn():
-            #    course.set_indiv_svn(form.cleaned_data['indiv_svn'])
-            #    course.set_instr_rw_svn(form.cleaned_data['instr_rw_svn'])
             course.set_group_min(form.cleaned_data['group_min'])
             course.set_group_max(form.cleaned_data['group_max'])
             course.save()
@@ -183,7 +180,7 @@ def course_config(request, course_slug):
             return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
     else:
         form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'forum': forum.enabled, 'forum_identity': forum.identity,
-                'indiv_svn': course.indiv_svn(), 'instr_rw_svn': course.instr_rw_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
+                'group_min': course.group_min(),'group_max': course.group_max()})
     
     context = {'course': course, 'form': form}
     return render(request, "grades/course_config.html", context)

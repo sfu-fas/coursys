@@ -1,6 +1,0 @@
-name 'replica'
-maintainer_email 'coursys-help@sfu.ca'
-license 'All Rights Reserved'
-description 'Installs/Configures replica database server'
-long_description 'Installs/Configures replica database server'
-version '0.1.0'

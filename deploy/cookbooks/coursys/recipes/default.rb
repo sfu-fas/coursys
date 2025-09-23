@@ -31,7 +31,8 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev',
+    'unixodbc-dev', 'rsync', 'libfreetype-dev']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -68,7 +69,7 @@ end
 
 # Python and JS deps
 execute "install_pip_requirements" do
-  command "python3 -m pip install -r #{coursys_dir}/requirements.txt"
+  command "python3 -m pip install -r #{coursys_dir}/requirements.txt || python3 -m pip install -r #{coursys_dir}/requirements.txt --break-system-packages"
   creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
@@ -83,13 +84,6 @@ end
 execute 'build_locale' do
   command 'locale-gen en_CA.UTF-8'
   not_if 'locale -a | grep en_CA.utf8'
-end
-
-# ruby for markdown markup
-package ['ruby', 'ruby-dev']
-execute 'github-markdown' do
-  command 'gem install commonmarker -v 0.23.10 && gem install github-markup -v 4.0.2'
-  creates '/usr/local/bin/github-markup'
 end
 
 if deploy_mode != 'devel'

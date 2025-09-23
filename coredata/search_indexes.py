@@ -54,6 +54,9 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         fields = [str(o.emplid), o.first_name, o.last_name]
         if o.real_pref_first() != o.first_name:
             fields.append(o.real_pref_first())
+        if 'legal_first_name_do_not_use' in o.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            fields.append(o.config['legal_first_name_do_not_use'])
         if o.userid:
             fields.append(o.userid)
         return '\n'.join(fields)
@@ -87,8 +90,11 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_text(self, m):
         fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
                   str(m.person.emplid), m.person.first_name, m.person.last_name]
-        if m.person.real_pref_first().lower() != m.person.first_name.lower():
+        if m.person.real_pref_first() != m.person.first_name:
             fields.append(m.person.real_pref_first())
+        if 'legal_first_name_do_not_use' in m.person.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            fields.append(m.person.config['legal_first_name_do_not_use'])
         if m.person.userid:
             fields.append(m.person.userid)
         return '\n'.join(fields)
