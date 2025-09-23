@@ -43,7 +43,7 @@ All dev work should be pushed there.  There are multiple branches, including the
 
 *Hosted by:*  IT Services
 
-*Architecture:*  Some DB2 database that gets refreshed once a day (allegedly, sometimes less) from the main SIMS database.
+*Architecture:*  Some MSSQL database that gets refreshed once a day (allegedly, sometimes less) from the main SIMS database.
 
 *Access:*   We can only talk to it after establishing an SSH tunnel.
   
