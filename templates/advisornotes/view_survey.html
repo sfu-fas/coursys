@@ -20,7 +20,7 @@
     <tr><th>Student</th><td>{{ survey.visit.get_full_name }}</td></tr>
     <tr><th>Advisor</th><td>{{ survey.visit.advisor.sortname_pref_only }}</td></tr>
     <tr><th>Unit</th><td>{{ survey.visit.unit }}</td></tr>
-    <tr><th>Start Time</th><td>{{ survey.created_at }}</td></tr>
+    <tr><th>Start Time</th><td>{{ survey.visit.created_at }}</td></tr>
     <tr><th>End Time</th><td>{{ survey.visit.end_time }}</td></tr>
     <tr><th>Duration</th><td>{{ survey.visit.get_duration }}</td></tr>
     {% if survey.visit.mode %}<tr><th>Mode</th><td>{{ survey.visit.get_mode_display }}</td></tr>{% endif %}

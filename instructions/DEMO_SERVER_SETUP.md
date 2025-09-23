@@ -98,6 +98,7 @@ sudo openssl dhparam -out /etc/nginx/dhparams.pem 2048
 sudo grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf
 sudo cp /tmp/nginx.conf /etc/nginx/nginx.conf
 sudo cp /coursys/deploy/demo-deploy/nginx-default.conf /etc/nginx/sites-available/default
-sudo cp /coursys/deploy/demo-deploy/nginx-site.conf coursys-demo.selfip.net.conf
+sudo cp /coursys/deploy/demo-deploy/nginx-site.conf /etc/nginx/sites-available/coursys-demo.selfip.net.conf
 sudo systemctl restart nginx gunicorn celery celerybeat
 ```
+

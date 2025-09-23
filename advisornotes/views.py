@@ -26,7 +26,6 @@ from django.template.loader import get_template
 from django.conf import settings
 import datetime
 import json
-from . import rest
 from timeit import itertools
 import csv
 import urllib.parse
@@ -1513,42 +1512,6 @@ def merge_nonstudent(request, nonstudent_slug):
     else:
         form = MergeStudentForm()
     return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
-
-
-#@csrf_exempt
-#@transaction.commit_manually
-def xxx_rest_notes(request):
-    """
-    View to create new advisor notes via RESTful POST (json)
-    """
-
-    if request.method != 'POST':
-        resp = HttpResponse(content='Only POST requests allowed', status=405)
-        resp['Allow'] = 'POST'
-        transaction.rollback()
-        return resp
-
-    if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
-        transaction.rollback()
-        return HttpResponse(content='Contents must be JSON (application/json)', status=415)
-
-    try:
-        rest.new_advisor_notes(request.body)
-    except UnicodeDecodeError:
-        transaction.rollback()
-        return HttpResponse(content='Bad UTF-8 encoded text', status=400)
-    except ValueError:
-        transaction.rollback()
-        return HttpResponse(content='Bad JSON in request body', status=400)
-    except ValidationError as e:
-        transaction.rollback()
-        return HttpResponse(content=e.messages[0], status=422)
-    except Exception as e:
-        transaction.rollback()
-        raise
-
-    transaction.commit()
-    return HttpResponse(status=200)
 
 
 @requires_role('ADVM')

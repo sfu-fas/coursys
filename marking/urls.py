@@ -16,5 +16,4 @@ marking_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/marking/
     url(r'^students/' + USERID_SLUG + '/history', marking_views.mark_history_student, name='mark_history_student'),
     url(r'^groups/' + GROUP_SLUG + '/history', marking_views.mark_history_group, name='mark_history_group'),
     url(r'^' + ACTIVITY_MARK_ID + '/attachment', marking_views.download_marking_attachment, name='download_marking_attachment'),
-    #url(r'^rubric$', marking_views.import_components, name='import_components'),
 ]

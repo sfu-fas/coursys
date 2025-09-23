@@ -31,13 +31,3 @@ services:
     restart: always
     ports:
       - "127.0.0.1:11211:11211"
-
-  ruby-markup:
-    build:
-      context: ruby-markup
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    restart: always
-    environment:
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}

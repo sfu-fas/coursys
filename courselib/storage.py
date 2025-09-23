@@ -8,7 +8,7 @@ from django.conf import settings
 # organized --> /temp/year/month/filename
 TemporaryFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH + '/temp/' + datetime.date.today().strftime('%Y/') + datetime.date.today().strftime('%m/'), base_url=None, file_permissions_mode=0o600)
 
-UploadedFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None, file_permissions_mode=0o600)
+UploadedFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None, directory_permissions_mode=0o700, file_permissions_mode=0o600)
 
 
 def upload_path(*path_components):
