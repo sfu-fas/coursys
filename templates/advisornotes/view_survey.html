@@ -34,7 +34,13 @@
     {% if survey.is_complete %}
     <p><i>Survey completed on {{ survey.completed_at }}</i><br></p>
     <p><b>Was 15 minutes enough time for your appointment?</b></p><p>{{ survey.get_time_display }}</p>
-    <p><b>How would you rate your appointment overall?</b></p><p>{{ survey.get_overall_display }}</p>
+    <p><b>How would you rate your appointment overall?</b></p>
+    <p class="{% if survey.overall == 5 %} excellent
+        {% elif survey.overall == 4 %} verygood
+        {% elif survey.overall == 3 %} good
+        {% elif survey.overall == 2 %} fair
+        {% elif survey.overall == 1 %} needsimprovement
+        {% endif %}">{{ survey.get_overall_display }}</p>
     <p><b>Why did you meet with an advisor?</b></p>
         <ul>
         {% for answer in survey.reason_display %}
@@ -61,8 +67,9 @@
 {% endif %}
 </div>
 {% if survey.visit %}
-<div class="actionlist">
+<div class="actionlistflex">
     <a class="btn" href="{% url "advising:student_notes" userid=survey.visit.get_userid %}">View Student Notes</a>
+    {% if next_survey %}<a class="btn" href="{% url "advising:view_survey" key=next_survey.key %}">Next Survey</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}
