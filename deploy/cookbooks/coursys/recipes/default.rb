@@ -32,7 +32,7 @@ end
 
 # basic requirements to run/build
 package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev',
-    'unixodbc-dev', 'rsync', 'libfreetype-dev']
+    'unixodbc-dev', 'rsync', 'libfreetype-dev', 'pkg-config', 'unzip']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -160,6 +160,11 @@ if deploy_mode != 'devel'
     mode '0755'
     action :create
   end
+  directory '/data/elasticsearch7' do
+    owner 1000
+    mode '0755'
+  end
+
 
   execute "pyopenssh-fix" do
     # this is a hack around a broken pip3 + pyOpenSSL install, per https://stackoverflow.com/a/74243128/6871666
