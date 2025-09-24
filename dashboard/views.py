@@ -1035,8 +1035,26 @@ def frontend_check(request):
         doc.write()
         return response
 
-    elif request.GET.get('page') == 'search' and settings.DEPLOY_MODE != 'production':
-        pass
+    elif request.GET.get('page') == 'xls':
+        # Check for correct Excel file generation
+        # Adapted from grad.views.search
+        import xlwt
+        book = xlwt.Workbook(encoding='utf-8')
+        sheet = book.add_sheet('Search Results')
+        hdrstyle = xlwt.easyxf('font: bold on; pattern: pattern solid, fore_colour grey25; align: horiz centre')
+        sheet.write(0, 0, 'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
+        sheet.row(0).height = 400
+        for i,hdr in enumerate(['A', 'B']):
+            sheet.write(1, i, hdr, hdrstyle)
+        
+        for i,grad in enumerate([(1,2), (3,4)]):
+            for j in range(2):
+                sheet.write(i+2, j, grad[j] )
+        
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'inline; filename="foo.xls"'
+        book.save(response)
+        return response
 
 
     context = {}
