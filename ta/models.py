@@ -1114,7 +1114,7 @@ class TAContract(models.Model):
         return sum([course.prep_bu for course in courses])
 
     def total_pay(self):
-        return decimal.Decimal(self.bu()) * self.pay_per_bu
+        return decimal.Decimal(self.total_bu()) * self.pay_per_bu
 
     def scholarship_pay(self):
         return decimal.Decimal(self.bu()) * self.scholarship_per_bu
