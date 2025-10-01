@@ -16,5 +16,4 @@ SECRET_KEY = ''
 # passwords for various connections:
 AMAINT_DB_PASSWORD = ''
 RABBITMQ_PASSWORD = 'the_rabbitmq_password' # must match the default for the rabbitmq container, as controlled by the .env file created by chef.
-INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py install_secrets', if needed
 EMPLID_API_SECRET = ''

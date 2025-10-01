@@ -1707,8 +1707,7 @@
   "groupForSemester": true,
   "manager": 15,
   "name": "AnotherGroup",
-  "slug": "g-anothergroup",
-  "svn_slug": "g-anothergroup"
+  "slug": "g-anothergroup"
  },
  "model": "groups.group",
  "pk": 2
@@ -1719,8 +1718,7 @@
   "groupForSemester": true,
   "manager": 19,
   "name": "SomeGroup",
-  "slug": "g-somegroup",
-  "svn_slug": "g-somegroup"
+  "slug": "g-somegroup"
  },
  "model": "groups.group",
  "pk": 1

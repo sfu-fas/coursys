@@ -11,7 +11,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
 from django.core.mail import mail_admins
-from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT, STATUS_GPA
 from ra.models import RAAppointment
@@ -381,7 +380,7 @@ def import_meeting_times(offering):
     found_mtg = set()
     
     for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in db:
-        # dates come in as strings from DB2/reporting DB
+        # dates come in as strings from reporting DB
         if not start or not end:
             # some meeting times exist with no start/end time
             continue
@@ -557,9 +556,6 @@ def import_offering_members(offering, students=True):
     if students:
         import_students(offering)
     import_meeting_times(offering)
-    if settings.SVN_DB_CONNECT:
-        update_offering_repositories(offering)
-
 
 
 ########################################################################################################################
@@ -573,7 +569,6 @@ def import_semester_offerings(strm, students=True, extra_where='1=1'):
     if students:
         import_all_students(strm, extra_where=extra_where, offering_map=offering_map)
     import_all_meeting_times(strm, extra_where=extra_where, offering_map=offering_map)
-    import_all_offering_repositories(strm)
 
 
 def crseid_offering_map(strm):
@@ -673,20 +668,6 @@ def import_all_meeting_times(strm, extra_where='1=1', offering_map=None):
     # delete any meeting times we haven't found in the DB
     if extra_where == '1=1':
         MeetingTime.objects.filter(offering__semester__name=strm).exclude(id__in=found_mtg).delete()
-
-
-@transaction.atomic
-def import_all_offering_repositories(strm):
-    if not settings.SVN_DB_CONNECT:
-        return
-
-    for o in CourseOffering.objects.filter(semester__name=strm):
-        update_offering_repositories(o)
-
-
-
-
-
 
 
 @transaction.atomic

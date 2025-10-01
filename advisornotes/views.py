@@ -26,7 +26,6 @@ from django.template.loader import get_template
 from django.conf import settings
 import datetime
 import json
-from . import rest
 from timeit import itertools
 import csv
 import urllib.parse
@@ -35,6 +34,7 @@ from django.db.models import Q
 
 # units participating in post-advising surveys
 SURVEY_UNITS = ['APSC', 'CMPT', 'ENSC', 'MSE', 'SEE']
+VISIT_AGE_MAX = 3
 
 def _redirect_to_notes(student):
     """
@@ -317,7 +317,7 @@ def _initialize_student_survey(request: HttpRequest, visit: AdvisorVisit):
     if visit.survey_sent:
         return
     # check that the visit occured within the last three days
-    if visit.created_at < (datetime.datetime.now() - datetime.timedelta(days=3)):
+    if visit.created_at < (datetime.datetime.now() - datetime.timedelta(days=VISIT_AGE_MAX)):
         return
     
     user = get_object_or_404(Person, userid=request.user.username)
@@ -407,7 +407,7 @@ def student_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     except:
         return render(request, 'advisornotes/student_survey.html', {'expired': True})
 
-    if survey.is_expired:
+    if survey.is_expired and not survey.is_complete:
         return render(request, 'advisornotes/student_survey.html', {'expired': True})
 
     visit = survey.visit
@@ -445,7 +445,20 @@ def view_all_surveys(request: HttpRequest) -> HttpResponse:
     user = get_object_or_404(Person, userid=request.user.username)
     surveys = AdvisorVisitSurvey.objects.filter(Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=user, visit__isnull=True)).exclude(completed_at__isnull=True).order_by("-created_at")[:5000]
     incomplete_surveys = AdvisorVisitSurvey.objects.filter(completed_at__isnull=True, visit__unit__in=request.units, created_at__gt=(datetime.datetime.now() - datetime.timedelta(days=SURVEY_EXPIRY_DAYS))).count()
-    return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 'admin': True, 'mine': False})
+    
+    # response rate info
+    days_buffer = SURVEY_EXPIRY_DAYS + VISIT_AGE_MAX
+    visits = AdvisorVisit.objects.filter(unit__in=Unit.sub_units(request.units), created_at__lt=(datetime.datetime.now() - datetime.timedelta(days=days_buffer)))
+    visits_with_surveys = visits.filter(id__in=[visit.id for visit in visits if visit.survey_sent])
+    visits_with_surveys_count = visits_with_surveys.count()
+    visits_with_complete_surveys_count = visits_with_surveys.filter(survey__completed_at__isnull=False).count()
+    if visits_with_surveys_count > 0:
+        response_rate = round((visits_with_complete_surveys_count / visits_with_surveys_count) * 100, 3)
+    else:
+        response_rate = None
+    return render(request, 'advisornotes/view_all_surveys.html', {'surveys': surveys, 'incomplete_surveys': incomplete_surveys, 
+                                                                  'visits_with_surveys_count': visits_with_surveys_count, 'visits_with_complete_surveys_count': visits_with_complete_surveys_count,
+                                                                  'response_rate': response_rate, 'expiry_days': days_buffer, 'admin': True, 'mine': False})
 
 @requires_role('ADVM')
 def download_all_surveys(request) -> HttpResponse:
@@ -456,9 +469,9 @@ def download_all_surveys(request) -> HttpResponse:
     response['Content-Disposition'] = 'inline; filename="%s-advising-surveys.csv"' % datetime.datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
 
-    writer.writerow(['Student', 'Student Email', 'Advisor', 'Mode', 'Campus', 'Appointment Began', 'Appointment Ended', 'Survey Sent At', 'Survey Completed At', 'Enough Time?', 'Overall', 'Reason', 'Questions Answered', 'Supported?', 'Advisor...', 'Questions Unanswered', 'Other Comments'])
+    writer.writerow(['Student', 'Student Email', 'Programs', 'Advisor', 'Mode', 'Campus', 'Appointment Began', 'Appointment Ended', 'Survey Sent At', 'Survey Completed At', 'Duration', 'Enough Time?', 'Overall', 'Reason', 'Questions Answered', 'Supported?', 'Advisor...', 'Questions Unanswered', 'Other Comments'])
     for s in surveys:
-        writer.writerow([s.visit.get_full_name(), s.visit.get_email(), s.visit.advisor.sortname_pref_only(), s.visit.get_mode_display(), s.visit.get_campus_display(), s.visit.created_at.strftime("%Y/%m/%d %H:%M"), s.visit.end_time.strftime("%Y/%m/%d %H:%M"), s.created_at.strftime("%Y/%m/%d %H:%M"), s.completed_at.strftime("%Y/%m/%d %H:%M"), s.get_time_display(), s.get_overall_display(), ",".join(s.reason_display()), s.get_questions_answered_display(), s.get_support_display(), ",".join(s.advisor_review_display()), s.questions_unanswered_display(), s.comments])
+        writer.writerow([s.visit.get_full_name(), s.visit.get_email(), s.visit.programs, s.visit.advisor.sortname_pref_only(), s.visit.get_mode_display(), s.visit.get_campus_display(), s.visit.created_at.strftime("%Y/%m/%d %H:%M"), s.visit.end_time.strftime("%Y/%m/%d %H:%M"), s.created_at.strftime("%Y/%m/%d %H:%M"), s.completed_at.strftime("%Y/%m/%d %H:%M"), s.visit.get_duration(), s.get_time_display(), s.get_overall_display(), ",".join(s.reason_display()), s.get_questions_answered_display(), s.get_support_display(), ",".join(s.advisor_review_display()), s.questions_unanswered_display(), s.comments])
 
     return response
 
@@ -477,9 +490,11 @@ def view_survey(request: HttpRequest, key: uuid) -> HttpResponse:
     advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
     if advisor_admin:
         survey = get_object_or_404(AdvisorVisitSurvey, Q(visit__unit__in=Unit.sub_units(request.units)) | Q(created_by=advisor, visit__isnull=True), key=key)
+        next_survey = AdvisorVisitSurvey.objects.filter(visit__unit__in=Unit.sub_units(request.units), created_at__lt=survey.created_at).exclude(completed_at__isnull=True).order_by("-created_at").first()
     else:
         survey = get_object_or_404(AdvisorVisitSurvey, key=key, visit__unit__in=request.units, visit__advisor=advisor)
-    return render(request, 'advisornotes/view_survey.html', {'survey': survey})
+        next_survey = AdvisorVisitSurvey.objects.filter(visit__unit__in=request.units, visit__advisor=advisor, created_at__lt=survey.created_at).exclude(completed_at__isnull=True).order_by("-created_at").first()
+    return render(request, 'advisornotes/view_survey.html', {'survey': survey, 'next_survey': next_survey})
 
 @requires_role('ADVM')
 def delete_survey(request: HttpRequest, key: uuid) -> HttpResponse:
@@ -1497,42 +1512,6 @@ def merge_nonstudent(request, nonstudent_slug):
     else:
         form = MergeStudentForm()
     return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
-
-
-#@csrf_exempt
-#@transaction.commit_manually
-def xxx_rest_notes(request):
-    """
-    View to create new advisor notes via RESTful POST (json)
-    """
-
-    if request.method != 'POST':
-        resp = HttpResponse(content='Only POST requests allowed', status=405)
-        resp['Allow'] = 'POST'
-        transaction.rollback()
-        return resp
-
-    if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
-        transaction.rollback()
-        return HttpResponse(content='Contents must be JSON (application/json)', status=415)
-
-    try:
-        rest.new_advisor_notes(request.body)
-    except UnicodeDecodeError:
-        transaction.rollback()
-        return HttpResponse(content='Bad UTF-8 encoded text', status=400)
-    except ValueError:
-        transaction.rollback()
-        return HttpResponse(content='Bad JSON in request body', status=400)
-    except ValidationError as e:
-        transaction.rollback()
-        return HttpResponse(content=e.messages[0], status=422)
-    except Exception as e:
-        transaction.rollback()
-        raise
-
-    transaction.commit()
-    return HttpResponse(status=200)
 
 
 @requires_role('ADVM')

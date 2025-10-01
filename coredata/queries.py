@@ -149,64 +149,6 @@ class SIMSConnMSSQL(DBConn):
             return v
 
 
-class SIMSConnDB2(DBConn):
-    """
-    Singleton object representing SIMS DB connection
-    """
-    DatabaseError = ReferenceError # placeholder until we have the DB2 module
-    DB2Error = ReferenceError
-
-    def get_connection(self):
-        if settings.DISABLE_REPORTING_DB:
-            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
-
-        try:
-            import ibm_db_dbi
-        except ImportError:
-            raise SIMSProblem("could not import DB2 module")
-        SIMSConnDB2.DatabaseError = ibm_db_dbi.DatabaseError
-        SIMSConnDB2.DB2Error = ibm_db_dbi.Error
-        try:
-            dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
-        except ibm_db_dbi.Error:
-            raise #SIMSProblem("Could not communicate with reporting database.")
-        cursor = dbconn.cursor()
-        cursor.execute("SET SCHEMA "+self.schema)
-        return dbconn, cursor
-
-    def escape_arg(self, a):
-        """
-        Escape argument for DB2
-        """
-        # Based on description of PHP's db2_escape_string
-        if type(a) in (int,int):
-            return str(a)
-        if type(a) in (tuple, list, set):
-            return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
-        
-        # assume it's a string if we don't know any better
-        a = str(a)
-        a = a.replace("\\", "\\\\")
-        a = a.replace("'", "\\'")
-        a = a.replace('"', '\\"')
-        a = a.replace("\r", "\\r")
-        a = a.replace("\n", "\\n")
-        a = a.replace("\x00", "\\\x00")
-        a = a.replace("\x1a", "\\\x1a")
-        return "'" + a + "'"
-
-    def prep_value(self, v):
-        """
-        get DB2 value into a useful format
-        """
-        if isinstance(v, str):
-            return v.strip()
-        elif isinstance(v, decimal.Decimal):
-            return float(v)
-        else:
-            return v
-
-
 class SIMSProblem(Exception):
     """
     Class used to pass back problems with the SIMS connection.
@@ -230,27 +172,6 @@ def SIMS_problem_handler_MSSQL(func):
             return func(*args, **kwargs)
         except pyodbc.ProgrammingError as e:
             raise SIMSProblem("reporting database error: " + str(e))
-
-    wrapped.__name__ = func.__name__
-    return wrapped
-
-
-def SIMS_problem_handler_DB2(func):
-    """
-    Decorator to deal somewhat gracefully with any SIMS database problems.
-    Any decorated function may raise a SIMSProblem instance to indicate a
-    problem with the database connection.
-
-    Should be applied to any functions that use a SIMSConn object.
-    """
-    def wrapped(*args, **kwargs):
-        # check for the types of errors we know might happen and return an error message in a SIMSProblem
-        try:
-            return func(*args, **kwargs)
-        except SIMSConn.DatabaseError as e:
-            raise SIMSProblem("could not connect to reporting database")
-        except SIMSConn.DB2Error as e:
-            raise SIMSProblem("problem with connection to reporting database")
 
     wrapped.__name__ = func.__name__
     return wrapped
@@ -313,6 +234,9 @@ def userid_from_sims(emplid):
 def find_person(emplid, get_userid=True):
     """
     Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
+
+    This function quickly finds personal data from SIMS (typically where users are handling people
+    new to the system). Prefer build_person or import_person where possible.
     """
     db = SIMSConn()
     db.execute("SELECT EMPLID, LAST_NAME, FIRST_NAME, MIDDLE_NAME FROM PS_PERSONAL_DATA WHERE EMPLID=%s",
@@ -338,7 +262,7 @@ def find_external_email(emplid):
         return row[0]
 
 
-def add_person(emplid, commit=True, get_userid=True, external_email=False):
+def add_person(emplid, commit=True, external_email=False):
     """
     Add a Person object based on the found SIMS data
     """
@@ -348,12 +272,7 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             # person already there: ignore
             return ps[0]
 
-        data = find_person(emplid, get_userid=get_userid)
-        if not data:
-            return
-
-        p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
-                   pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
+        p = build_person(emplid, commit=False)
 
         if external_email:
             # used for fetching grad committee members: includes non-SFU people and we want
@@ -362,13 +281,9 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             if e:
                 p.config['external_email'] = e
 
-        if data['userid']:
-            ps = Person.objects.filter(userid=data['userid'])
-            if ps:
-                raise ValueError('Possibly re-used userid %r?' % (data['userid']))
-
         if commit:
             p.save()
+
     return p
 
 
@@ -383,7 +298,7 @@ def get_names(emplid):
     """
     Basic personal info to populate Person object
     
-    Returns (last_name, first_name, middle_name, pref_first_name, title).
+    Returns (last_name, first_name, middle_name, pref_first_name, title). Note that here first_name is deadname, not true first name.
     """
     db = SIMSConn()
     
@@ -408,7 +323,7 @@ def get_names(emplid):
         last_name = last
         middle_name = middle
         title = prefix
-    
+
     return last_name, first_name, middle_name, pref_first_name, title
 
 
@@ -1633,33 +1548,40 @@ def ensure_person_from_userid(userid):
     return build_person(emplid, userid)
 
 
-def build_person(emplid, userid=None):
+def build_person(emplid, userid=None, commit=True):
     """
     Build a Person object for this newly-discovered person
     """
     p = Person(emplid=emplid, userid=userid)
-    return import_person(p)
+    return import_person(p, commit=commit)
 
 
 def import_person(p, commit=True, grad_data=False):
     """
     Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
-    last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
+    last_name, legal_first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:
         # no name = no such person
         return None
-
+    
     userid = emplid_to_userid(p.emplid)
     #if userid and len(userid) > 8:
     #    raise ValueError('userid too long', "We have a userid >8 characters: %r" % (userid,))
 
     p.last_name = last_name
-    p.first_name = first_name
+    p.first_name = pref_first_name or legal_first_name  # if there's no preferred, legal is all we have so use it
     p.middle_name = middle_name
-    p.pref_first_name = pref_first_name
     p.title = title
     p.config['lastimport'] = int(time.time())
+
+    if legal_first_name != p.first_name:
+        # where legal name is distinct, store it just in case a lawyer tells us it must be used somewhere
+        p.config['legal_first_name_do_not_use'] = legal_first_name
+    elif 'legal_first_name_do_not_use' in p.config:
+        del p.config['legal_first_name_do_not_use']
+
+    p.pref_first_name = p.first_name  # populate pref_first_name for code that assumes it exists: hopefully can be removed eventually
 
     # don't deactivate userids that have been deactivated by the University
     if userid:

@@ -154,7 +154,7 @@ class HiringSemester(models.Model):
 
     @property
     def total_bu(self):
-        return sum([contract.total_bu for contract in self.contracts])
+        return sum([contract.total_bu for contract in self.contracts if contract.status != 'CAN'])
     
     objects = HiringSemesterManager()
     

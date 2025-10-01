@@ -21,6 +21,9 @@ class VisaIndex(indexes.SearchIndex, indexes.Indexable):
             visa.status,
             visa.get_validity()
         ]
+        if 'legal_first_name_do_not_use' in visa.person.config:
+            # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
+            pieces.append(visa.person.config['legal_first_name_do_not_use'])
         return '\n'.join(pieces)
 
     def prepare_url(self, visa):

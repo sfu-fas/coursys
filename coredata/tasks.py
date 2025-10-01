@@ -9,7 +9,6 @@ from haystack.utils.app_loading import haystack_get_models, haystack_load_apps
 
 from coredata.queries import SIMSConn, SIMSProblem
 from courselib.search import haystack_update_index, haystack_rebuild_index
-from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task
 from coredata.models import Role, Unit, EnrolmentHistory
@@ -24,10 +23,6 @@ BEAT_FILE_MAX_AGE = 1200
 # hack around dealing with long chains https://github.com/celery/celery/issues/1078
 import sys
 sys.setrecursionlimit(10000)
-
-@task(rate_limit="30/m", max_retries=2)
-def update_repository_task(*args, **kwargs):
-    return update_repository(*args, **kwargs)
 
 
 # system tasks
@@ -128,7 +123,7 @@ def check_sims_task() -> Optional[str]:
     except SIMSProblem as e:
         return 'SIMSProblem, %s' % (str(e),)
     except ImportError:
-        return "couldn't import DB2 module"
+        return "couldn't import pyodbc module"
     except Exception as e:
         return 'Generic exception, %s' % (str(e))
 

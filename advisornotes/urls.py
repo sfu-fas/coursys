@@ -90,7 +90,4 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^edit_nonstudent/' + NONSTUDENT_SLUG + '/edit$', advisornotes_views.edit_nonstudent, name='edit_nonstudent'),
     url(r'^view_nonstudents$', advisornotes_views.view_nonstudents, name='view_nonstudents'),
     url(r'^download_nonstudents$', advisornotes_views.download_nonstudents, name='download_nonstudents'),
-    #url(r'^problems/$', advisornotes_views.view_problems, name='view_problems'),
-    #url(r'^problems/resolved/$', advisornotes_views.view_resolved_problems, name='view_resolved_problems'),
-    #url(r'^problems/(?P<prob_id>\d+)/$', advisornotes_views.edit_problem, name='edit_problem'),
 ]
