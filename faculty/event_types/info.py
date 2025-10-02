@@ -279,20 +279,20 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
 
     EVENT_TYPE = 'EXTSERVICE'
-    NAME = "External Service"
+    NAME = "External Service/Outside Activities"
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Description</dt><dd>{{ handler|get_display:"description" }}</dd>
         <dt>Add Pay</dt><dd>${{ handler|get_display:"add_pay" }}</dd>
-        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        {% if handler|get_config:"teaching_credits" != 'unknown' %}<dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>{% endif %}
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
         description = forms.CharField(help_text='A brief description of the service', max_length=30)
         add_pay = fields.AddPayField()
-        teaching_credits = fields.TeachingCreditField()
+        teaching_credits = fields.TeachingCreditField(required=False)
 
     def short_summary(self):
         return 'External Service: %s' % (self.get_config('description'))

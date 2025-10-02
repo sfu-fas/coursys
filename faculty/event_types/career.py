@@ -88,8 +88,8 @@ class AppointmentEventHandler(CareerEventHandlerBase):
             ('OTHR', 'Other/Unknown'),
         )
 
-        position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
-        spousal_hire = forms.BooleanField(initial=False, required=False, help_text='Found on Recommendation for Appointment form (AKA "RFAF")')
+        position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}), help_text='Found on Recommendation for Appointment form (AKA "RFAF")')
+        spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
         degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
                                                            'Recommendation for Appointment Forms (AKA "RFAF"). '
@@ -218,6 +218,47 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_pay = self.get_config('add_pay')
         return SalaryAdjust(salary + add_salary, 1, add_pay)
 
+class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
+    """
+    Add Pay or OTC's (Overload Teaching Contracts)
+    """
+
+    EVENT_TYPE = 'ADDPAY'
+    NAME = "OTC/Add Pay"
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Source</dt><dd>{{ handler|get_display:"source" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        amount = forms.DecimalField(required=True, label='Amount', min_value=0, decimal_places=2)
+
+    SEARCH_RULES = {
+        'source': search.ChoiceSearchRule,
+        'amount': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'source',
+        'amount',
+    ]
+
+    def get_source_display(self):
+        return self.EntryForm.STIPEND_SOURCES.get(self.get_config('source'), 'N/A')
+
+    @classmethod
+    def default_title(cls):
+        return 'Salary Modification / Stipend'
+
+    def short_summary(self):
+        return "{0}: ${1}".format(self.get_source_display(),
+                                   self.get_config('amount'))
+
+    def salary_adjust_annually(self):
+        amount = self.get_config('amount')
+        return SalaryAdjust(amount, 1, 0)
 
 class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
@@ -497,7 +538,7 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
-        teaching_decrease = fields.TeachingReductionPeriodsField()
+        teaching_decrease = fields.TeachingReductionField()
         deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
         accumulated_credits = forms.DecimalField(label='Accumulated Credits', min_value=0, max_value=99,
                                                  help_text='Accumulated unused credits', required=False)
@@ -697,13 +738,11 @@ class RetirementEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'RETIRE'
     NAME = 'Retirement'
 
-    IS_EXCLUSIVE = True
-
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Retirement Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
         <dt>Retirement Type</dt><dd>{{ handler|get_display:"type" }}</dd>
-        <dt>Emeritus Status</dt><dd>{{ handler|get_display:"emeritus_status"|yesno }}</dd>
+        <dt>Emeritus Status</dt><dd>{{ handler|get_display:"emeritus_status" }}</dd>
         {% endblock %}
     """
 
@@ -715,15 +754,21 @@ class RetirementEventHandler(CareerEventHandlerBase):
             ('ENH', 'Enhanced Early Retirement'),
         )
 
+        EMERITUS_CHOICES = Choices(
+            ('U', 'Unknown'),
+            ('Y', 'Yes'),
+            ('N', 'No'),
+        )
+
         start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Retirement")
-        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
+        end_date = forms.DateField(required=False, widget=forms.HiddenInput())
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Retirement Request Date")
         type = forms.ChoiceField(initial='REG', required=True, choices=RETIREMENT_TYPE_CHOICES)
-        emeritus_status = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Emeritus Status")
+        emeritus_status = forms.ChoiceField(required=True, choices=EMERITUS_CHOICES, label="Emeritus Status")
 
     SEARCH_RULES = {
         'type': search.ChoiceSearchRule,
-        'emeritus_status': search.BooleanSearchRule,
+        'emeritus_status': search.ChoiceSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'type',
@@ -744,8 +789,6 @@ class ResignationEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'RESIGN'
     NAME = 'Resignation'
 
-    IS_EXCLUSIVE = True
-
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Resignation Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
@@ -755,7 +798,7 @@ class ResignationEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
 
         start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
-        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
+        end_date = forms.DateField(required=False, widget=forms.HiddenInput())
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Resignation Request Date")
 
     SEARCH_RULES = {}
@@ -779,6 +822,7 @@ class ProbationaryReviewEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
 
         PROBATIONARY_REVIEW_CHOICES = Choices(
+            ('PEN', 'Pending'),
             ('APP', 'Approved'),
             ('DEN', 'Denied'),
         )
@@ -823,6 +867,7 @@ class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
 
         TENURE_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
             ('TPR', 'Tenured and Promoted'),
             ('DEN', 'Denied'),
         )
@@ -875,12 +920,11 @@ class AlternateCareerPathEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
         
         CAREER_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
             ('APP', 'Approved'),
             ('DEN', 'Denied'),
         )
 
-        #start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
-        #end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), help_text="")
         teaching = forms.DecimalField(required=False, label='Distribution of Workload: Teaching (%)', min_value=0, max_value=100, decimal_places=1)
         research = forms.DecimalField(required=False, label='Distribution of Workload: Research (%)', min_value=0, max_value=100, decimal_places=1)
         service = forms.DecimalField(required=False, label='Distribution of Workload: Service (%)', min_value=0, max_value=100, decimal_places=1)
@@ -917,13 +961,14 @@ class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
         
         MODIFIED_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
             ('APP', 'Approved'),
             ('DEN', 'Denied'),
         )
 
         start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Modification", help_text="")
         end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Day of Modification (optional)", help_text="")
-        reduction = forms.DecimalField(required=False, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
+        reduction = forms.DecimalField(required=True, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
         permanent =  forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Permanent Modification?")
         result = forms.ChoiceField(required=False, label='Result', choices=MODIFIED_RESULT_CHOICES)
 

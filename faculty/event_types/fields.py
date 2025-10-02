@@ -123,11 +123,9 @@ class SemesterDateInput(forms.widgets.MultiWidget):
             semester = self.get_semester(code)
             semester_date = self.get_semester_date(semester)
 
-        # TODO: Precedence to semester if they're both filled in?
+        # must enter actual date (semester input is only an aid)
         if regular_date and semester_date:
             return regular_date
-        elif semester_date:
-            return semester_date
         elif regular_date:
             return regular_date
         else:
@@ -147,7 +145,7 @@ class SemesterField(forms.DateField):
         if 'help_text' in kwargs:
             defaults.update({"help_text": kwargs['help_text']})
         else:
-            defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
+            defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right to autopopulate, e.g.: 1141')})
         super(SemesterField, self).__init__(**defaults)
 
     def to_python(self, value):
@@ -297,7 +295,7 @@ class FractionField(forms.Field):
 
 class SemesterTeachingInput(forms.widgets.TextInput):
     def render(self, *args, **kwargs):
-        return mark_safe(conditional_escape(super(SemesterTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>semester</strong>")
+        return mark_safe(conditional_escape(super(SemesterTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>period</strong>")
 
 
 class TeachingCreditField(FractionField):
@@ -312,28 +310,13 @@ class TeachingCreditField(FractionField):
 class TeachingReductionField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
-            'initial': 0,
-            'widget': SemesterTeachingInput(attrs={'size': 5}),
-            'help_text': mark_safe('Per semester decrease in teaching load associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
-        }
-        defaults.update(kwargs)
-        super(TeachingReductionField, self).__init__(**defaults)
-
-class SemesterTeachingPeriodsInput(forms.widgets.TextInput):
-    def render(self, *args, **kwargs):
-        return mark_safe(conditional_escape(super(SemesterTeachingPeriodsInput, self).render(*args, **kwargs)) + " courses per <strong>period</strong>")
-
-class TeachingReductionPeriodsField(FractionField):
-    def __init__(self, **kwargs):
-        defaults = {
             'allow_decimals': True,
             'initial': 0,
-            'widget': SemesterTeachingPeriodsInput(attrs={'size': 5}),
+            'widget': SemesterTeachingInput(attrs={'size': 5}),
             'help_text': mark_safe('Per period decrease in teaching load, enter as fraction: ex. X courses/3 semesters (/ = per).'),
         }
         defaults.update(kwargs)
-        super(TeachingReductionPeriodsField, self).__init__(**defaults)
-
+        super(TeachingReductionField, self).__init__(**defaults)
 
 
 

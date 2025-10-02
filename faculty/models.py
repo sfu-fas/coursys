@@ -44,6 +44,7 @@ from faculty.event_types.career import ProbationaryReviewEventHandler
 from faculty.event_types.career import TenurePromotionAssociateProfessorEventHandler
 from faculty.event_types.career import AlternateCareerPathEventHandler
 from faculty.event_types.career import ModifiedAppointmentEventHandler
+from faculty.event_types.career import AddPayEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
@@ -80,6 +81,7 @@ HANDLERS = [
     TenurePromotionAssociateProfessorEventHandler,
     AlternateCareerPathEventHandler,
     ModifiedAppointmentEventHandler,
+    AddPayEventHandler,
     SalaryModificationEventHandler,
     SpecialDealHandler,
     StudyLeaveEventHandler,
@@ -93,15 +95,15 @@ HANDLERS = [
 ]
 
 RETIRED_HANDLERS = [
-    ExternalServiceHandler,
     OneInNineHandler,
     ResearchMembershipHandler,
     ResumeEventHandler,
-    TeachingCreditEventHandler,
 ]
 
+ACTIVE_HANDLERS = [handler for handler in HANDLERS if handler not in RETIRED_HANDLERS]
+
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
-EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS if handler not in RETIRED_HANDLERS]
+EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in ACTIVE_HANDLERS]
 
 EVENT_TAGS = {
                 'title': '"Mr", "Miss", etc.',
