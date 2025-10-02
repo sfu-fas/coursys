@@ -218,47 +218,6 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_pay = self.get_config('add_pay')
         return SalaryAdjust(salary + add_salary, 1, add_pay)
 
-class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
-    """
-    Add Pay or OTC's (Overload Teaching Contracts)
-    """
-
-    EVENT_TYPE = 'ADDPAY'
-    NAME = "OTC/Add Pay"
-
-    TO_HTML_TEMPLATE = """
-        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Source</dt><dd>{{ handler|get_display:"source" }}</dd>
-        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
-        {% endblock %}
-    """
-
-    class EntryForm(BaseEntryForm):
-        amount = forms.DecimalField(required=True, label='Amount', min_value=0, decimal_places=2)
-
-    SEARCH_RULES = {
-        'source': search.ChoiceSearchRule,
-        'amount': search.ComparableSearchRule,
-    }
-    SEARCH_RESULT_FIELDS = [
-        'source',
-        'amount',
-    ]
-
-    def get_source_display(self):
-        return self.EntryForm.STIPEND_SOURCES.get(self.get_config('source'), 'N/A')
-
-    @classmethod
-    def default_title(cls):
-        return 'Salary Modification / Stipend'
-
-    def short_summary(self):
-        return "{0}: ${1}".format(self.get_source_display(),
-                                   self.get_config('amount'))
-
-    def salary_adjust_annually(self):
-        amount = self.get_config('amount')
-        return SalaryAdjust(amount, 1, 0)
 
 class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
@@ -760,11 +719,14 @@ class RetirementEventHandler(CareerEventHandlerBase):
             ('N', 'No'),
         )
 
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Retirement")
-        end_date = forms.DateField(required=False, widget=forms.HiddenInput())
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Retirement Request Date")
         type = forms.ChoiceField(initial='REG', required=True, choices=RETIREMENT_TYPE_CHOICES)
         emeritus_status = forms.ChoiceField(required=True, choices=EMERITUS_CHOICES, label="Emeritus Status")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "First Day of Retirement"
+            self.fields['end_date'].widget = forms.HiddenInput()
 
     SEARCH_RULES = {
         'type': search.ChoiceSearchRule,
@@ -797,9 +759,12 @@ class ResignationEventHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
 
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Date of Work")
-        end_date = forms.DateField(required=False, widget=forms.HiddenInput())
         request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Resignation Request Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Last Date of Work"
+            self.fields['end_date'].widget = forms.HiddenInput()
 
     SEARCH_RULES = {}
     SEARCH_RESULT_FIELDS = []
@@ -826,9 +791,13 @@ class ProbationaryReviewEventHandler(CareerEventHandlerBase):
             ('APP', 'Approved'),
             ('DEN', 'Denied'),
         )
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Date of Application")
+
         result = forms.ChoiceField(required=False, label='Result', choices=PROBATIONARY_REVIEW_CHOICES)
         continuing_effective_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Continuing Appointment Effective Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Date of Application"
 
     SEARCH_RULES = {
         'result': search.ComparableSearchRule,
@@ -875,13 +844,16 @@ class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
         STEPS = [i * 0.5 for i in range(2,13)] # 1, 1.5, 2, 2.5 ...
         STEP_CHOICES = [(str(step), str(step)) for step in STEPS]
 
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Application Date")
         early_consideration = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Early Consideration?")
         result = forms.ChoiceField(required=False, label='Result', choices=TENURE_RESULT_CHOICES)
         steps_year_one = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year One")
         steps_year_two = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year Two")
         tenure_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Tenure Effective Date")
         promotion_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Promotion Effective Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Application Date"
 
     SEARCH_RULES = {
         'result': search.ComparableSearchRule,
@@ -965,12 +937,15 @@ class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
             ('APP', 'Approved'),
             ('DEN', 'Denied'),
         )
-
-        start_date = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'date-input'}), label="First Day of Modification", help_text="")
-        end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Last Day of Modification (optional)", help_text="")
+        
         reduction = forms.DecimalField(required=True, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
         permanent =  forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Permanent Modification?")
-        result = forms.ChoiceField(required=False, label='Result', choices=MODIFIED_RESULT_CHOICES)
+        result = forms.ChoiceField(required=True, label='Result', choices=MODIFIED_RESULT_CHOICES)
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "First Day of Modification"
+            self.fields['end_date'].label = "Last Day of Modification (optional)"
 
     SEARCH_RULES = {
         'result': search.ComparableSearchRule,
@@ -980,6 +955,7 @@ class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
         'result',
         'permanent'
     ]
+
     def get_result_display(self):
         return self.EntryForm.MODIFIED_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
     

@@ -44,7 +44,7 @@ from faculty.event_types.career import ProbationaryReviewEventHandler
 from faculty.event_types.career import TenurePromotionAssociateProfessorEventHandler
 from faculty.event_types.career import AlternateCareerPathEventHandler
 from faculty.event_types.career import ModifiedAppointmentEventHandler
-from faculty.event_types.career import AddPayEventHandler
+from faculty.event_types.info import AddPayEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler

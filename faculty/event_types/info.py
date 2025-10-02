@@ -275,7 +275,7 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
 
 class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
-    External Service
+    External Service/Outside Activities
     """
 
     EVENT_TYPE = 'EXTSERVICE'
@@ -295,7 +295,7 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         teaching_credits = fields.TeachingCreditField(required=False)
 
     def short_summary(self):
-        return 'External Service: %s' % (self.get_config('description'))
+        return 'External Service/Outside Activites: %s' % (self.get_config('description'))
 
     def salary_adjust_annually(self):
         add_pay = self.get_config('add_pay')
@@ -305,6 +305,40 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         credits = self.get_config('teaching_credits', 0)
         return TeachingAdjust(credits, fractions.Fraction(0))
 
+
+class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
+    """
+    Add Pay or OTC's (Overload Teaching Contracts)
+    """
+
+    EVENT_TYPE = 'ADDPAY'
+    NAME = "OTC/Add Pay"
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Amount</dt><dd>${{ handler|get_display:"add_pay" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        add_pay = fields.AddPayField()
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['add_pay'].label = 'Amount'
+            self.fields['comments'].label = "Reason for OTC/Add Pay here"
+            self.fields['end_date'].required = True
+
+    @classmethod
+    def default_title(cls):
+        return 'OTC/Add Pay'
+
+    def short_summary(self):
+        return "OTC/Add Pay: ${0}".format(self.get_config('add_pay'))
+
+    def salary_adjust_annually(self):
+        add_pay = self.get_config('add_pay')
+        return SalaryAdjust(0, 1, add_pay)
 
 class SpecialDealHandler(CareerEventHandlerBase):
 
