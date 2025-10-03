@@ -10,6 +10,7 @@ from django.utils.functional import lazy
 from django.utils.functional import SimpleLazyObject
 
 from coredata.models import Unit
+from coredata.widgets import DollarInput
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -316,16 +317,15 @@ class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Amount</dt><dd>${{ handler|get_display:"add_pay" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
-        add_pay = fields.AddPayField()
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.fields['add_pay'].label = 'Amount'
             self.fields['comments'].label = "Reason for OTC/Add Pay here"
             self.fields['end_date'].required = True
 
@@ -334,10 +334,10 @@ class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         return 'OTC/Add Pay'
 
     def short_summary(self):
-        return "OTC/Add Pay: ${0}".format(self.get_config('add_pay'))
+        return "OTC/Add Pay: ${0}".format(self.get_config('amount'))
 
     def salary_adjust_annually(self):
-        add_pay = self.get_config('add_pay')
+        add_pay = self.get_config('amount')
         return SalaryAdjust(0, 1, add_pay)
 
 class SpecialDealHandler(CareerEventHandlerBase):
