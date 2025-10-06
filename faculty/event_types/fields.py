@@ -109,7 +109,6 @@ class SemesterDateInput(forms.widgets.MultiWidget):
 
     def value_from_datadict(self, data, files, name):
         datelist = [w.value_from_datadict(data, files, "%s_%s" %(name, i)) for i, w, in enumerate(self.widgets)]
-        semester_date = None
         regular_date = None
         try:
             y, m, d = datelist[0].split('-')
@@ -117,16 +116,7 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         except ValueError:
             pass
 
-        # Date field is blank, try to get the semester
-        code = datelist[1]
-        if code:
-            semester = self.get_semester(code)
-            semester_date = self.get_semester_date(semester)
-
-        # must enter actual date (semester input is only an aid)
-        if regular_date and semester_date:
-            return regular_date
-        elif regular_date:
+        if regular_date:
             return regular_date
         else:
             return ""
