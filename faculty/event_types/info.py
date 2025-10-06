@@ -329,6 +329,13 @@ class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
             self.fields['comments'].label = "Reason for OTC/Add Pay here"
             self.fields['end_date'].required = True
 
+    SEARCH_RULES = {
+        'amount': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'amount',
+    ]
+
     @classmethod
     def default_title(cls):
         return 'OTC/Add Pay'

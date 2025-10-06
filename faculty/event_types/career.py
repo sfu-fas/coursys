@@ -525,15 +525,12 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     SEARCH_RULES = {
         'pay_fraction': search.ComparableSearchRule,
-        'report_received': search.BooleanSearchRule,
         'teaching_decrease': search.ComparableSearchRule,
         'study_leave_credits': search.ComparableSearchRule,
         'credits_forward': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'pay_fraction',
-        'report_received',
-        'report_received_date',
         'teaching_decrease',
         'study_leave_credits',
         'credits_forward'
@@ -739,6 +736,9 @@ class RetirementEventHandler(CareerEventHandlerBase):
 
     def get_type_display(self):
         return self.EntryForm.RETIREMENT_TYPE_CHOICES.get(self.get_config('type'), 'N/A')
+    
+    def get_emeritus_status_display(self):
+        return self.EntryForm.EMERITUS_CHOICES.get(self.get_config('emeritus_status'), 'status unknown')
 
     def short_summary(self):
         return "Retirement"
@@ -766,13 +766,14 @@ class ResignationEventHandler(CareerEventHandlerBase):
             self.fields['start_date'].label = "Last Date of Work"
             self.fields['end_date'].widget = forms.HiddenInput()
 
-    SEARCH_RULES = {}
-    SEARCH_RESULT_FIELDS = []
-
     def short_summary(self):
         return "Resignation"
     
 class ProbationaryReviewEventHandler(CareerEventHandlerBase):
+    """
+    Probationary Review
+    """
+
     EVENT_TYPE = 'PROBATR'
     NAME = "Probationary Review"
     IS_INSTANT = True
@@ -800,10 +801,11 @@ class ProbationaryReviewEventHandler(CareerEventHandlerBase):
             self.fields['start_date'].label = "Date of Application"
 
     SEARCH_RULES = {
-        'result': search.ComparableSearchRule,
+        'result': search.ChoiceSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'result',
+        'continuing_effective_date',
     ]
 
     def get_result_display(self):
@@ -856,12 +858,14 @@ class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
             self.fields['start_date'].label = "Application Date"
 
     SEARCH_RULES = {
-        'result': search.ComparableSearchRule,
+        'result': search.ChoiceSearchRule,
         'early_consideration': search.BooleanSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'result',
         'early_consideration',
+        'tenure_effective',
+        'promotion_effective',
     ]
 
     def get_result_display(self):
@@ -903,10 +907,16 @@ class AlternateCareerPathEventHandler(CareerEventHandlerBase):
         result = forms.ChoiceField(required=False, label='Result', choices=CAREER_RESULT_CHOICES)
 
     SEARCH_RULES = {
-        'result': search.ComparableSearchRule,
+        'result': search.ChoiceSearchRule,
+        'teaching': search.ComparableSearchRule,
+        'research': search.ComparableSearchRule,
+        'service': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'result',
+        'teaching',
+        'research',
+        'service',
     ]
     def get_result_display(self):
         return self.EntryForm.CAREER_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
@@ -948,12 +958,14 @@ class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
             self.fields['end_date'].label = "Last Day of Modification (optional)"
 
     SEARCH_RULES = {
-        'result': search.ComparableSearchRule,
+        'reduction': search.ComparableSearchRule,
         'permanent': search.BooleanSearchRule,
+        'result': search.ChoiceSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
+        'reduction',
+        'permanent',
         'result',
-        'permanent'
     ]
 
     def get_result_display(self):
