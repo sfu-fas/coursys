@@ -17,7 +17,7 @@ from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent, TempGrant
-from faculty.models import HANDLERS, EVENT_TYPES
+from faculty.models import ACTIVE_HANDLERS as HANDLERS, EVENT_TYPES
 from faculty.management.commands import faculty_test_data
 
 import datetime

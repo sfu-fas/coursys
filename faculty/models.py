@@ -38,6 +38,13 @@ from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import PromotionApplicationEventHandler
 from faculty.event_types.career import SalaryReviewEventHandler
 from faculty.event_types.career import ContractReviewEventHandler
+from faculty.event_types.career import RetirementEventHandler
+from faculty.event_types.career import ResignationEventHandler
+from faculty.event_types.career import ProbationaryReviewEventHandler
+from faculty.event_types.career import TenurePromotionAssociateProfessorEventHandler
+from faculty.event_types.career import AlternateCareerPathEventHandler
+from faculty.event_types.career import ModifiedAppointmentEventHandler
+from faculty.event_types.info import AddPayEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
@@ -68,6 +75,13 @@ HANDLERS = [
     OtherEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
+    RetirementEventHandler,
+    ResignationEventHandler,
+    ProbationaryReviewEventHandler,
+    TenurePromotionAssociateProfessorEventHandler,
+    AlternateCareerPathEventHandler,
+    ModifiedAppointmentEventHandler,
+    AddPayEventHandler,
     SalaryModificationEventHandler,
     SpecialDealHandler,
     StudyLeaveEventHandler,
@@ -79,8 +93,17 @@ HANDLERS = [
     ContractReviewEventHandler,
     ResumeEventHandler
 ]
+
+RETIRED_HANDLERS = [
+    OneInNineHandler,
+    ResearchMembershipHandler,
+    ResumeEventHandler,
+]
+
+ACTIVE_HANDLERS = [handler for handler in HANDLERS if handler not in RETIRED_HANDLERS]
+
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
-EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
+EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in ACTIVE_HANDLERS]
 
 EVENT_TAGS = {
                 'title': '"Mr", "Miss", etc.',
@@ -115,6 +138,7 @@ ADD_TAGS = {
                 'org_class': 'classification external/not-for-profit',
                 'is_research': 'yes/no - research institute?',
                 'is_adjunct': 'yes/no - adjunct?',
+                'is_associate_member': 'yes/no - associate member?',
                 'grant_name': 'name of the grant',
                 'load': 'teaching load',
                 'leave_fraction': 'Fraction of salary received during leave eg. "2/3"',

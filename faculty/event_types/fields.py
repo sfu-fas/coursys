@@ -109,7 +109,6 @@ class SemesterDateInput(forms.widgets.MultiWidget):
 
     def value_from_datadict(self, data, files, name):
         datelist = [w.value_from_datadict(data, files, "%s_%s" %(name, i)) for i, w, in enumerate(self.widgets)]
-        semester_date = None
         regular_date = None
         try:
             y, m, d = datelist[0].split('-')
@@ -117,18 +116,7 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         except ValueError:
             pass
 
-        # Date field is blank, try to get the semester
-        code = datelist[1]
-        if code:
-            semester = self.get_semester(code)
-            semester_date = self.get_semester_date(semester)
-
-        # TODO: Precedence to semester if they're both filled in?
-        if regular_date and semester_date:
-            return regular_date
-        elif semester_date:
-            return semester_date
-        elif regular_date:
+        if regular_date:
             return regular_date
         else:
             return ""
@@ -147,7 +135,7 @@ class SemesterField(forms.DateField):
         if 'help_text' in kwargs:
             defaults.update({"help_text": kwargs['help_text']})
         else:
-            defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
+            defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right to autopopulate, e.g.: 1141')})
         super(SemesterField, self).__init__(**defaults)
 
     def to_python(self, value):
@@ -250,12 +238,14 @@ class FractionField(forms.Field):
     # adapted from forms.fields.DecimalField
     default_error_messages = {
         'invalid': _('Enter a number.'),
+        'no_decimals': _('Only whole-number fractions allowed.'),
         'max_value': _('Ensure this value is less than or equal to %(limit_value)s.'),
         'min_value': _('Ensure this value is greater than or equal to %(limit_value)s.'),
     }
 
-    def __init__(self, max_value=None, min_value=None, choices=None, *args, **kwargs):
+    def __init__(self, max_value=None, min_value=None, choices=None, allow_decimals=False, *args, **kwargs):
         self.max_value, self.min_value = max_value, min_value
+        self.allow_decimals = allow_decimals
         if choices:
             forms.Field.__init__(self, widget=forms.widgets.RadioSelect(choices=choices), *args, **kwargs)
         else:
@@ -275,10 +265,17 @@ class FractionField(forms.Field):
             return None
         value = smart_str(value).strip()
         try:
-            value = Fraction(value).limit_denominator(50)
-        except ValueError:
+            if "/" in value:
+                num, den = [s.strip() for s in value.split("/", 1)]
+                if not self.allow_decimals and ("." in num) or ("." in den):
+                    raise forms.fields.ValidationError(self.error_messages['no_decimals'])
+                value = Fraction(num) / Fraction(den)
+            else:
+                value = Fraction(value)
+        except (ValueError, ZeroDivisionError):
             raise forms.fields.ValidationError(self.error_messages['invalid'])
-        return value
+        
+        return value.limit_denominator(50)
 
     def validate(self, value):
         super(FractionField, self).validate(value)
@@ -288,7 +285,7 @@ class FractionField(forms.Field):
 
 class SemesterTeachingInput(forms.widgets.TextInput):
     def render(self, *args, **kwargs):
-        return mark_safe(conditional_escape(super(SemesterTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>semester</strong>")
+        return mark_safe(conditional_escape(super(SemesterTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>period</strong>")
 
 
 class TeachingCreditField(FractionField):
@@ -300,18 +297,16 @@ class TeachingCreditField(FractionField):
         defaults.update(kwargs)
         super(TeachingCreditField, self).__init__(**defaults)
 
-
-
 class TeachingReductionField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
+            'allow_decimals': True,
             'initial': 0,
             'widget': SemesterTeachingInput(attrs={'size': 5}),
-            'help_text': mark_safe('Per semester decrease in teaching load associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
+            'help_text': mark_safe('Per period decrease in teaching load, enter as fraction: ex. X courses/3 semesters (/ = per).'),
         }
         defaults.update(kwargs)
         super(TeachingReductionField, self).__init__(**defaults)
-
 
 
 

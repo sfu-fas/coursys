@@ -88,13 +88,13 @@ class AppointmentEventHandler(CareerEventHandlerBase):
             ('OTHR', 'Other/Unknown'),
         )
 
-        position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
+        position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}), help_text='Found on Recommendation for Appointment form (AKA "RFAF")')
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
         degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
-                                                           'Recommendation for Appointment Forms (AKA "Yellow Form"). '
+                                                           'Recommendation for Appointment Forms (AKA "RFAF"). '
                                                            ' List the highest degree first.', required=False,
-                                  label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
+                                  label='Degree 1 (Highest Degree)', widget=forms.TextInput(attrs={'size': '13'}))
         year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))
         institution1 = forms.CharField(max_length=25, required=False, label='Institution 1')
         location1 = forms.CharField(max_length=23, required=False, label='City/Country 1')
@@ -109,8 +109,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
         location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
         teaching_semester_credits = forms.DecimalField(max_digits=3, decimal_places=0, required=False,
-                                                       help_text='Number of teaching semester credits, for the tenure '
-                                                       'track form')
+                                                       help_text='Number of teaching releases received with initial appointment. Found in Informal or Provisional Offer.')
 
 
     SEARCH_RULES = {
@@ -239,6 +238,7 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
 
         STIPEND_SOURCES = Choices(
             ('RETENTION', 'Retention Award'),
+            ('SALARY', 'Salary Anomaly'),
             ('MARKETDIFF', 'Market Differential'),
             ('RESEARCH', 'Research Chair Stipend'),
             ('OTHER', 'Other'),
@@ -278,7 +278,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     Tenure Application Career event
     """
     EVENT_TYPE = 'TENUREAPP'
-    NAME = "Tenure Application"
+    NAME = "Tenure Only Application"
     IS_INSTANT = False
 
     TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -307,7 +307,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
 
     def short_summary(self):
-        return "Tenure application: {0}".format(self.get_result_display(),)
+        return "Tenure only application: {0}".format(self.get_result_display(),)
 
 
 class PromotionApplicationEventHandler(CareerEventHandlerBase):
@@ -417,6 +417,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     class EntryForm(BaseEntryForm):
         REASONS = Choices(
             ('MEDICAL', 'Medical'),
+            ('CL', 'Compassionate Leave'),
             ('PARENTAL', 'Parental'),
             ('ADMIN', 'Admin'),
             ('LOA', 'Leave of Absence'),
@@ -474,8 +475,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Option</dt><dd>{{ handler|get_display:"option" }} </dd>
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
-        <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
-        <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
+        {% if handler|get_config:"report_received" %}<dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
+        <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>{% endif %}
         <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_decrease" }}</dd>
         <dt>Deferred Salary</dt><dd>{{ handler|get_display:"deferred_salary"|yesno }}</dd>
         <dt>Accumulated Credits</dt><dd>{{ handler|get_display:"accumulated_credits" }}</dd>
@@ -498,11 +499,11 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
         deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
-        accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
+        accumulated_credits = forms.DecimalField(label='Accumulated Credits', min_value=0, max_value=99,
                                                  help_text='Accumulated unused credits', required=False)
         study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99,
                                                  help_text='Total number of Study Leave Credits spent for entire leave')
-        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
+        credits_forward = forms.DecimalField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
                                              max_value=10000,
                                              help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
@@ -517,18 +518,19 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 teaching_load = 0
 
             self.fields['teaching_decrease'].initial = teaching_load
+            self.fields['report_received'].initial = teaching_load
+            # retired fields
+            self.fields.pop('report_received')
+            self.fields.pop('report_received_date')
 
     SEARCH_RULES = {
         'pay_fraction': search.ComparableSearchRule,
-        'report_received': search.BooleanSearchRule,
         'teaching_decrease': search.ComparableSearchRule,
         'study_leave_credits': search.ComparableSearchRule,
         'credits_forward': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'pay_fraction',
-        'report_received',
-        'report_received_date',
         'teaching_decrease',
         'study_leave_credits',
         'credits_forward'
@@ -588,6 +590,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'ACCRED'
     NAME = 'Accreditation Attribute'
+    IS_INSTANT = True
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -682,3 +685,291 @@ class ContractReviewEventHandler(CareerEventHandlerBase):
         return CONTRACT_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
     def short_summary(self):
         return "Contract Renewal: {0}".format(self.get_result_display(),)
+
+class RetirementEventHandler(CareerEventHandlerBase):
+    """
+    Retirement
+    """
+
+    EVENT_TYPE = 'RETIRE'
+    NAME = 'Retirement'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Retirement Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
+        <dt>Retirement Type</dt><dd>{{ handler|get_display:"type" }}</dd>
+        <dt>Emeritus Status</dt><dd>{{ handler|get_display:"emeritus_status" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        RETIREMENT_TYPE_CHOICES = Choices(
+            ('REG', 'Regular Retirement'),
+            ('PHA', 'Phased Retirement'),
+            ('ENH', 'Enhanced Early Retirement'),
+        )
+
+        EMERITUS_CHOICES = Choices(
+            ('U', 'Unknown'),
+            ('Y', 'Yes'),
+            ('N', 'No'),
+        )
+
+        request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Retirement Request Date")
+        type = forms.ChoiceField(initial='REG', required=True, choices=RETIREMENT_TYPE_CHOICES)
+        emeritus_status = forms.ChoiceField(required=True, choices=EMERITUS_CHOICES, label="Emeritus Status")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "First Day of Retirement"
+            self.fields['end_date'].widget = forms.HiddenInput()
+
+    SEARCH_RULES = {
+        'type': search.ChoiceSearchRule,
+        'emeritus_status': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'type',
+        'emeritus_status'
+    ]
+
+    def get_type_display(self):
+        return self.EntryForm.RETIREMENT_TYPE_CHOICES.get(self.get_config('type'), 'N/A')
+    
+    def get_emeritus_status_display(self):
+        return self.EntryForm.EMERITUS_CHOICES.get(self.get_config('emeritus_status'), 'status unknown')
+
+    def short_summary(self):
+        return "Retirement"
+        
+class ResignationEventHandler(CareerEventHandlerBase):
+    """
+    Resignation
+    """
+
+    EVENT_TYPE = 'RESIGN'
+    NAME = 'Resignation'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Resignation Request Date</dt><dd>{{ handler|get_display:"request_date" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        request_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Resignation Request Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Last Date of Work"
+            self.fields['end_date'].widget = forms.HiddenInput()
+
+    def short_summary(self):
+        return "Resignation"
+    
+class ProbationaryReviewEventHandler(CareerEventHandlerBase):
+    """
+    Probationary Review
+    """
+
+    EVENT_TYPE = 'PROBATR'
+    NAME = "Probationary Review"
+    IS_INSTANT = True
+
+    TO_HTML_TEMPLATE = '''
+        {% extends "faculty/event_base.html" %}
+            {% load event_display %}{% block dl %}
+            <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+            <dt>Continuing Appointment Effective Date</dt><dd>{{ handler|get_display:"continuing_effective_date" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+
+        PROBATIONARY_REVIEW_CHOICES = Choices(
+            ('PEN', 'Pending'),
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+
+        result = forms.ChoiceField(required=False, label='Result', choices=PROBATIONARY_REVIEW_CHOICES)
+        continuing_effective_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Continuing Appointment Effective Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Date of Application"
+
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'continuing_effective_date',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.PROBATIONARY_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Probationary Review: {0}".format(self.get_result_display(),)
+    
+class TenurePromotionAssociateProfessorEventHandler(CareerEventHandlerBase):
+    """
+    Tenure & Promotion to Associate Professor
+    """
+
+    EVENT_TYPE = 'TENPROAP'
+    NAME = 'Tenure and Promotion to Associate Professor'
+
+    IS_INSTANT = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Early Consideration?</dt><dd>{{ handler|get_display:"early_consideration"|yesno }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        <dt>Steps Year One</dt><dd>{{ handler|get_display:"steps_year_one" }}</dd>
+        <dt>Steps Year Two</dt><dd>{{ handler|get_display:"steps_year_two" }}</dd>
+        <dt>Tenure Effective Date</dt><dd>{{ handler|get_display:"tenure_effective" }}</dd>
+        <dt>Promotion Effective Date</dt><dd>{{ handler|get_display:"promotion_effective" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+
+        TENURE_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
+            ('TPR', 'Tenured and Promoted'),
+            ('DEN', 'Denied'),
+        )
+
+        STEPS = [i * 0.5 for i in range(2,13)] # 1, 1.5, 2, 2.5 ...
+        STEP_CHOICES = [(str(step), str(step)) for step in STEPS]
+
+        early_consideration = forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Early Consideration?")
+        result = forms.ChoiceField(required=False, label='Result', choices=TENURE_RESULT_CHOICES)
+        steps_year_one = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year One")
+        steps_year_two = forms.ChoiceField(required=False, widget=forms.Select, choices=STEP_CHOICES, label="Steps Year Two")
+        tenure_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Tenure Effective Date")
+        promotion_effective = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'date-input'}), label="Promotion Effective Date")
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "Application Date"
+
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+        'early_consideration': search.BooleanSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'early_consideration',
+        'tenure_effective',
+        'promotion_effective',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.TENURE_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+
+    def short_summary(self):
+        return "Tenure and Promotion to Associate Professor {0}".format(self.get_result_display(),)
+    
+class AlternateCareerPathEventHandler(CareerEventHandlerBase):
+    """
+    Alternate Career Path
+    """
+
+    EVENT_TYPE = 'ALTCA'
+    NAME = 'Alternate Career Path'
+
+    IS_EXCLUSIVE = True
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Distribution of Workload: Teaching (%)</dt><dd>{{ handler|get_display:"teaching" }}</dd>
+        <dt>Distribution of Workload: Research (%)</dt><dd>{{ handler|get_display:"research" }}</dd>
+        <dt>Distribution of Workload: Service (%)</dt><dd>{{ handler|get_display:"service" }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        
+        CAREER_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+
+        teaching = forms.DecimalField(required=False, label='Distribution of Workload: Teaching (%)', min_value=0, max_value=100, decimal_places=1)
+        research = forms.DecimalField(required=False, label='Distribution of Workload: Research (%)', min_value=0, max_value=100, decimal_places=1)
+        service = forms.DecimalField(required=False, label='Distribution of Workload: Service (%)', min_value=0, max_value=100, decimal_places=1)
+        result = forms.ChoiceField(required=False, label='Result', choices=CAREER_RESULT_CHOICES)
+
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+        'teaching': search.ComparableSearchRule,
+        'research': search.ComparableSearchRule,
+        'service': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'teaching',
+        'research',
+        'service',
+    ]
+    def get_result_display(self):
+        return self.EntryForm.CAREER_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Alternate Career Path {0}".format(self.get_result_display(),)
+    
+class ModifiedAppointmentEventHandler(CareerEventHandlerBase):
+    """
+    Modified Appointment
+    """
+
+    EVENT_TYPE = 'MODAPP'
+    NAME = 'Modified Appointment'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Reduction (%)</dt><dd>{{ handler|get_display:"reduction" }}</dd>
+        <dt>Permanent Modification?</dt><dd>{{ handler|get_display:"permanent"|yesno }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        
+        MODIFIED_RESULT_CHOICES = Choices(
+            ('PEN', 'Pending'),
+            ('APP', 'Approved'),
+            ('DEN', 'Denied'),
+        )
+        
+        reduction = forms.DecimalField(required=True, label='Reduction (%)', min_value=0, max_value=100, decimal_places=1)
+        permanent =  forms.ChoiceField(required=True, choices = [(True, "Yes"), (False, "No")], widget=forms.Select, label="Permanent Modification?")
+        result = forms.ChoiceField(required=True, label='Result', choices=MODIFIED_RESULT_CHOICES)
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['start_date'].label = "First Day of Modification"
+            self.fields['end_date'].label = "Last Day of Modification (optional)"
+
+    SEARCH_RULES = {
+        'reduction': search.ComparableSearchRule,
+        'permanent': search.BooleanSearchRule,
+        'result': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'reduction',
+        'permanent',
+        'result',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.MODIFIED_RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    
+    def short_summary(self):
+        return "Modified Appointment {0}".format(self.get_result_display(),)
