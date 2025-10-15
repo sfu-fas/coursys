@@ -3,12 +3,11 @@ from ..table import Table
 from coredata.models import Semester, Unit, Member
 from ta.models import TACourse as ta_courses
 from tacontracts.models import TACourse as tacontracts_courses
-from courselib.slugs import coursename_by_slug
 
 class CMPTTAConflictRolesReport(Report):
     title = "CMPT TAs has conflict memberships for the Current Semester"
     description = "A report of all CMPT TAs has memberships (student role) in the current semester"
-    
+
     def run(self):        
         semesters =[] 
         semesters.append(Semester.current())
@@ -57,9 +56,9 @@ class CMPTTAConflictRolesReport(Report):
                         m1 = Member.objects.filter(person=ta.contract.application.person, offering__slug=o[0], role='STUD').first()
                         m2 = Member.objects.filter(person=ta.contract.application.person, offering__slug=o[1], role='STUD').first()
                         if m1:
-                            results.append_row([ta.contract.posting.semester, ta.contract.application.person.name_with_pref(), ta.contract.application.person.emplid, ta.contract.application.person.userid, ta.contract.status, ta.course.name(), coursename_by_slug(o[0])+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.posting.semester, ta.contract.application.person.name_with_pref(), ta.contract.application.person.emplid, ta.contract.application.person.userid, ta.contract.status, ta.course.name(), m1.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
                         if m2:
-                            results.append_row([ta.contract.posting.semester, ta.contract.application.person.name_with_pref(), ta.contract.application.person.emplid, ta.contract.application.person.userid, ta.contract.status, ta.course.name(), coursename_by_slug(o[1])+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.posting.semester, ta.contract.application.person.name_with_pref(), ta.contract.application.person.emplid, ta.contract.application.person.userid, ta.contract.status, ta.course.name(),  m2.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
 
                     except Member.DoesNotExist:
                         continue    
@@ -89,9 +88,9 @@ class CMPTTAConflictRolesReport(Report):
                         m1 = Member.objects.filter(person=ta.contract.person, offering__slug=o[0], role='STUD').first()
                         m2 = Member.objects.filter(person=ta.contract.person, offering__slug=o[1], role='STUD').first()
                         if m1:
-                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), coursename_by_slug(o[0])+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m1.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
                         if m2:
-                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), coursename_by_slug(o[1])+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m2.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
 
                     except Member.DoesNotExist:
                         continue
