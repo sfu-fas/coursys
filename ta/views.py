@@ -23,7 +23,7 @@ from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
     CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm, TAWorkloadReviewForm, \
-    TAEvaluationForm, TAEvaluationFormbyTA
+    TAEvaluationForm, TAEvaluationFormbyTA, TAAcceptTermsForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms, tug_form, taworkload_form, ta_evaluation_form
@@ -2137,6 +2137,8 @@ def accept_contract(request, post_slug, userid, preview=False):
     else:   
         form = TAContractForm(instance=contract) 
 
+    termsform = TAAcceptTermsForm()
+
     context = { 'contract':contract, 
                 'courses':courses,
                 'pay':_format_currency(contract.pay_per_bu),
@@ -2150,6 +2152,7 @@ def accept_contract(request, post_slug, userid, preview=False):
                 'form':form,
                 'preview': preview,
                 'deadline_passed': deadline_passed,
+                'termsform': termsform
             }
     return render(request, 'ta/accept.html', context)
 

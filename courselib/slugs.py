@@ -7,3 +7,11 @@ def make_slug(txt):
     """
     return slugify(unidecode.unidecode(str(txt).lower()))
 
+def coursename_by_slug(slug):
+    start = slug.find('-')+1
+    if slug[-2:] == '00':
+        coursename = slug.upper()[start:].replace("-", " ")[:-2]
+    else:
+        coursename = slug.upper()[start:].replace("-", " ")
+
+    return coursename

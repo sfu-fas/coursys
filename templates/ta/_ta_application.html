@@ -22,6 +22,7 @@
     <tr><th scope="row">Other Financial Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
     <tr><th scope="row">Additional Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
     <tr><th score="row">Attended New Workers Training</th><td>{{ application.new_workers_training|yesno }}</td></tr>
+    <tr><th score="row">Agree to be physically present on campus</th><td>{{ application.physical_present_declare|yesno }}</td></tr>    
   </table>
 
   {% if application.config.extra_questions %}

@@ -278,6 +278,7 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
         self.fields['transcript'].required = True
+        self.fields['physical_present_declare'].required = True        
         rolepersonids = Role.objects.filter(unit=self.initial['unit'], role__in=['FAC', 'SUPV']).values_list('person_id', flat=True)
         person = Person.objects.filter(id__in=rolepersonids)
         self.fields['supervisor'].queryset = person
@@ -330,7 +331,22 @@ class TAAcceptanceForm(forms.ModelForm):
     class Meta:
         model = TAContract
         fields = ['sin']
+
+class TAAcceptTermsForm(forms.Form):
+    physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
+                                                   widget=forms.CheckboxInput(),
+                                                   help_text="All CS courses are to be primarily conducted in person. " \
+                                                   "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+                                                   "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.")
+    roles_conflict_declare =  forms.BooleanField (label="I agree to not accept a TA contract for any course or combined course that i am enrolled in for the same term", 
+                                                   widget=forms.CheckboxInput())
     
+    def __init__(self, *args, **kwargs):
+        super(TAAcceptTermsForm, self).__init__(*args, **kwargs)
+        self.fields['physical_present_declare'].required = True
+        self.fields['roles_conflict_declare'].required = True
+
+
 class NewTAContractForm(forms.Form):
     application = forms.ModelChoiceField(queryset=TAApplication.objects.none())
 
