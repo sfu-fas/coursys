@@ -42,6 +42,9 @@ DEPT_CHOICES = [
     ('NONS', 'Not currently a student'),
 ]
 
+TACONTRACT_DEFAULT_REMARK = "All CS courses are to be primarily conducted in person. " \
+        "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+        "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -1093,9 +1096,7 @@ class TAContract(models.Model):
         self.position_number = Account.objects.get(pk=posting.accounts()[index])
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
-        self.remarks = "All CS courses are to be primarily conducted in person. " \
-        "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
-        "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
+        self.remarks = TACONTRACT_DEFAULT_REMARK
         self.save()
 
     def bu(self):

@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText, TAWorkloadReview, TAEvaluation
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText, TAWorkloadReview, TAEvaluation, TACONTRACT_DEFAULT_REMARK
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM, STATUS_ACTIVE
@@ -1852,9 +1852,7 @@ def assign_bus(request, post_slug, course_slug):
                             # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
                             contract.status = "NEW"
-                            contract.remarks = "All CS courses are to be primarily conducted in person. " \
-                            "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
-                            "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
+                            contract.remarks = TACONTRACT_DEFAULT_REMARK
                         else:
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(applicants[i], posting)

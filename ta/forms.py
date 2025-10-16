@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview, TAEvaluation
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview, TAEvaluation, TACONTRACT_DEFAULT_REMARK
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -260,9 +260,7 @@ class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
                                                    widget=forms.CheckboxInput(),
-                                                   help_text="All CS courses are to be primarily conducted in person. " \
-                                                   "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
-                                                   "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.")
+                                                   help_text=TACONTRACT_DEFAULT_REMARK)
     
     class Meta:
         model = TAApplication
@@ -341,9 +339,7 @@ class TAAcceptanceForm(forms.ModelForm):
 class TAAcceptTermsForm(forms.Form):
     physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
                                                    widget=forms.CheckboxInput(),
-                                                   help_text="All CS courses are to be primarily conducted in person. " \
-                                                   "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
-                                                   "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.")
+                                                   help_text=TACONTRACT_DEFAULT_REMARK)
     roles_conflict_declare =  forms.BooleanField (label="I agree to not accept a TA contract for any course or combined course that i am enrolled in for the same term", 
                                                    widget=forms.CheckboxInput())
     
