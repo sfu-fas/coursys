@@ -855,12 +855,6 @@ class TAApplication(models.Model):
                                                          'research and instructional laboratories may require '
                                                          'additional training, contact the faculty member in charge of '
                                                          'your lab(s) for details.'))
-    physical_present_declare = models.BooleanField('I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment',
-                                               default=False,
-                                               help_text=mark_safe('All CS courses are to be primarily conducted in person. ' \
-                                               'All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. ' \
-                                               'Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.'))
-    
     config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
@@ -1038,9 +1032,7 @@ class TAContract(models.Model):
     appt_cond = models.BooleanField(default=False, verbose_name="Conditional")
     appt_tssu = models.BooleanField(default=True, verbose_name="Appointment in TSSU")
     deadline = models.DateField(verbose_name="Acceptance Deadline", help_text='Deadline for the applicant to accept/decline the offer')
-    remarks = models.TextField(blank=True, default="All CS courses are to be primarily conducted in person. " \
-    "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
-    "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.")
+    remarks = models.TextField(blank=True)
     
     created_by = models.CharField(max_length=8, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1101,6 +1093,9 @@ class TAContract(models.Model):
         self.position_number = Account.objects.get(pk=posting.accounts()[index])
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
+        self.remarks = "All CS courses are to be primarily conducted in person. " \
+        "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+        "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
         self.save()
 
     def bu(self):

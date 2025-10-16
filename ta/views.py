@@ -1314,6 +1314,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
             ta_form.fields['resume'].required = False
         if application.transcript:
             ta_form.fields['transcript'].required = False
+        ta_form.fields['physical_present_declare'].initial = True
         ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
@@ -1851,6 +1852,9 @@ def assign_bus(request, post_slug, course_slug):
                             # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
                             contract.status = "NEW"
+                            contract.remarks = "All CS courses are to be primarily conducted in person. " \
+                            "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+                            "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
                         else:
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(applicants[i], posting)

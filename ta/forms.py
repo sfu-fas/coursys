@@ -258,6 +258,12 @@ class TAEvaluationFormbyTA(forms.ModelForm):
 
 class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
+    physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
+                                                   widget=forms.CheckboxInput(),
+                                                   help_text="All CS courses are to be primarily conducted in person. " \
+                                                   "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+                                                   "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure.")
+    
     class Meta:
         model = TAApplication
         exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config', 'sin')
@@ -278,7 +284,7 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
         self.fields['transcript'].required = True
-        self.fields['physical_present_declare'].required = True        
+        self.fields['physical_present_declare'].required = True
         rolepersonids = Role.objects.filter(unit=self.initial['unit'], role__in=['FAC', 'SUPV']).values_list('person_id', flat=True)
         person = Person.objects.filter(id__in=rolepersonids)
         self.fields['supervisor'].queryset = person
