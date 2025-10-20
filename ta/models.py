@@ -42,6 +42,9 @@ DEPT_CHOICES = [
     ('NONS', 'Not currently a student'),
 ]
 
+TACONTRACT_DEFAULT_REMARK = "All CS courses are to be primarily conducted in person. " \
+        "All Teaching Assistants (TAs) are required to be physically present for all assigned duties throughout the entirety of their appointment. " \
+        "Work distribution will adhere to the Time Use Guidelines, and TAs are obligated to diligently track and report their hours as per standard procedure."
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -1093,6 +1096,7 @@ class TAContract(models.Model):
         self.position_number = Account.objects.get(pk=posting.accounts()[index])
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
+        self.remarks = TACONTRACT_DEFAULT_REMARK
         self.save()
 
     def bu(self):
@@ -1114,7 +1118,7 @@ class TAContract(models.Model):
         return sum([course.prep_bu for course in courses])
 
     def total_pay(self):
-        return decimal.Decimal(self.bu()) * self.pay_per_bu
+        return decimal.Decimal(self.total_bu()) * self.pay_per_bu
 
     def scholarship_pay(self):
         return decimal.Decimal(self.bu()) * self.scholarship_per_bu
@@ -1264,9 +1268,14 @@ class TACourse(models.Model):
     def default_description(self):
         """
         Guess an appropriate CourseDescription object for this contract. Must have self.course filled in first.
+        Default to "Office/Lab/Tutorial/Marking"
         """
         labta = self.course.labtas()
-        descs = CourseDescription.objects.filter(unit=self.contract.posting.unit, hidden=False, labtut=labta)
+        specific_value = "Office/Lab/Tutorial/Marking"
+        descs = CourseDescription.objects.filter(unit=self.contract.posting.unit, description=specific_value, hidden=False)
+        if not descs:
+            descs = CourseDescription.objects.filter(unit=self.contract.posting.unit, hidden=False, labtut=labta)
+
         if descs:
             return descs[0]
         else:
