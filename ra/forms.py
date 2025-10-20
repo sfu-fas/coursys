@@ -971,7 +971,7 @@ class RARequestNoteForm(forms.ModelForm):
 
 class RARequestISHFForm(forms.ModelForm):
     ishf_subscribers = forms.IntegerField(required=True, label="Number of Subscribers", help_text="Set to 0 to unapply", min_value=0)
-    ishf_total = forms.DecimalField(required=True, label="Total Fee", help_text=mark_safe("Click <button type='button' id='ishf_calc'>here</button> to auto-calculate with current ISHF fee ($" + str(ISHF_FEE) + ")"), decimal_places=2)
+    ishf_total = forms.DecimalField(required=True, label="Total Fee", decimal_places=2)
 
     class Meta:
         model = RARequest
@@ -981,6 +981,8 @@ class RARequestISHFForm(forms.ModelForm):
         super(RARequestISHFForm, self).__init__(*args, **kwargs)
         self.fields['ishf_subscribers'].initial = getattr(self.instance, 'ishf_subscribers')
         self.fields['ishf_total'].initial = f"{getattr(self.instance, 'ishf_total'):.2f}"
+        if self.instance:
+            self.fields['ishf_total'].help_text = mark_safe("Click <button type='button' id='ishf_calc'>here</button> to auto-calculate with current ISHF fee ($" + str(ISHF_FEE) + ") and " + str(self.instance.get_months_spanned()) + " month span.")
 
     def clean(self):
         cleaned_data = super().clean()

@@ -7,7 +7,7 @@
 <script nonce="{{ CSP_NONCE }}">
   function calculateISHF(){
     subscribers = $('#id_ishf_subscribers').val()
-    totalFee = (subscribers * "{{ishf_fee}}").toFixed(2)
+    totalFee = (subscribers * "{{ishf_fee}}" * "{{ req.get_months_spanned }}").toFixed(2)
     $('#id_ishf_total').val(totalFee)
   }
   $(document).ready(function() {

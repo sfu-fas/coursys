@@ -883,10 +883,16 @@ class RARequest(models.Model):
                     grant_cost = grant_cost * 1.21
                 elif (ra_benefits == "NE" or ra_benefits == "N"):
                     grant_cost = grant_cost * 1.15
-            if isinstance(self.ishf_total, float):
+            if isinstance(self.ishf_total, float) and self.ishf_subscribers > 0:
                 grant_cost = grant_cost + self.ishf_total
         return grant_cost
         
+    def get_months_spanned(self):
+        # how many months does this appointment span? for extra fee purposes - https://stackoverflow.com/questions/4039879/best-way-to-find-the-months-between-two-dates
+        start_date = self.start_date
+        end_date = self.end_date
+        return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
+    
     def get_name(self):
         if self.first_name and self.last_name:
             name = "%s %s" % (self.first_name, self.last_name)
