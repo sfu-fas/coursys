@@ -50,6 +50,7 @@ OBJECT_CHOICES = (
 NEW_MIN_WAGE_DATE = datetime.date(2025, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
 NEW_MIN_WAGE = 17.85 # Update to most recent or upcoming new minimum wage, once known
 MIN_WAGE = 17.40 # Update to new minimum wage once another upcoming minimum wage is known 
+ISHF_FEE = 75
 
 # deal with upcoming ra wage requirements
 NEW_RA_WAGE_DATE = datetime.date(2026, 3, 31)
@@ -965,6 +966,25 @@ class RARequestNoteForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         config_clean = ['admin_notes']
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+class RARequestISHFForm(forms.ModelForm):
+    ishf_subscribers = forms.IntegerField(required=True, label="Number of Subscribers", help_text="Set to 0 to unapply", min_value=0)
+    ishf_total = forms.DecimalField(required=True, label="Total Fee", help_text=mark_safe("Click <button type='button' id='ishf_calc'>here</button> to auto-calculate with current ISHF fee ($" + str(ISHF_FEE) + ")"), decimal_places=2)
+
+    class Meta:
+        model = RARequest
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestISHFForm, self).__init__(*args, **kwargs)
+        self.fields['ishf_subscribers'].initial = getattr(self.instance, 'ishf_subscribers')
+        self.fields['ishf_total'].initial = f"{getattr(self.instance, 'ishf_total'):.2f}"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['ishf_total', 'ishf_subscribers']
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 

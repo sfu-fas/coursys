@@ -38,6 +38,7 @@ ra_patterns = [ # prefix /ra/
     url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
     url(r'^dashboard/' + RA_SLUG + '/update_processor$', ra_views.update_processor, name='update_processor'),
     url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
+    url(r'^dashboard/' + RA_SLUG + '/update_ishf$', ra_views.update_ishf, name='update_ishf'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request_draft$', ra_views.delete_request_draft, name='delete_request_draft'),
     url(r'^dashboard/' + RA_SLUG + '/request_science_alive$', ra_views.request_science_alive, name='request_science_alive'),

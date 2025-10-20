@@ -606,6 +606,8 @@ class RARequest(models.Model):
     ra_duties_wr = config_property('ra_duties_wr', default='')
     ra_duties_pm = config_property('ra_duties_pm', default='')
     ra_other_duties = config_property('ra_other_duties', default='')
+    ishf_total = config_property('ishf_total', default=0)
+    ishf_subscribers = config_property('subscribers', default=0)
 
     # nc only options
     nc_duties = config_property('ra_other_duties', default='')
@@ -881,6 +883,8 @@ class RARequest(models.Model):
                     grant_cost = grant_cost * 1.21
                 elif (ra_benefits == "NE" or ra_benefits == "N"):
                     grant_cost = grant_cost * 1.15
+            if isinstance(self.ishf_total, float):
+                grant_cost = grant_cost + self.ishf_total
         return grant_cost
         
     def get_name(self):

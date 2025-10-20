@@ -4,6 +4,16 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+<script nonce="{{ CSP_NONCE }}">
+  function calculateISHF(){
+    subscribers = $('#id_ishf_subscribers').val()
+    totalFee = (subscribers * "{{ishf_fee}}").toFixed(2)
+    $('#id_ishf_total').val(totalFee)
+  }
+  $(document).ready(function() {
+    $('#ishf_calc').click( function() {calculateISHF(); });
+});
+</script>
 {% endblock %}
 
 {% block title %}
@@ -326,6 +336,7 @@
           {% if ra_hourly %}4% - Vacation Pay<br>{% endif %}
           {% if req.ra_benefits == 'Y' %}6% - Extended Health/Dental Benefits{% endif %}
       </td></tr>
+    {% if req.ishf_subscribers > 0 and research_assistant %}<tr><th>International Student Health Fee (ISHF):</th><td>${{ req.ishf_total|floatformat:2 }}</td></tr>{% endif %}
     <tr><th>Est. Cost Charging to Grant:</th><td>${{ req.get_grant_cost|floatformat:2 }}</td></tr>
   </table>
 </div>
@@ -467,6 +478,20 @@
 
 {% if admin %}
 <h3>ADMINISTRATIVE</h3>
+
+{% if research_assistant and can_edit %}
+<h2>International Student Health Fee (ISHF) {% if req.ishf_total > 0 %}- Applied {% else %}- Not Applied{% endif %}</h2>
+<div class="form_container">
+  <fieldset>
+    <div class="form_section">
+      <form action="{% url "ra:update_ishf" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
+        {{ ishfform|as_dl }}
+        <input id="done" type="submit" class="submit" value="Save and Apply" />
+      </form>
+    </div>
+  </fieldset>
+</div>
+{% endif %}
 
 <div class="table_container">
   <h2>Notes</h2>
