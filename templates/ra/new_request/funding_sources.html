@@ -98,6 +98,12 @@
             </div>
         {% endif %} 
     </fieldset>
+    {% if research_assistant %}
+    <div class="important_info helptext">
+      <b>International Student Health Fee (ISHF)</b> is a mandatory monthly health fee applies to all international students studying in British Columbia on a valid study permit for at least six months of the year. Research Assistants must apply for participation in the ISHF coverage program. For Research Assistants / Research Supports employed under the TSSU collective agreement, the cost of this fee must be covered by the grant that funds the RA's / RS's employment. The ISHF is currently assessed at ${{ishf_fee}} per person per month and the fee is subject to change. Eligible dependents (spouse and children) will be an additional ${{ishf_fee}} per person per month.<br>
+      <a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_MSP_ISHF_guard.me_April2025.pdf">Please click here and refer to a fact sheet with additional information about the ISHF, including eligibility, administration, and fee levels.</a>
+    </div>
+    {% endif %}
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
