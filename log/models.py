@@ -104,7 +104,7 @@ class EventLogEntry(models.Model):
     * JSON data: flexible. Use for everything else.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
-    time = models.DateTimeField(blank=False, null=False, help_text='Time of the *start* of this event.')
+    time = models.DateTimeField(blank=False, null=False, db_index=True, help_text='Time of the *start* of this event.')
     duration = models.DurationField(blank=False, null=False, help_text='Time taken for this event.')
     data = models.JSONField()
 
