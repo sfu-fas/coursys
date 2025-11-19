@@ -163,9 +163,6 @@ $(document).ready(function() {
                 </td>
                 <td>
                     {{contract.get_status_display}}
-                    {% if contract.status == 'NEW' and contract.accepted_by_student %}
-                        <i class='fa fa-check'></i>
-                    {% endif %}
                 </td>
                 <td>                    
                     {{ contract.course_list_string }} 

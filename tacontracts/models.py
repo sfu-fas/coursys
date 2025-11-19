@@ -557,7 +557,7 @@ class TAContract(models.Model):
 
     def instructor_list_string(self):
         # Build a string of all instructors tied to this contract for system admin page
-        instructor_list_string = ", ".join(instructor.name() for ta_course in self.tacourse_set.all() for instructor in ta_course.course.instructors())
+        instructor_list_string = ", ".join(instructor.name() for ta_course in self.course.all() for instructor in ta_course.course.instructors())
         return instructor_list_string
     
     def has_attachments(self):
