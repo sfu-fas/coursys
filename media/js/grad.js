@@ -323,9 +323,8 @@ function grad_browser_setup(my_url) {
     'columnDefs': [
       { "orderable": false, "targets": [5,6,7] },
 	  { "width": "20%", "targets": [0] },
-	  { "width": "10%", "targets": [1,2] },
-	  { "width": "13%", "targets": 4},
-	  { "width": "12%", "targets": [3,5,6] },
+	  { "width": "10%", "targets": [1,2] },	  
+	  { "width": "12%", "targets": [3,4,5,6,7] },
 
   ],
     'sAjaxSource': my_url + '?tabledata=yes',
