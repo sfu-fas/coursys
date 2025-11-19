@@ -12,6 +12,27 @@ $(document).ready(function() {
     "bJQueryUI": true,
     "aaSorting": [[1, "desc"], [0, "asc"]],
     } );
+  $('#taroles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    } );
+  $('#raroles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    } );    
+  $('#gradprograms').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    } );      
 } );
 </script>
 {% endblock %}
@@ -68,6 +89,168 @@ $(document).ready(function() {
 
 {% else %}
 <p class="empty">Not a member of any courses.</p>
+{% endif %}
+
+<h2>Grad Programs</h2>
+{% if gradprograms %}
+	<table id="gradprograms" class="display">
+        <thead>
+            <tr>
+                <th>Grad Program</th>
+                <th>Start Semester</th>
+                <th>End Semester</th>
+                <th>Senior Supervisors</th>
+                <th>Completion Progress</th>
+                <th>Current Status</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for grad in gradprograms %}
+    <tr>
+                <td>
+                    {{ grad.program.unit.label }}, {{ grad.program.label }}
+                </td>
+                <td>
+                    {{ grad.start_semester.name }} ({{ grad.start_semester.label }})
+                </td>
+                <td> 
+                    {% if grad.end_semester %}
+                        {{ grad.end_semester.name}} ({{ grad.end_semester.label }})
+                    {% endif %}
+                </td>
+                <td>
+                    {{grad.list_all_supervisors}}                    
+                </td>
+                <td>
+                    {{grad.active_semesters_display}}
+                </td>
+                <td>
+                    {{ grad.get_current_status_display }}
+                </td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+<p class="empty">No grad programs.</p>
+{% endif %}
+
+<h2>TA Contracts</h2>
+{% if tacontracts or oldcontracts %}
+	<table id="taroles" class="display">
+        <thead>
+            <tr>
+                <th>Semester</th>
+                <th>Start Date</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Course(s)</th>
+                <th>Instructor(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for contract in tacontracts %}
+    <tr>
+                <td>
+                    {{contract.category.hiring_semester.semester.name}}
+                </td>
+                <td>
+                    <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                    {{contract.pay_start|date:"M d, Y"}}
+                </td>
+                <td>
+                    {{contract.category.code}}
+                </td>
+                <td>
+                    {{contract.get_status_display}}
+                    {% if contract.status == 'NEW' and contract.accepted_by_student %}
+                        <i class='fa fa-check'></i>
+                    {% endif %}
+                </td>
+                <td>                    
+                    {{ contract.course_list_string }} 
+                </td>
+                <td>                    
+                    {{ contract.instructor_list_string }}
+                </td>                
+            </tr>
+    {% endfor %}
+    {% for contract in oldcontracts %}
+    <tr>
+                <td>
+                    {{contract.posting.semester.name}}
+                </td>
+                <td>
+                    <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                    {{contract.pay_start|date:"M d, Y"}}
+                </td>
+                <td>
+                    {{contract.appt_category}}
+                </td>
+                <td>
+                    {{contract.get_status_display}}
+                </td>
+                <td>
+                    {{ contract.course_list_string }}                    
+                </td>
+                <td>                    
+                    {{ contract.instructor_list_string }}
+                </td>                  
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+<p class="empty">No TA contracts.</p>
+{% endif %}
+<h2>RA Appointments</h2>
+{% if ras or oldras %}
+	<table id="raroles" class="display">
+        <thead>
+            <tr>
+                <th>Supervisor</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in ras %}
+            <tr>
+                <td>
+                    {{ req.supervisor }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    {{ req.unit.label }}
+                </td>
+            </tr>
+            {% endfor %}
+            {% for req in oldras %}
+            <tr>
+                <td>
+                    {{ req.hiring_faculty }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    {{ req.unit.label }}
+                </td>
+            </tr>
+            {% endfor %}
+    </tbody>
+    </table>
+{% else %}
+<p class="empty">No RA appointments.</p>
 {% endif %}
 
 <h2 id="roles">Roles</h2>

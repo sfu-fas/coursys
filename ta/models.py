@@ -1136,6 +1136,11 @@ class TAContract(models.Model):
         course_list_string = ', '.join(ta_course.course.name() for ta_course in self.tacourse_set.all())
         return course_list_string
 
+    def instructor_list_string(self):
+        # Build a string of all instructors tied to this contract for CSV downloads and grad student views.
+        instructor_list_string = ", ".join(instructor.name() for ta_course in self.tacourse_set.all() for instructor in ta_course.course.instructors())
+        return instructor_list_string
+    
     def email_contract(self):
         unit = self.posting.unit
         try:

@@ -321,7 +321,7 @@ function grad_browser_setup(my_url) {
     'serverSide': true,
     'scrollY': false, 
     'columnDefs': [
-      { "orderable": false, "targets": [4,5,6] },
+      { "orderable": false, "targets": [5,6,7] },
 	  { "width": "20%", "targets": [0] },
 	  { "width": "10%", "targets": [1,2] },
 	  { "width": "13%", "targets": 4},
