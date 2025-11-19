@@ -29,7 +29,7 @@ from django.db.models import Max, Min
 from tacontracts.models import TAContract
 from ra.models import RARequest, RAAppointment
 from ta.models import TAContract as OldTAContract
-from grad.models import GradStudent, GradProgram, Supervisor
+from grad.models import GradStudent
 
 @requires_global_role("SYSA")
 def sysadmin(request):
