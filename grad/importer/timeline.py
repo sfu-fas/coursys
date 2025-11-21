@@ -179,7 +179,6 @@ class GradTimeline(object):
                         possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
                         if possible_careers:
                             h.in_career = True
-                            print("ignored: " + str(c))
 
 
 
