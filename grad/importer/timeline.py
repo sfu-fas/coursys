@@ -175,7 +175,7 @@ class GradTimeline(object):
                         # student in classes just after the beginning of time: we missed the career
                         if h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
                             h.in_career = True
-                        # grad semester entered before the program started, usually a deferral but not always, ignore
+                        # grad semester entered before the program started
                         possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
                         if possible_careers:
                             h.in_career = True
@@ -184,7 +184,7 @@ class GradTimeline(object):
 
 
         dropped = [h for h in happenings if not h.in_career]
-        if dropped:  #  found a "deferred" record in an earlier term. Not going to fix in SIMS. 
+        if dropped:
             raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
 
         for c in self.careers:
