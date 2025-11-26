@@ -172,6 +172,7 @@ def grad_scholarships(emplids):
                                                 WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'RADM' THEN 'ACTI'
                                                 WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'PRGC' THEN 'ACTI'
                                                 WHEN PROG_STATUS = 'CM' AND PROG_ACTION = 'COMP' THEN 'GRAD'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'DEFR' THEN 'ACTI'
                                                 ELSE 'None'
                                             END AS translated_Status
                                             FROM PS_ACAD_PROG AP
@@ -190,7 +191,7 @@ def grad_scholarships(emplids):
                                     JOIN strm_Data sd2 ON sd1.date_Rank = sd2.date_Rank - 1) SD
                                 ON DATA1.EFFDT >= SD.PREV_TERM_END AND DATA1.EFFDT < SD.TERM_END
                                 WHERE DATA1.date_Rank = 1) org_Status
-                        ON SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM
+                        ON SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND org_Status.END_STAT IN ('ACTI', 'CONF', 'LEAV')
                             OR SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND SA.STRM <= org_Status.LATEST_TERM AND org_Status.END_STAT IN ('WIDR', 'CANC') AND org_Status.ADMIT_TERM <> org_Status.LATEST_TERM
                             OR SA.EMPLID = org_Status.EMPLID AND SA.ACAD_CAREER = org_Status.ACAD_CAREER AND SA.STRM >= org_Status.ADMIT_TERM AND SA.STRM <= org_Status.COMPLETION_TERM AND org_Status.END_STAT IN ('GRAD')
                     WHERE SA.DISBURSED_BALANCE > 0) final
