@@ -26,6 +26,10 @@ from functools import reduce
 from operator import itemgetter
 import csv
 from django.db.models import Max, Min
+from tacontracts.models import TAContract
+from ra.models import RARequest, RAAppointment
+from ta.models import TAContract as OldTAContract
+from grad.models import GradStudent
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -205,7 +209,16 @@ def user_summary(request, userid):
     roles = Role.objects_fresh.filter(person=person).exclude(role="NONE").select_related('unit')
     groups = FormGroupMember.objects.filter(person=person).order_by('formgroup__name')    
 
-    context = {'person': person, 'memberships': memberships, 'roles': roles, 'groups': groups}
+    gradprograms = GradStudent.objects.filter(person=person).select_related('program')
+
+    tacontracts = TAContract.objects.filter(person=person, status__in=['NEW', 'SGN'])
+    oldcontracts = OldTAContract.objects.filter(application__person=person, status__in=['NEW', 'SGN', 'ACC'])   
+
+    ras = RARequest.objects.filter(person=person, deleted=False, complete=True, draft=False)
+    oldras = RAAppointment.objects.filter(person=person, deleted=False)
+    
+    context = {'person': person, 'memberships': memberships, 'roles': roles, 'groups': groups, 
+               'tacontracts': tacontracts, 'oldcontracts': oldcontracts, 'ras': ras, 'oldras': oldras, 'gradprograms': gradprograms}
     return render(request, "coredata/user_summary.html", context)
 
 

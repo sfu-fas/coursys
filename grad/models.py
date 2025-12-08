@@ -536,6 +536,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         supervisors = ", ".join(supervisors)
         return supervisors
 
+    def list_all_supervisors(self):
+        supervisors = Supervisor.objects.filter(student=self, removed=False)
+        supervisors_list = [(s.sortname() + ' ('+ s.supervisor_type + ')') for s in supervisors]
+        supervisors_list = ", ".join(supervisors_list)
+        return supervisors_list
+    
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
