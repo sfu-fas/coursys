@@ -172,6 +172,7 @@ def grad_scholarships(emplids):
                                                 WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'RADM' THEN 'ACTI'
                                                 WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'PRGC' THEN 'ACTI'
                                                 WHEN PROG_STATUS = 'CM' AND PROG_ACTION = 'COMP' THEN 'GRAD'
+                                                WHEN PROG_STATUS = 'AC' AND PROG_ACTION = 'DEFR' THEN 'ACTI'
                                                 ELSE 'None'
                                             END AS translated_Status
                                             FROM PS_ACAD_PROG AP
