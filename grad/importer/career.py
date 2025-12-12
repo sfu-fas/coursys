@@ -84,6 +84,13 @@ class GradCareer(object):
             return False
         matr_strm = max(matr)[1]
         matr_effdt = max(matr)[0]
+        # check for deferral to earlier semester
+        defr = [(h.effdt, h.admit_term) for h in self.happenings if isinstance(h, ProgramStatusChange) and h.prog_action in ['DEFR']]
+        if defr and matr:
+            defr_strm = max(defr)[1]
+            if defr_strm < matr_strm:
+                matr_strm = defr_strm
+                matr_effdt = max(defr)[0]
         matr_dt = STRM_MAP[matr_strm].start
         if matr_dt > effdt:
             return False

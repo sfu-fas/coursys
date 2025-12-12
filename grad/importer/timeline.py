@@ -171,16 +171,20 @@ class GradTimeline(object):
                         # Committee membership or scholarship for student's new program should be in another happening.
                         # Research areas where we didn't find any other info can be dropped.
                         h.in_career = True
-                    elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
+                    elif not h.in_career and isinstance(h, GradSemester):
                         # student in classes just after the beginning of time: we missed the career
-                        h.in_career = True
+                        if h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
+                            h.in_career = True
+                        # grad semester entered before the program started
+                        possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
+                        if possible_careers:
+                            h.in_career = True
 
 
 
         dropped = [h for h in happenings if not h.in_career]
         if dropped:
-            if not (str(dropped) == '[NWD in 1244]' or str(dropped) == '[NWD in 1254]'): #  found a "deferred" record in an earlier term. Not going to fix in SIMS. 
-                raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
+            raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
 
         for c in self.careers:
             c.sort_happenings()
