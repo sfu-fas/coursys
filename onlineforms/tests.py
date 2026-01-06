@@ -178,7 +178,7 @@ class IntegrationTestCase(TestCase):
         self.assertEqual(form_submission.status, "PEND")
 
     def test_valid_simple_initial_form_submission_anonymous(self):
-        person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@example.net"}
+        person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@notexample.net"}
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
