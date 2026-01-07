@@ -179,7 +179,7 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
 
     EVENT_TYPE = 'TEACHING'
-    NAME = "Teaching Credit Received"
+    NAME = "Course Release Received"
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}

@@ -10,6 +10,7 @@ from django.utils.functional import lazy
 from django.utils.functional import SimpleLazyObject
 
 from coredata.models import Unit
+from coredata.widgets import DollarInput
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -31,6 +32,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         <dt>Organization Class</dt><dd>{{ handler|get_display:'org_class'}}</dd>
         <dt>Is Research Institute / Centre?</dt><dd>{{ handler|get_display:'is_research'|yesno }}</dd>
         <dt>Is Adjunct?</dt><dd>{{ handler|get_display:'is_adjunct'|yesno }}</dd>
+        {% if handler|get_config:"is_associate_member" != 'unknown' %}<dt>Is Associate Member?</dt><dd>{{ handler|get_display:'is_associate_member'|yesno }}</dd>{% endif %}
         {% endblock %}
     '''
 
@@ -51,18 +53,21 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         org_class = forms.ChoiceField(label='Organization Classification', choices=ORG_CLASSES)
         is_research = forms.BooleanField(label='Research Institute/Centre?', required=False)
         is_adjunct = forms.BooleanField(label='Adjunct?', required=False)
+        is_associate_member = forms.BooleanField(label='Associate Member?', required=False)
 
     SEARCH_RULES = {
         'org_name': search.StringSearchRule,
         'org_type': search.ChoiceSearchRule,
         'org_class': search.ChoiceSearchRule,
         'is_adjunct': search.BooleanSearchRule,
+        'is_associate_member': search.BooleanSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'org_name',
         'org_type',
         'org_class',
         'is_adjunct',
+        'is_associate_member',
     ]
 
     def get_org_type_display(self):
@@ -271,27 +276,27 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
 
 class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
-    External Service
+    External Service/Outside Activities
     """
 
     EVENT_TYPE = 'EXTSERVICE'
-    NAME = "External Service"
+    NAME = "External Service/Outside Activities"
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Description</dt><dd>{{ handler|get_display:"description" }}</dd>
         <dt>Add Pay</dt><dd>${{ handler|get_display:"add_pay" }}</dd>
-        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        {% if handler|get_config:"teaching_credits" != 'unknown' %}<dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>{% endif %}
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
         description = forms.CharField(help_text='A brief description of the service', max_length=30)
         add_pay = fields.AddPayField()
-        teaching_credits = fields.TeachingCreditField()
+        teaching_credits = fields.TeachingCreditField(required=False)
 
     def short_summary(self):
-        return 'External Service: %s' % (self.get_config('description'))
+        return 'External Service/Outside Activites: %s' % (self.get_config('description'))
 
     def salary_adjust_annually(self):
         add_pay = self.get_config('add_pay')
@@ -302,19 +307,59 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return TeachingAdjust(credits, fractions.Fraction(0))
 
 
+class AddPayEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
+    """
+    Add Pay or OTC's (Overload Teaching Contracts)
+    """
+
+    EVENT_TYPE = 'ADDPAY'
+    NAME = "OTC/Add Pay"
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['comments'].label = "Reason for OTC/Add Pay here"
+            self.fields['end_date'].required = True
+
+    SEARCH_RULES = {
+        'amount': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'amount',
+    ]
+
+    @classmethod
+    def default_title(cls):
+        return 'OTC/Add Pay'
+
+    def short_summary(self):
+        return "OTC/Add Pay: ${0}".format(self.get_config('amount'))
+
+    def salary_adjust_annually(self):
+        add_pay = self.get_config('amount')
+        return SalaryAdjust(0, 1, add_pay)
+
 class SpecialDealHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'SPCL_DEAL'
-    NAME = 'Special Deal'
+    NAME = 'Special Arrangements'
 
     class EntryForm(BaseEntryForm):
-        description = forms.CharField(help_text='A brief description of the deal', max_length=30)
+        description = forms.CharField(help_text='A brief description of the arrangements', max_length=30)
         def post_init(self):
-            self.fields['comments'].help_text = 'Enter details about the special deal.'
+            self.fields['comments'].help_text = 'Enter details about the special arrangements.'
             self.fields['comments'].required = True
 
     def short_summary(self):
-        return 'Special Deal: {}'.format(self.get_config('description'))
+        return 'Special Arrangements: {}'.format(self.get_config('description'))
 
 class OtherEventHandler(CareerEventHandlerBase):
 

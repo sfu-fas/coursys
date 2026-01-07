@@ -94,6 +94,10 @@ If you have any questions, please contact {{ contract.posting.contact.name }} &l
 <form action="" method="post">{% csrf_token %}
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
 <span class="helptext">(required for receiving payments)</span></p>
+<p> <b> {{ termsform.physical_present_declare }} {{ termsform.physical_present_declare.label }} </b></p>
+<p> <span class="helptext">{{ termsform.physical_present_declare.help_text }} </span> </p>
+<p>Any accommodations must have been pre-approved by the instructor before accepting the contract.</p>
+<p> <b> {{ termsform.roles_conflict_declare }} {{ termsform.roles_conflict_declare.label }} </b></p>
 
 <p>Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; if you have questions about this contract.</p>
 

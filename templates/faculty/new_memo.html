@@ -31,14 +31,14 @@
 //]]></script>
 {% endblock %}
 
-{% block title %}New {{ template.label|title }} Memo{% endblock %}
-{% block h1 %}New {{ template.label|title }} Memo{% endblock %}
+{% block title %}New {{ template.label }} Memo{% endblock %}
+{% block h1 %}New {{ template.label }} Memo{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url 'faculty:index' %}">Faculty</a></li>
 <li><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li><a href="{% url 'faculty:view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.handler_type_name }}</a></li>
-<li>New {{ template.label|title }} Memo</li>
+<li>New {{ template.label }} Memo</li>
 {% endblock %}
 
 {% block content %}

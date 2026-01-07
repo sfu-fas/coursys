@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview, TAEvaluation
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview, TAEvaluation, TACONTRACT_DEFAULT_REMARK
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -258,6 +258,10 @@ class TAEvaluationFormbyTA(forms.ModelForm):
 
 class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
+    physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
+                                                   widget=forms.CheckboxInput(),
+                                                   help_text=TACONTRACT_DEFAULT_REMARK)
+    
     class Meta:
         model = TAApplication
         exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config', 'sin')
@@ -278,6 +282,7 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
         self.fields['transcript'].required = True
+        self.fields['physical_present_declare'].required = True
         rolepersonids = Role.objects.filter(unit=self.initial['unit'], role__in=['FAC', 'SUPV']).values_list('person_id', flat=True)
         person = Person.objects.filter(id__in=rolepersonids)
         self.fields['supervisor'].queryset = person
@@ -330,7 +335,20 @@ class TAAcceptanceForm(forms.ModelForm):
     class Meta:
         model = TAContract
         fields = ['sin']
+
+class TAAcceptTermsForm(forms.Form):
+    physical_present_declare = forms.BooleanField (label="I agree to be physically present on campus for all assigned duties throughout the entirety of my appointment", 
+                                                   widget=forms.CheckboxInput(),
+                                                   help_text=TACONTRACT_DEFAULT_REMARK)
+    roles_conflict_declare =  forms.BooleanField (label="I agree to not accept a TA contract for any course or combined course that i am enrolled in for the same term", 
+                                                   widget=forms.CheckboxInput())
     
+    def __init__(self, *args, **kwargs):
+        super(TAAcceptTermsForm, self).__init__(*args, **kwargs)
+        self.fields['physical_present_declare'].required = True
+        self.fields['roles_conflict_declare'].required = True
+
+
 class NewTAContractForm(forms.Form):
     application = forms.ModelChoiceField(queryset=TAApplication.objects.none())
 

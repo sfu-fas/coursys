@@ -2,8 +2,8 @@
 {% load form_display %}
 {% load static %}
 
-{% block title %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
-{% block h1 %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
+{% block title %}{% if event %}Change Event{% else %}New {{ name }}{% endif %}: {{ person.name }}{% endblock %}
+{% block h1 %}{% if event %}Change Event{% else %}New {{ name }}{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">

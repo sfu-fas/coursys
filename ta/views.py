@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText, TAWorkloadReview, TAEvaluation
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText, TAWorkloadReview, TAEvaluation, TACONTRACT_DEFAULT_REMARK
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM, STATUS_ACTIVE
@@ -23,7 +23,7 @@ from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
     CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm, TAWorkloadReviewForm, \
-    TAEvaluationForm, TAEvaluationFormbyTA
+    TAEvaluationForm, TAEvaluationFormbyTA, TAAcceptTermsForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms, tug_form, taworkload_form, ta_evaluation_form
@@ -1312,6 +1312,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
             ta_form.fields['resume'].required = False
         if application.transcript:
             ta_form.fields['transcript'].required = False
+        ta_form.fields['physical_present_declare'].initial = True
         ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
@@ -1849,6 +1850,7 @@ def assign_bus(request, post_slug, course_slug):
                             # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
                             contract.status = "NEW"
+                            contract.remarks = TACONTRACT_DEFAULT_REMARK
                         else:
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(applicants[i], posting)
@@ -2135,6 +2137,8 @@ def accept_contract(request, post_slug, userid, preview=False):
     else:   
         form = TAContractForm(instance=contract) 
 
+    termsform = TAAcceptTermsForm()
+
     context = { 'contract':contract, 
                 'courses':courses,
                 'pay':_format_currency(contract.pay_per_bu),
@@ -2148,6 +2152,7 @@ def accept_contract(request, post_slug, userid, preview=False):
                 'form':form,
                 'preview': preview,
                 'deadline_passed': deadline_passed,
+                'termsform': termsform
             }
     return render(request, 'ta/accept.html', context)
 

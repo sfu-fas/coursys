@@ -536,6 +536,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         supervisors = ", ".join(supervisors)
         return supervisors
 
+    def list_all_supervisors(self):
+        supervisors = Supervisor.objects.filter(student=self, removed=False)
+        supervisors_list = [(s.sortname() + ' ('+ s.supervisor_type + ')') for s in supervisors]
+        supervisors_list = ", ".join(supervisors_list)
+        return supervisors_list
+    
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
@@ -1024,27 +1030,21 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                             st = st.next_semester()
 
             if (type==None or type=='scholarship'): 
-                # scholarships
-                scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
-                    
+                # scholarships - using new scholarship table which data is imported from SIMS, no more manual input
+                scholarships = GradScholarship.objects.filter(student=self, removed=False, eligible=True).select_related('semester')                    
                 for ss in scholarships:
-                        semlen =  (ss.end_semester-ss.start_semester+1)  
-                        if semlen == 0:
-                            semlen = 1
-                            received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
-                        amt = ss.amount/semlen   
-                        for i in range(semlen):
-                            if int(ss.start_semester.name) >= frs and int(ss.start_semester.name) < frs+10:
-                                received_amt['year1'] += amt
-                            if int(ss.start_semester.name) >= frs+10 and int(ss.start_semester.name) < frs+20:
-                                received_amt['year2'] += amt
-                            if int(ss.start_semester.name) >= frs+20 and int(ss.start_semester.name) < frs+30:
-                                received_amt['year3'] += amt
-                            if int(ss.start_semester.name) >= frs+30 and int(ss.start_semester.name) < frs+40:
-                                received_amt['year4'] += amt
-                            if int(ss.start_semester.name) >= frs+40:
-                                received_amt['otheryear'] += amt
-                            ss.start_semester = ss.start_semester.next_semester()
+                        if int(ss.semester.name) >= frs and int(ss.semester.name) < frs+10:
+                            received_amt['year1'] += ss.amount
+                        if int(ss.semester.name) >= frs+10 and int(ss.semester.name) < frs+20:
+                            received_amt['year2'] += ss.amount
+                        if int(ss.semester.name) >= frs+20 and int(ss.semester.name) < frs+30:
+                            received_amt['year3'] += ss.amount
+                        if int(ss.semester.name) >= frs+30 and int(ss.semester.name) < frs+40:
+                            received_amt['year4'] += ss.amount
+                        if int(ss.semester.name) >= frs+40:
+                            received_amt['otheryear'] += ss.amount
+
+
 
             if (type==None or type=='other'):
                 # other funding

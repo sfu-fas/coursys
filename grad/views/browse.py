@@ -24,12 +24,13 @@ def browse(request):
 
 class GradDataJson(BaseDatatableView):
     model = GradStudent
-    columns = ['person', 'emplid', 'program', 'start_semester', 'completion_progress', 'supervisor', 'status']
+    columns = ['person', 'emplid', 'program', 'start_semester', 'end_semester', 'completion_progress', 'supervisor', 'status']
     order_columns = [
         ['person__last_name', 'person__first_name'],
         'person__emplid',
         'program',
         'start_semester',
+        'end_semester',
         'completion_progress',
         'supervisor',
         'status'
@@ -113,6 +114,11 @@ class GradDataJson(BaseDatatableView):
                 return grad.start_semester.name + " (" + grad.start_semester.label() + ")"
             else: 
                 return None
+        elif column == 'end_semester':
+            if grad.end_semester:
+                return grad.end_semester.name + " (" + grad.end_semester.label() + ")"
+            else:
+                return ''         
         elif column == 'completion_progress':
             active_semesters = grad.active_semesters()[0]
             return str(active_semesters) + "/" + str(grad.program.expected_completion_terms)

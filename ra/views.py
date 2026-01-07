@@ -8,7 +8,7 @@ from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, DownloadForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
-    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, \
+    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestISHFForm, ISHF_FEE,\
     CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT, PD_CONTACT, URA_CONTACT, DEANS_CONTACT, AppointeeSearchForm, SupervisorSearchForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
@@ -204,10 +204,10 @@ class RANewRequestWizard(SessionWizardView):
                             'ensc_contact': ENSC_CONTACT, 
                             'deans_contact': DEANS_CONTACT})
         if self.steps.current == 'funding_sources':
-            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            context.update({'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']})
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
+            cleaned_data_dates = self.get_cleaned_data_for_step('dates') or {}
+            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'ishf_fee': ISHF_FEE})
             pay_data = {}
             if hiring_category == "GRAS":
                 pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
@@ -425,10 +425,10 @@ class RAEditRequestWizard(SessionWizardView):
                             'ensc_contact': ENSC_CONTACT, 
                             'deans_contact': DEANS_CONTACT})
         if self.steps.current == 'funding_sources':
-            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            context.update({'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']})
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
+            cleaned_data_dates = self.get_cleaned_data_for_step('dates') or {}
+            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'ishf_fee': ISHF_FEE})
             pay_data = {}
             if hiring_category == "GRAS":
                 pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
@@ -760,13 +760,15 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     manager = has_role('FDMA', request)
     can_edit = ((graduate_research_assistant or non_cont) and admin) or (research_assistant and manager)
     adminform = RARequestAdminForm(instance=req)
+    ishfform = RARequestISHFForm(instance=req)
+    ishf_fee = ISHF_FEE
 
     return render(request, 'ra/view_request.html',
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
          'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
          'ra_ls': ra_ls, 'nc_ls': nc_ls, 'show_thesis': show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
-         'permissions': request.units, 'status': req.status(), 'is_processor': is_processor, 'can_edit': can_edit})
+         'permissions': request.units, 'status': req.status(), 'is_processor': is_processor, 'can_edit': can_edit, 'ishfform': ishfform, 'ishf_fee': ishf_fee})
 
 @requires_role(["FUND", "FDMA"])
 def update_processor(request: HttpRequest, ra_slug: str) -> HttpResponse:
@@ -797,6 +799,22 @@ def update_processor(request: HttpRequest, ra_slug: str) -> HttpResponse:
     
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
+@requires_role(["FDMA"])
+def update_ishf(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units, hiring_category="RA")
+    if request.method == 'POST':
+        form = RARequestISHFForm(request.POST, instance=req)
+        if form.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
+            if req.ishf_subscribers == 0:
+                req.ishf_total = 0
+            form.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Updated ISHF fees for %s" % (req.get_name()),
+                         related_object=req)
+            l.save()
+            messages.success(request, "Updated ISHF fees for" + req.get_name())
+    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
 # Update admin checklist
 @requires_role(["FUND", "FDMA"])

@@ -23,7 +23,7 @@
     <tr><th scope="row">Additional Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
     <tr><th score="row">Attended New Workers Training</th><td>{{ application.new_workers_training|yesno }}</td></tr>
   </table>
-
+  <p>Applicant must agree to be physically present on campus for all assigned duties throughout the entirety of my appointment.</p>
   {% if application.config.extra_questions %}
     <h2 id="extra">Extra Questions</h2>
     {% for question, answer in application.config.extra_questions.items %}
