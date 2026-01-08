@@ -17,11 +17,11 @@
 {% endblock %}
 
 {% block title %}
-  RA {{ status }} for {{ req.get_name }}
+  {{ req.get_hiring_category_title }} {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block h1 %}
-  RA {{ status }} for {{ req.get_name }}
+  {{ req.get_hiring_category_title }} {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -30,7 +30,7 @@
 {% else %}
 <li><a href="{% url "ra:browse_appointments" %}">My RA Dashboard</a></li>
 {% endif %}
-<li>View RA {{ status }} for {{ req.get_name }}</li>
+<li>View {{ req.get_hiring_category_title }} {{ status }} for {{ req.get_name }}</li>
 {% endblock %}
 
 {% block actions %}

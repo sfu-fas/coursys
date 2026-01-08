@@ -388,11 +388,11 @@ class RANewRequestWizard(SessionWizardView):
         req.save()
 
         if req.draft:
-            description = "Created RA Request Draft %s." % req
-            messages.success(self.request, 'Created RA Request Draft')
+            description = "Created Request Draft %s." % req
+            messages.success(self.request, 'Created Request Draft')
         else: 
-            description = "Created RA Request %s." % req
-            messages.success(self.request, 'Created RA Request for ' + req.get_name())
+            description = "Created Request %s." % req
+            messages.success(self.request, 'Created Request for ' + req.get_name())
             url = self.request.build_absolute_uri(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
             _email_request_notification(req, url)
 
@@ -442,7 +442,7 @@ class RAEditRequestWizard(SessionWizardView):
             context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
         ra_slug = self.kwargs['ra_slug']
         req = _edit_req(self.request, ra_slug)
-        context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'admin': _has_admin_role(self.request), 'status': req.status()})
+        context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'get_hiring_category_title': req.get_hiring_category_title(), 'admin': _has_admin_role(self.request), 'status': req.status()})
         return context
 
     def get_form_kwargs(self, step):
@@ -599,16 +599,16 @@ class RAEditRequestWizard(SessionWizardView):
 
         # draft was submitted 
         if submission:
-            description = "Submitted RA Request Draft %s." % req
-            messages.success(self.request, 'Submitted RA Request Draft')
+            description = "Submitted Request Draft %s." % req
+            messages.success(self.request, 'Submitted Request Draft')
         # editing a draft
         elif req.draft:
-            description = "Edited RA Request Draft %s." % req
-            messages.success(self.request, 'Edited RA Request Draft')
+            description = "Edited Request Draft %s." % req
+            messages.success(self.request, 'Edited Request Draft')
         # regular edit
         else: 
-            description = "Edited RA Request %s." % req
-            messages.success(self.request, 'Edited RA ' + req.status() + ' for ' + req.get_name())
+            description = "Edited Request %s." % req
+            messages.success(self.request, 'Edited ' + req.status() + ' for ' + req.get_name())
             req.last_updater = get_object_or_404(Person, userid=self.request.user.username)
         
         req.save()
@@ -849,9 +849,9 @@ def delete_request_draft(request: HttpRequest, ra_slug: str) -> HttpResponse:
     if request.method == 'POST':
         req.deleted = True
         req.save()
-        messages.success(request, "Deleted RA Request Draft.")
+        messages.success(request, "Deleted Request Draft.")
         l = LogEntry(userid=request.user.username,
-              description="Deleted RA Request Draft %s." % (str(req),),
+              description="Deleted Request Draft %s." % (str(req),),
               related_object=req)
         l.save()              
     
@@ -866,9 +866,9 @@ def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     if request.method == 'POST':
         req.deleted = True
         req.save()
-        messages.success(request, "Deleted RA Request." )
+        messages.success(request, "Deleted Request." )
         l = LogEntry(userid=request.user.username,
-              description="Deleted RA Request %s." % (str(req),),
+              description="Deleted Request %s." % (str(req),),
               related_object=req)
         l.save()              
     
@@ -889,7 +889,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
             noteform.save()
             messages.success(request, "Edited Note for " + req.get_name())
             l = LogEntry(userid=request.user.username,
-                description="Edited Note for RA Request %s" % (str(req),),
+                description="Edited Note for Request %s" % (str(req),),
                 related_object=req)
             l.save()              
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
@@ -950,7 +950,7 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
             configform.save()
             messages.success(request, 'Updated Letter Text for ' + req.get_name())
             l = LogEntry(userid=request.user.username,
-                description="Updated Letter Text for RA Request %s" % (str(req),),
+                description="Updated Letter Text for Request %s" % (str(req),),
                 related_object=req)
             l.save()       
             return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
@@ -975,7 +975,7 @@ def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResp
         req.save()
         messages.success(request, 'Updated Letter Text for ' + req.get_name())
         l = LogEntry(userid=request.user.username,
-              description="Updated Letter Text for RA Request (To Default) %s" % (str(req),),
+              description="Updated Letter Text for Request (To Default) %s" % (str(req),),
               related_object=req)
         l.save()              
 
@@ -1000,7 +1000,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
         l = LogEntry(userid=request.user.username,
-              description="Switched Science Alive Status for RA Request %s." % (str(req),),
+              description="Switched Science Alive Status for Request %s." % (str(req),),
               related_object=req)
         l.save()              
     
@@ -1107,7 +1107,7 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
                          description="Updated PAF Config for Request %s." % req,
                          related_object=req)
             l.save()
-            messages.success(request, 'Updated PAF Config for RA Request for ' + req.get_name())
+            messages.success(request, 'Updated PAF Config for Request for ' + req.get_name())
     return HttpResponseRedirect(reverse('ra:request_paf', kwargs={'ra_slug': req.slug}))
 
 @requires_role(["FUND", "FDMA"])

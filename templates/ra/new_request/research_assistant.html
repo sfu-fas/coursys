@@ -18,10 +18,10 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA {{ status }} for {{ name }}
+      Update {{ status }} for {{ name }}
     {% endif %}
   {% else %}
-    New RA Request
+    New Appointment Request
   {% endif %}
 {% endblock %}
 
@@ -30,10 +30,10 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA {{ status }} for {{ name }}
+      Update {{ status }} for {{ name }}
     {% endif %}
   {% else %}
-    New RA Request
+    New Appointment Request
   {% endif %}
 {% endblock %}
 
@@ -47,11 +47,11 @@
     {% if draft %}
       <li>Draft for {{ name }}</li>
     {% else %}
-      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA {{ status }} for {{ name }}</a></li>
-      <li>Edit RA {{ status }} for {{ name }}</li>
+      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View {{ get_hiring_category_title }} {{ status }} for {{ name }}</a></li>
+      <li>Edit {{ status }} for {{ name }}</li>
     {% endif %}
   {% else %}
-    <li>New RA Request</li>
+    <li>New Appointment Request</li>
   {% endif %}
 {% endblock %}
 {% block content %}
