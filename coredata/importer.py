@@ -37,7 +37,7 @@ def fix_emplid():
         if not p.userid:
             continue
         emplid = userid_to_emplid(p.userid)
-        if emplid:
+        if emplid and str(emplid).isdigit():
             p.emplid = emplid
             p.save_if_dirty()
 
