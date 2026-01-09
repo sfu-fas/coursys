@@ -1,8 +1,10 @@
+PATH=<%= @python_bin_dir %>:${PATH}
+
 # Name of nodes to start
 CELERYD_NODES="batch fast email photo sims"
 
 # Absolute or relative path to the 'celery' command:
-CELERY_BIN="<%= @python %> <%= @pylib_home %>/bin/celery"
+CELERY_BIN="<%= @python %> <%= @python_bin_dir %>/celery"
 
 # App instance to use
 CELERY_APP="courses"
