@@ -7,13 +7,15 @@ deploy_mode = node['deploy_mode'] || 'devel'
 domain_name = node['external_hostname'] || 'localhost'
 username = node['username']
 user_home = "/home/#{username}/"
-python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
-python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 http_proxy = node['http_proxy']
-python = '/usr/bin/python3'
-pylib_home = '/usr/local/'
+
+virtualenv = '/venv/'
+python = "#{virtualenv}/bin/python"
+python_version = `#{python} -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
+python_bin_dir = "#{virtualenv}/bin/"
+python_lib_dir = "#{virtualenv}/lib/python#{python_version}/dist-packages"
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -34,7 +36,7 @@ end
 
 # basic requirements to run/build
 package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev',
-    'unixodbc-dev', 'rsync', 'libfreetype-dev', 'unzip']
+    'unixodbc-dev', 'rsync', 'libfreetype-dev', 'pkg-config', 'unzip', 'virtualenv']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -67,13 +69,17 @@ template '/etc/profile.d/coursys-environment.sh' do
     :rabbitmq_password => rabbitmq_password,
     :http_proxy => http_proxy,
     :python => python,
-    :pylib_home => pylib_home,
+    :python_bin_dir => python_bin_dir,
   )
 end
 
 # Python and JS deps
+execute "create venv" do
+  command "virtualenv #{virtualenv}"
+  creates python
+end
 execute "install_pip_requirements" do
-  command "python3 -m pip install -r #{coursys_dir}/requirements.txt || python3 -m pip install -r #{coursys_dir}/requirements.txt --break-system-packages"
+  command "#{python} -m pip install -r #{coursys_dir}/requirements.txt"
   creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
@@ -204,7 +210,7 @@ if deploy_mode != 'devel'
         :username => username,
         :data_root => data_root,
         :python => python,
-        :pylib_home => pylib_home,
+        :python_bin_dir => python_bin_dir,
       )
     end
     execute "systemctl enable #{service}" do
@@ -218,7 +224,7 @@ if deploy_mode != 'devel'
       :username => username,
       :data_root => data_root,
       :python => python,
-      :pylib_home => pylib_home,
+      :python_bin_dir => python_bin_dir,
     )
   end
   directory '/opt/run/celery' do

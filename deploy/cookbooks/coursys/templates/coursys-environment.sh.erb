@@ -1,5 +1,6 @@
 PYTHON="<%= @python %>"
-VIRTUALENV="<%= @pylib_home %>"
+export PYTHON
+PATH="<%= @python_bin_dir %>":${PATH}
 
 COURSYS_USER="<%= @coursys_user %>"
 export COURSYS_USER
