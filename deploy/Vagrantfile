@@ -3,8 +3,8 @@
 
 ubuntu_release = 'focal'
 CONFIG = {
-    #'username' => 'coursys', # username to deploy under in the VM image
-    'username' => 'vagrant', # if you don't want to separate-user behaviour: easier but less like production
+    'username' => 'coursys', # username to deploy under in the VM image
+    #'username' => 'vagrant', # if you don't want to separate-user behaviour: easier but less like production
     'coursys_dir' => '/coursys',
     'coursys_branch' => 'master',
     'rabbitmq_password' => 'rabbitmq_password',
