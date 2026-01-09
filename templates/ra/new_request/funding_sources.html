@@ -104,6 +104,11 @@
       <a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_MSP_ISHF_guard.me_April2025.pdf">Please click here and refer to a fact sheet with additional information about the ISHF, including eligibility, administration, and fee levels.</a>
     </div>
     {% endif %}
+    {% if non_continuing %}
+    <div class="important_info helptext">
+      Appointments that are funded by Fund 30's projects are categorized under the RA hiring group.
+    </div>
+    {% endif %}
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
