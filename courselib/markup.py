@@ -50,7 +50,7 @@ allowed_tags_restricted = frozenset(bleach.sanitizer.ALLOWED_TAGS) | frozenset([
     'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ])
-allowed_tags = allowed_tags_restricted + frozenset([ # allowed on pages and advisor notes
+allowed_tags = allowed_tags_restricted | frozenset([ # allowed on pages and advisor notes
     'h2', 'img', 'div',
 ])
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
