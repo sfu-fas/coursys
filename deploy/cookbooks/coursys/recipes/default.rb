@@ -168,12 +168,12 @@ if deploy_mode != 'devel'
   execute "pyopenssh-fix" do
     # this is a hack around a broken pip3 + pyOpenSSL install, per https://stackoverflow.com/a/74243128/6871666
     # It should only fire if currently needed (the "not_if" guard)
-    command "wget https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl -O /tmp/pyOpenSSL-24.1.0-py3-none-any.whl && python3 -m easy_install /tmp/pyOpenSSL-24.1.0-py3-none-any.whl"
-    not_if "pip3 > /dev/null"
+    command "wget https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl -O /tmp/pyOpenSSL-24.1.0-py3-none-any.whl && #{python} -m easy_install /tmp/pyOpenSSL-24.1.0-py3-none-any.whl"
+    not_if "#{python_bin_dir}/pip > /dev/null"
   end
 
   execute "django-static" do
-    command "python3 manage.py collectstatic --no-input"
+    command "#{python} manage.py collectstatic --no-input"
     cwd coursys_dir
     environment ({ 'COURSYS_STATIC_DIR' => "#{data_root}/static", 'COURSYS_DATA_ROOT' => data_root })
     user username
@@ -254,7 +254,7 @@ if deploy_mode != 'devel'
   cron "celery check" do
     user username
     minute '10'
-    command ". /etc/profile.d/coursys-environment.sh; python3 /coursys/manage.py ping_celery"
+    command ". /etc/profile.d/coursys-environment.sh; python /coursys/manage.py ping_celery"
   end
   cron "celery restart" do
     user 'root'
@@ -442,3 +442,5 @@ if deploy_mode == 'production'
     notifies :restart, 'service[ssh]', :immediately
   end
 end
+
+execute "systemctl daemon-reload"
