@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}RA Appointment/Request Search{% endblock %}
-{% block h1 %}RA Request Search{% endblock %}
+{% block title %}Advanced Search{% endblock %}
+{% block h1 %}Advanced Search{% endblock %}
 
 {% block headextra %}<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
@@ -13,7 +13,7 @@ $(document).ready(function() {
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
-<li>RA Advanced Search</li>
+<li>Advanced Search</li>
 {% endblock %}
 
 {% block content %}

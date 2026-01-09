@@ -17,10 +17,10 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA {{ status }} for {{ name }}
+      Update {{ status }} for {{ name }}
     {% endif %}
   {% else %}
-    New RA Request
+    New Appointment Request
   {% endif %}
 {% endblock %}
 
@@ -29,10 +29,10 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA {{ status }} for {{ name }}
+      Update {{ status }} for {{ name }}
     {% endif %}
   {% else %}
-    New RA Request
+    New Appointment Request
   {% endif %}
 {% endblock %}
 
@@ -46,11 +46,11 @@
     {% if draft %}
       <li>Draft for {{ name }}</li>
     {% else %}
-      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA {{ status }} for {{ name }}</a></li>
-      <li>Edit RA {{ status }} for {{ name }}</li>
+      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View {{ get_hiring_category_title }} {{ status }} for {{ name }}</a></li>
+      <li>Edit {{ status }} for {{ name }}</li>
     {% endif %}
   {% else %}
-    <li>New RA Request</li>
+    <li>New Appointment Request</li>
   {% endif %}
 {% endblock %}
 {% block content %}
@@ -102,6 +102,11 @@
     <div class="important_info helptext">
       <b>International Student Health Fee (ISHF)</b> is a mandatory monthly health fee applies to all international students studying in British Columbia on a valid study permit for at least six months of the year. Research Assistants must apply for participation in the ISHF coverage program. For Research Assistants / Research Supports employed under the TSSU collective agreement, the cost of this fee must be covered by the grant that funds the RA's / RS's employment. The ISHF is currently assessed at ${{ishf_fee}} per person per month and the fee is subject to change. Eligible dependents (spouse and children) will be an additional ${{ishf_fee}} per person per month.<br>
       <a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_MSP_ISHF_guard.me_April2025.pdf">Please click here and refer to a fact sheet with additional information about the ISHF, including eligibility, administration, and fee levels.</a>
+    </div>
+    {% endif %}
+    {% if non_continuing %}
+    <div class="important_info helptext">
+      Appointments that are funded by Fund 30's projects are categorized under the RA hiring group.
     </div>
     {% endif %}
     <div class="directory_buttons">
