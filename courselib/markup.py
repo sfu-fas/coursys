@@ -45,11 +45,11 @@ MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 MARKUPS = dict(MARKUP_CHOICES)
 # must be in-sync with object in markup-edit.js
 
-allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [  # allowed in discussion, etc
+allowed_tags_restricted = frozenset(bleach.sanitizer.ALLOWED_TAGS) | frozenset([  # allowed in discussion, etc
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
     'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
-]
+])
 allowed_tags = allowed_tags_restricted + [ # allowed on pages and advisor notes
     'h2', 'img', 'div',
 ]

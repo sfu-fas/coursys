@@ -12,6 +12,8 @@ python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 http_proxy = node['http_proxy']
+python = '/usr/bin/python3'
+pylib_home = '/usr/local/'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -64,6 +66,8 @@ template '/etc/profile.d/coursys-environment.sh' do
     :data_root => data_root,
     :rabbitmq_password => rabbitmq_password,
     :http_proxy => http_proxy,
+    :python => python,
+    :pylib_home => pylib_home,
   )
 end
 
@@ -194,6 +198,8 @@ if deploy_mode != 'devel'
         :coursys_dir => coursys_dir,
         :username => username,
         :data_root => data_root,
+        :python => python,
+        :pylib_home => pylib_home,
       )
     end
     execute "systemctl enable #{service}" do
@@ -206,6 +212,8 @@ if deploy_mode != 'devel'
       :coursys_dir => coursys_dir,
       :username => username,
       :data_root => data_root,
+      :python => python,
+      :pylib_home => pylib_home,
     )
   end
   directory '/opt/run/celery' do
