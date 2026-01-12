@@ -871,7 +871,7 @@ def delete_request_draft(request: HttpRequest, ra_slug: str) -> HttpResponse:
         req.save()
         messages.success(request, "Deleted Request Draft.")
         l = LogEntry(userid=request.user.username,
-              description="Deleted Request Draft %s." % (str(req),),
+              description="Deleted RA Request Draft %s." % (str(req),),
               related_object=req)
         l.save()              
     
@@ -888,7 +888,7 @@ def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         req.save()
         messages.success(request, "Deleted Request." )
         l = LogEntry(userid=request.user.username,
-              description="Deleted Request %s." % (str(req),),
+              description="Deleted RA Request %s." % (str(req),),
               related_object=req)
         l.save()              
     
@@ -909,7 +909,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
             noteform.save()
             messages.success(request, "Edited Note for " + req.get_name())
             l = LogEntry(userid=request.user.username,
-                description="Edited Note for Request %s" % (str(req),),
+                description="Edited Note for RA Request %s" % (str(req),),
                 related_object=req)
             l.save()              
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
@@ -970,7 +970,7 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
             configform.save()
             messages.success(request, 'Updated Letter Text for ' + req.get_name())
             l = LogEntry(userid=request.user.username,
-                description="Updated Letter Text for Request %s" % (str(req),),
+                description="Updated Letter Text for RA Request %s" % (str(req),),
                 related_object=req)
             l.save()       
             return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
@@ -995,7 +995,7 @@ def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResp
         req.save()
         messages.success(request, 'Updated Letter Text for ' + req.get_name())
         l = LogEntry(userid=request.user.username,
-              description="Updated Letter Text for Request (To Default) %s" % (str(req),),
+              description="Updated Letter Text for RA Request (To Default) %s" % (str(req),),
               related_object=req)
         l.save()              
 
@@ -1020,7 +1020,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
         l = LogEntry(userid=request.user.username,
-              description="Switched Science Alive Status for Request %s." % (str(req),),
+              description="Switched Science Alive Status for RA Request %s." % (str(req),),
               related_object=req)
         l.save()              
     
