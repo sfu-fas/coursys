@@ -694,6 +694,12 @@ class RARequest(models.Model):
     def __str__(self):
         return self.get_name() + " (" + self.slug + ")"
 
+    def get_hiring_category_title(self):
+        if self.hiring_category == "NC":
+            return "Other Non-Continuing"
+        else:
+            return "RA"
+
     def duties_list(self):
         duties = []
         duties += [duty for val, duty in DUTIES_CHOICES_EX if val in [int(i) for i in self.ra_duties_ex]]

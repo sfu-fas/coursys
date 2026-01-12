@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
-<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA {{ status }} for {{ req.get_name }}</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View {{ req.get_hiring_category_title }} {{ status }} for {{ req.get_name }}</a></li>
 <li>Add Attachment for {{ req.get_name }}</li>
 {% endblock %}
 
