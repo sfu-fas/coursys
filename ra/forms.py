@@ -55,6 +55,8 @@ ISHF_FEE = 75
 NEW_RA_WAGE_DATE = datetime.date(2026, 3, 31)
 NEW_RA_WAGE = 24.74
 
+RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
+
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
         return NEW_MIN_WAGE
@@ -230,7 +232,7 @@ class RARequestDatesForm(forms.ModelForm):
 
 class RARequestFundingSourceForm(forms.ModelForm):
     fs1_unit = forms.ChoiceField(required=True, label="Department #1", choices=DEPT_CHOICES)
-    fs1_fund = forms.ChoiceField(required=True, label="Fund #1", choices=FUND_CHOICES)
+    fs1_fund = forms.TypedChoiceField(required=True, label="Fund #1", choices=FUND_CHOICES, coerce=int)
     fs1_project = forms.CharField(required=False, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs1_amount = forms.DecimalField(required=False, label="Amount of Funding Source #1 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs1_start_date = forms.DateField(required=False, label="Start Date #1", help_text="Start Date for Funding Source 1")
@@ -238,7 +240,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
 
     fs2_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
     fs2_unit = forms.ChoiceField(required=False, label="Department #2", choices=DEPT_CHOICES)
-    fs2_fund = forms.ChoiceField(required=False, label="Fund #2", choices=FUND_CHOICES)
+    fs2_fund = forms.TypedChoiceField(required=False, label="Fund #2", choices=FUND_CHOICES, coerce=int)
     fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs2_amount = forms.DecimalField(required=False, label="Amount of Funding Source #2 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs2_start_date = forms.DateField(required=False, label="Start Date #2", help_text="Start Date for Funding Source 2")
@@ -246,7 +248,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
 
     fs3_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
     fs3_unit = forms.ChoiceField(required=False, label="Department #3", choices=DEPT_CHOICES)
-    fs3_fund = forms.ChoiceField(required=False, label="Fund #3", choices=FUND_CHOICES)
+    fs3_fund = forms.TypedChoiceField(required=False, label="Fund #3", choices=FUND_CHOICES, coerce=int)
     fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs3_amount = forms.DecimalField(required=False, label="Amount of Funding Source #3 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs3_start_date = forms.DateField(required=False, label="Start Date #3", help_text="Start Date for Funding Source 3")
@@ -285,6 +287,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
         total_pay = self.initial['total_pay']
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
+        hiring_category = self.initial['hiring_category']
         fs2_option = cleaned_data.get('fs2_option')
         fs2_unit = cleaned_data.get('fs2_unit')
         fs2_fund = cleaned_data.get('fs2_fund')
@@ -296,6 +299,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
         fs1_amount = cleaned_data.get('fs1_amount')
         fs2_amount = cleaned_data.get('fs2_amount')
         fs3_amount = cleaned_data.get('fs3_amount')
+        fs3_fund = cleaned_data.get('fs3_fund')
 
         if fs2_option:
             error_message = 'If you have a second funding source then you must answer this question.'
@@ -439,6 +443,15 @@ class RARequestFundingSourceForm(forms.ModelForm):
         if fs3_option:
             if fs3_amount == 0:
                 self.add_error('fs3_amount', error_message)
+
+        error_message = "Appointments that are funded by Fund 30's projects are categorized under the RA hiring group."
+        if hiring_category == "NC":
+            if fs1_fund in RA_ONLY_FUNDS:
+                self.add_error('fs1_fund', error_message)
+            if fs2_fund in RA_ONLY_FUNDS:
+                self.add_error('fs2_fund', error_message)
+            if fs3_fund in RA_ONLY_FUNDS:
+                self.add_error('fs3_fund', error_message)                
         
         start_date = cleaned_data.get('start_date')
         fs1_start_date = cleaned_data.get('fs1_start_date')
