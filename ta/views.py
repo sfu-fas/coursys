@@ -1931,6 +1931,10 @@ def all_contracts(request, post_slug):
                 contract.status = 'OPN'
                 _create_news(app, offer_url, from_user, contract.deadline, contract.total_bu())
                 contract.save()
+                l = LogEntry(userid=request.user.username,
+                    description="Update contract status to Offered (by send button) for %s." % (contract.application.person.name()),
+                    related_object=contract)
+                l.save()                
                 ccount += 1
                 
         if ccount > 1:
@@ -2341,6 +2345,12 @@ def edit_contract(request, post_slug, userid):
                 formset.save()
                 contract.save()
 
+                if contract.status == 'OPN':
+                    l = LogEntry(userid=request.user.username,
+                        description="Update contract status to Offered for %s." % (contract.application.person.name()),
+                        related_object=contract)
+                    l.save()
+                
                 if not editing:
                     messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:

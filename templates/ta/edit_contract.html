@@ -178,7 +178,10 @@
     	
     	// set up status info
     	if ( old_status ) {
-			$("#id_status").after(' <div class="helptext">Set to "offered" after changes are made. Previous value was "' + old_status + '".</div>');    		
+			if (old_status == 'Accepted'){
+				$("#id_status").after('<div class="helptext"><font color="red">This contract has already been accepted by the TA. Changing the appointment status may require the contract to be re-accepted.</font></div>');  
+			}
+			$("#id_status").after(' <div class="helptext">Set to "offered" after changes are made. Previous value was "' + old_status + '".</div>');
     	}    	
     	$("#id_status").change(button_update);
     	button_update();
