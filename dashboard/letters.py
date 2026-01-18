@@ -24,7 +24,6 @@ from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
 from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
-import iso8601;
 from textwrap import wrap
 
 PAPER_SIZE = letter

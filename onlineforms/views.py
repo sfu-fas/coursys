@@ -1113,7 +1113,7 @@ def formSearchAutocomplete(request, unit_slug=PRIMARY_FACULTY_UNIT):
     unit = Unit.objects.get(label=unit_slug.upper())
     units = Unit.sub_units([unit])
 
-    if request.is_ajax():
+    if 'term' in request.GET:
         q = request.GET.get('term', '').capitalize()
         forms = Form.objects.filter(active=True, unit__in=units).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))

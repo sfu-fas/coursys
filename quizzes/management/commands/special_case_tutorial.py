@@ -9,14 +9,13 @@ import datetime
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from iso8601 import iso8601
 
 from coredata.models import CourseOffering, Member
 from quizzes.models import Quiz, TimeSpecialCase
 
 
 def parse_datetime(s: str) -> datetime.datetime:
-    return iso8601.parse_date(s).replace(tzinfo=None)
+    return datetime.datetime.fromisoformat(s).replace(tzinfo=None)
 
 
 class Command(BaseCommand):

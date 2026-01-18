@@ -30,7 +30,7 @@
 {% endblock %}
 
 {% block content %}
-{% if topics.object_list|length_is:0 %}
+{% if not topics.object_list %}
 <p class="empty">There are currently no topics</p>
 {% endif %}
 {% if topics.object_list|length > 0 %}

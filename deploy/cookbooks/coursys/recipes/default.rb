@@ -113,8 +113,8 @@ if deploy_mode != 'devel'
 
   # docker
   execute 'docker-key' do
-    command 'mkdir -p /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc'
-    creates "/etc/apt/keyrings/docker.asc"
+    command 'mkdir -p /etc/apt/keyrings/ && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
+    creates '/etc/apt/keyrings/docker.gpg'
   end
   directory "/lib/systemd/system/docker.service.d" do
     owner 'root'
@@ -164,6 +164,11 @@ if deploy_mode != 'devel'
     mode '0755'
     action :create
   end
+  directory '/data/elasticsearch7' do
+    owner 1000
+    mode '0755'
+  end
+
 
   execute "pyopenssh-fix" do
     # this is a hack around a broken pip3 + pyOpenSSL install, per https://stackoverflow.com/a/74243128/6871666

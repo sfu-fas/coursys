@@ -1,17 +1,20 @@
+var fpPromise = FingerprintJS.load()
+
+function actually_get_fingerprint() {
+    fpPromise
+    .then(fp => fp.get())
+    .then(result => {
+        var { canvas, webGlBasics, webGlExtensions, screenResolution, screenFrame, plugins, ...components } = result.components
+        components.visitorId = result.visitorId;
+        $('#fingerprint').val(JSON.stringify(components));
+    });
+}
+
 function get_fingerprint() {
-    var options = {excludes: {canvas: true, webgl: true, enumerateDevices: true, availableScreenResolution: true}};
     if (window.requestIdleCallback) {
-        requestIdleCallback(function () {
-            Fingerprint2.get(options, function (components) {
-              $('#fingerprint').val(JSON.stringify(components));
-            })
-        })
+        requestIdleCallback(actually_get_fingerprint);
     } else {
-        setTimeout(function () {
-            Fingerprint2.get(options, function (components) {
-              $('#fingerprint').val(JSON.stringify(components));
-            })
-        }, 500)
+        setTimeout(actually_get_fingerprint, 500);
     }
 }
 

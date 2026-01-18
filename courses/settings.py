@@ -157,7 +157,7 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [])
+CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'https://{CANONICAL_HOST}'])
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -237,7 +237,7 @@ NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': '127.0.0.1:11211',
     } }
     if getattr(localsettings, 'MEMCACHED_HOST', None):

@@ -2,7 +2,6 @@ import time
 import copy
 import json
 import datetime
-import iso8601
 import pytz
 import os
 import string
@@ -126,7 +125,7 @@ class CachedQuery(BaseQuery):
         if os.path.exists( self.query_filename ):
             with open(self.query_filename, 'r') as f:
                 obj = json.loads( f.read() ) 
-                expires = iso8601.parse_date(obj['expires'])
+                expires = datetime.datetime.fromisoformat(obj['expires'])
                 if pytz.UTC.localize(datetime.datetime.now()) < expires:
                     return True
                 BaseQuery.logger.log("Cache expired.")
@@ -191,7 +190,7 @@ class CachedQuery(BaseQuery):
             if cache_file.endswith('.query') and os.path.isfile( cache_file ):
                 with open(cache_file, 'r') as f:
                     obj = json.loads( f.read() ) 
-                    expires = iso8601.parse_date(obj['expires'])
+                    expires = datetime.datetime.fromisoformat(obj['expires'])
                     if not pytz.UTC.localize(datetime.datetime.now()) < expires:
                         result_file = cache_file.replace('.query', '.result')
                         os.remove( cache_file ) 
