@@ -65,7 +65,7 @@ class TAContractForm(forms.ModelForm):
         super(TAContractForm, self).__init__(*args, **kwargs)
         self.fields['category'].queryset = TACategory.objects.visible(hiring_semester)
         # should not be able to edit person after emails have been sent
-        if self.instance and self.instance.has_emails():
+        if self.instance and self.instance.id and self.instance.has_emails():
             self.fields['person'].widget.attrs['readonly'] = True
 
 

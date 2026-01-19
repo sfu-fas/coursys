@@ -25,6 +25,8 @@ from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
                     TACourseForm, EmailForm, CourseDescriptionForm, TAContracttAttachmentForm
 from dashboard.letters import tacontract_form, tacontract_forms
 
+locale.setlocale(locale.LC_ALL, 'en_CA.UTF-8')
+
 def _home_redirect():
     return HttpResponseRedirect(reverse('tacontracts:list_all_semesters'))
 
