@@ -370,8 +370,6 @@ DATETIME_FORMAT = "D N d Y, H:i"
 SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
-import locale
-locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' )
 
 LOGIN_URL = reverse_lazy('dashboard:login')
 LOGOUT_URL = reverse_lazy('dashboard:logout')
