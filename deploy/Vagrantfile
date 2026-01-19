@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-ubuntu_release = 'focal'
+box = 'cloud-image/ubuntu-24.04'
 CONFIG = {
     'username' => 'coursys', # username to deploy under in the VM image
     #'username' => 'vagrant', # if you don't want to separate-user behaviour: easier but less like production
@@ -19,17 +19,18 @@ SCRIPT
 
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/#{ubuntu_release}64"
+  config.vm.box = box
   config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 8025, host: 8025, host_ip: "127.0.0.1"
   config.vm.synced_folder "../", CONFIG['coursys_dir'], owner: CONFIG['username']
+  #config.disksize.size = '20GB'
 
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 2
     vb.memory = 6*1024
     # speed up boot: https://bugs.launchpad.net/cloud-images/+bug/1829625
-    vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
-    vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+    #vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    #vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
   end
   
   # vagrant's chef installation method seems flaky. Let's try this...

@@ -129,10 +129,10 @@ if deploy_mode != 'devel'
     end
   end
   execute 'docker-sources' do
-    command "echo 'Types: deb\nURIs: https://download.docker.com/linux/ubuntu\nSuites: #{ubuntu_release}\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.asc' > /etc/apt/sources.list.d/docker.sources"
+    command "echo 'Types: deb\nURIs: https://download.docker.com/linux/ubuntu\nSuites: #{ubuntu_release}\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.gpg' > /etc/apt/sources.list.d/docker.sources"
     creates '/etc/apt/sources.list.d/docker.sources'
   end
-  package ['docker', 'docker-compose']
+  package ['docker.io', 'docker-compose-v2']
   cookbook_file "/etc/docker/daemon.json" do
     source 'docker-daemon.json'
     owner "root"
