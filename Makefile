@@ -12,7 +12,7 @@ endif
 devel-runserver:
 	${PYTHON} manage.py runserver 0:8000
 devel-celery:
-	celery -A courses -l INFO worker -B
+	celery -A courses worker -l INFO -B
 
 # For production-like development (possibly in a VM)
 
