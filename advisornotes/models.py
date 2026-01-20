@@ -12,6 +12,8 @@ import os.path
 import uuid
 from django.db.models import Q
 
+from courselib.uuid import UUIDField
+
 # Used to determine if you have any non-end-dated visit, but only of the newer type, with end-dates added by a view.
 # All the older visits will not have an end-date.
 ADVISOR_VISIT_VERSION = 1
@@ -506,7 +508,7 @@ class AdvisorVisitSurvey(models.Model):
     """
     Record a students thoughts on an AdvisorVisit
     """
-    key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    key = UUIDField(default=uuid.uuid4, unique=True, editable=False)
     visit = models.OneToOneField(AdvisorVisit, on_delete=models.PROTECT, null=True, blank=True, related_name='survey')
     created_at = models.DateTimeField(default=datetime.datetime.now)
     created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
