@@ -4,6 +4,31 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $("h3.instructions").collapsible();
+
+  $('#btn-load-prevtug').on('click', function () {    
+        workloadData = $('#prevtug-cnfig').val();
+        ojson = workloadData.replace(/'/g, '"');
+        var obj = JSON.parse(ojson);
+        
+        $.each(obj, function (section, fields) {
+            $.each(fields, function (field, value) {
+
+                if (field == 'label'){
+                  fieldId = '#id_' + section + '-' + field + '.'+ field + '-field';
+                  $el = $(fieldId);
+                }
+                else{
+                  fieldId = '#id_' + section + '-' + field + '.'+ field;
+                  $el = $(fieldId);
+                }
+                
+                if ($el.length) {
+                    $el.val(value);
+                }
+            });
+        });
+
+    });
 });
 </script>
 {% endblock %}
@@ -38,6 +63,10 @@ $(document).ready(function() {
   </em></p>
 </div>
 {{ form.as_p }}
+{% if previoustug %}
+<input value="{{ previoustug.config }}" id="prevtug-cnfig" type="hidden">
+<input class="button" id="btn-load-prevtug" type="button" value="Load Previous TUG" title="The TA has the same BU same course in previous semester. You can load previous TUG."/>
+{% endif %}
 <table>
 <tr>
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
