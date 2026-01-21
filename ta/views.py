@@ -613,6 +613,19 @@ def _edit_tug(request, course_slug, userid, tug=None):
     else:  
         tssu_link = 'https://www.sfu.ca/human-resources/tssu.html'
 
+	# copy the TUG numbers from a previous term of a TA 
+    # in the same course, same instructor, same number of BUs
+    copytug = None
+    try:
+        previoustug = TUG.objects.filter(member__offering__semester=tug.member.offering.semester.previous_semester(), member__role="TA", member__person=member.person, 
+                                     member__offering__subject=tug.member.offering.subject, member__offering__number=tug.member.offering.number, base_units=bu).first()
+        if previoustug:
+            for instructor in previoustug.member.offering.instructors():
+                if (instructor.userid == request.user.username):                
+                    copytug = previoustug
+    except:
+        copytug = None
+
     context = {'ta':member.person,
                'course':course,
                'form':form,
@@ -623,6 +636,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                'tssu_link': tssu_link,
                'draft': draft,                
+               'previoustug': copytug,
                }
     return render(request,'ta/edit_tug.html',context)
 
