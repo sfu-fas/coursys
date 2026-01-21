@@ -76,8 +76,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
         return Member
 
     def index_queryset(self, using=None):
-        # experimenally, two years worth of Members is the largest big-ugly-query our database in reasonable time
-        cutoff = datetime.date.today() - datetime.timedelta(days=365*2)
+        cutoff = datetime.date.today() - datetime.timedelta(days=365*5)
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role__in=['STUD', 'TA']) \
                 .select_related('person', 'offering__semester') \

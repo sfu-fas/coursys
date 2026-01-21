@@ -4,7 +4,6 @@ from typing import Type, Iterable
 from django.conf import settings
 from django.db import models
 
-from django.core.management import call_command
 from django.db.models import Q
 from haystack.utils import loading
 
@@ -71,19 +70,7 @@ def get_query(query_string, search_fields, startonly=False):
     return query
 
 
-# aliases to the haystack management commands, for convenience
-
-def haystack_update_index():
-    call_command("update_index", verbosity=0, remove=True)
-
-
-def haystack_rebuild_index():
-    call_command("rebuild_index", verbosity=0, interactive=False)
-
-
-def haystack_clear_index():
-    call_command("clear_index", verbosity=0, interactive=False)
-
+# selective Haystack indexing
 
 def haystack_index(model: Type[models.Model], qs: Iterable[models.Model], commit=True):
     """
