@@ -94,7 +94,7 @@
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
         <input id="save" type="submit" class="submit" value="Next"/>
         {% if draft or draft_option %}
-        <input id="done_draft" name="save_draft" type="submit" class="submit confirm-submit" value="Save Up to This Page as Draft" data-submit-action="safe draft up to this point"/>
+        <input id="done_draft" name="save_draft" type="submit" class="submit confirm-submit" value="Save Up to This Page as Draft" data-submit-action="save your draft up to this point"/>
         {% endif %}
     </div>
   </form>  

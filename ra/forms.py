@@ -275,7 +275,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
             setattr(self.instance, field, cleaned_data.get(field, None))
 
         # for fund 11s, do not require fund
-        project_exception_fund = '11'
+        project_exception_fund = 11
 
         fs1_fund = cleaned_data.get('fs1_fund')
         fs1_project = cleaned_data.get('fs1_project')
