@@ -1,7 +1,7 @@
 from .parameters import SIMS_SOURCE, RELEVANT_PROGRAM_START, CMPT_CUTOFF
 from .happenings import build_program_map, build_reverse_program_map
 from .happenings import ProgramStatusChange, ApplProgramChange, GradResearchArea
-from .tools import STRM_MAP
+from .tools import strm_to_semester
 
 from coredata.queries import add_person
 from grad.models import GradStudent, GradProgramHistory, GradStatus, Supervisor, GradScholarship, SHORT_STATUSES, SUPERVISOR_TYPE
@@ -84,7 +84,7 @@ class GradCareer(object):
             return False
         matr_strm = max(matr)[1]
         matr_effdt = max(matr)[0]
-        matr_dt = STRM_MAP[matr_strm].start
+        matr_dt = strm_to_semester(matr_strm).start
         if matr_dt > effdt:
             return False
 
@@ -246,7 +246,7 @@ class GradCareer(object):
         premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
                                                           start_semester__name__lt=self.admit_term)
         for gph in premature_gph:
-            gph.start_semester = STRM_MAP[self.admit_term]
+            gph.start_semester = strm_to_semester(self.admit_term)
             if verbosity:
                 print("Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term))
             if not dry_run:

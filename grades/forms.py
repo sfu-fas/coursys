@@ -31,7 +31,7 @@ class ActivityForm(forms.Form):
                                  widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))
     url = forms.URLField(required=False, label='URL',
                                  help_text='Page for more information, e.g. assignment description or exam info',
-                                 widget=forms.TextInput(attrs={'size':'60'}))
+                                 widget=forms.TextInput(attrs={'size':'60'})) # for Django 5.0: assume_scheme='https'
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
@@ -307,7 +307,7 @@ class CourseConfigForm(forms.Form):
     from forum.models import IDENTITY_CHOICES
     url = forms.URLField(required=False, label='Course URL',
             help_text='Course home page address',
-            widget=forms.TextInput(attrs={'size':'60'}))
+            widget=forms.TextInput(attrs={'size':'60'})) # for Django 5.0: assume_scheme='https'
     taemail = forms.EmailField(required=False, label="TA Contact Email",
             help_text="Email address to contact the TAs: set if you have a central contact address/list and don't want to encourage use of TAs' individual emails",)
     #discussion = forms.BooleanField(required=False, label='Discussion',

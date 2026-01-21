@@ -330,23 +330,22 @@ def manage_component_positions(request, course_slug, activity_slug):
         activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
         components =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False); 
         
-        if request.method == 'POST':
-            if request.is_ajax():
-                component_ids = request.POST.getlist('ids[]') 
-                position = 1;
-                for cid in component_ids:
-                    comp = get_object_or_404(components, id=cid)
-                    comp.position = position
-                    comp.save()
-                    position += 1
+        if request.method == 'POST' and 'ids[]' in request.POST:
+            component_ids = request.POST.getlist('ids[]') 
+            position = 1;
+            for cid in component_ids:
+                comp = get_object_or_404(components, id=cid)
+                comp.position = position
+                comp.save()
+                position += 1
+            
+            #LOG EVENT
+            l = LogEntry(userid=request.user.username,
+                    description=("updated positions of marking components in %s") % activity,
+                    related_object=activity)
+            l.save()        
                 
-                #LOG EVENT
-                l = LogEntry(userid=request.user.username,
-                      description=("updated positions of marking components in %s") % activity,
-                      related_object=activity)
-                l.save()        
-                    
-                return HttpResponse("Positions of components updated !")
+            return HttpResponse("Positions of components updated !")
                
         return render(request, "marking/component_positions.html",
                                   {'course' : course, 'activity' : activity,\

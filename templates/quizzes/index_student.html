@@ -21,8 +21,8 @@
 {% include 'pages/markup_view_head.html' %}
 {% include 'pages/markup_edit_head.html' %}
 {% compress js %}
+<script src="{% static '@fingerprintjs/fingerprintjs/dist/fp.min.js' %}"></script>
 <script src="{% static 'js/quizzes.js' %}"></script>
-<script src="{% static '@fingerprintjs/fingerprintjs/dist/fingerprint2.min.js' %}"></script>
 <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
 <script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
 {% endcompress %}

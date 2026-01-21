@@ -1,8 +1,10 @@
 from django import template
 register = template.Library()
-import decimal, locale
+import decimal
 from django.utils.safestring import mark_safe
-locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' )
+
+def to_dollars(v: decimal.Decimal) -> str:
+    return f'${v:.2f}'
 
 @register.filter
 def display_required_bu(offering, posting):
@@ -45,13 +47,11 @@ def display_applicant_count(offering, posting):
 
 @register.filter
 def display_total_pay(offering, posting):
-    amt = locale.currency(float(posting.total_pay(offering)))
-    return '%s' % (amt)
+    return to_dollars(posting.total_pay(offering))
 
 @register.filter
 def display_all_total_pay(val):
-    amt = locale.currency(float(val))
-    return '%s' % (amt)
+    return to_dollars(val)
 
 @register.filter
 def display_ta_count(offering, posting):
@@ -80,7 +80,7 @@ def display_joint_with(joint_with, offeringname):
 
 @register.filter
 def display_ta_promise(gradstudent):    
-    return  sum(gradstudent.get_promise_amount_all().values())
+    return sum(gradstudent.get_promise_amount_all().values())
 
 @register.filter
 def display_ta_owe(gradstudent):    

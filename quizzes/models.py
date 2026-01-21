@@ -737,7 +737,7 @@ class QuizSubmission(models.Model):
     # .config['user_agent']: HTTP User-Agent header from submission
     # .config['session']: the session_key from the submission
     # .config['csrf_token']: the CSRF token being used for the submission
-    # .config['fingerprint']: browser fingerprint provided by fingerprintjs2
+    # .config['fingerprint']: browser fingerprint provided by fingerprintjs
     # .config['honour_code']: did student agree to the honour code?
     # .config['autosave']: was this an auto-save?
 
@@ -836,8 +836,11 @@ class QuizSubmission(models.Model):
         Return a hash of what we know about the user's browser on submission.
         """
         # including user_agent is generally redundant, but not if the fingerprinting fails for some reason
-        ident = self.config['user_agent'] + '--' + json.dumps(self.config['fingerprint'])
-        return '%08x' % (string_hash(ident, 4),)
+        if 'fingerprint' in self.config and 'visitorId' in self.config['fingerprint']:
+            return self.config['fingerprint']['visitorId'][:8]
+        else:
+            ident = self.config['user_agent'] + '--' + json.dumps(self.config['fingerprint'])
+            return '%08x' % (string_hash(ident, 4),)
 
 
 class TimeSpecialCase(models.Model):

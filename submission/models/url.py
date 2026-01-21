@@ -10,7 +10,7 @@ import os
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
-    check = models.BooleanField(default=False, help_text="Check that the page really exists?  Will reject missing or password-protected URLs.")
+    check_exists = models.BooleanField(default=False, help_text="Check that the page really exists?  Will reject missing or password-protected URLs.")
     prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (e.g. "http://server.com/course/", blank for none.)')
     class Meta:
         app_label = 'submission'
@@ -61,7 +61,7 @@ class URL:
     class ComponentForm(BaseComponentForm):
         class Meta:
             model = URLComponent
-            fields = ['title', 'description', 'check', 'prefix', 'deleted']
+            fields = ['title', 'description', 'check_exists', 'prefix', 'deleted']
             # widgets = {
             #     'description': Textarea(attrs={'cols':50, 'rows':5}),
             # }
@@ -87,7 +87,7 @@ class URL:
                 if not url.startswith(self.component.prefix):
                     raise forms.ValidationError('Submitted URL must start with "%s".' % (self.component.prefix))
 
-            if self.component.check:
+            if self.component.check_exists:
                 # instructor asked to check that URLs really exist: do it.
                 validator = QuickURLValidator()
                 try:

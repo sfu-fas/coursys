@@ -13,7 +13,7 @@ from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDesc
 class HiringSemesterForm(forms.ModelForm):
     comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':625}))
     contact = forms.EmailField(required=False, label="Email Contact", help_text="Notification Email for Time Use Guidelines.")
-    tssu_link = forms.URLField(required=False, label="Link to TSSU Collective Agreement", help_text="Link to TSSU Collective Agreement for Time Use Guidelines.")
+    tssu_link = forms.URLField(required=False, label="Link to TSSU Collective Agreement", help_text="Link to TSSU Collective Agreement for Time Use Guidelines.") # for Django 5.0: assume_scheme='https'
 
     def __init__(self, request, *args, **kwargs):
         super(HiringSemesterForm, self).__init__(*args, **kwargs)
@@ -65,7 +65,7 @@ class TAContractForm(forms.ModelForm):
         super(TAContractForm, self).__init__(*args, **kwargs)
         self.fields['category'].queryset = TACategory.objects.visible(hiring_semester)
         # should not be able to edit person after emails have been sent
-        if self.instance and self.instance.has_emails():
+        if self.instance and self.instance.id and self.instance.has_emails():
             self.fields['person'].widget.attrs['readonly'] = True
 
 

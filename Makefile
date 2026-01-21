@@ -2,10 +2,15 @@ SYSTEMCTL=sudo systemctl
 SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
 DOCKERCOMPOSE=${SUCOURSYS} docker-compose
 
+# use the environment $PYTHON for Python executable if set (which it is in proddev and production environments).
+ifndef PYTHON
+PYTHON=python3
+endif
+
 # For local development
 
 devel-runserver:
-	python3 manage.py runserver 0:8000
+	${PYTHON} manage.py runserver 0:8000
 devel-celery:
 	celery -A courses -l INFO worker -B
 
@@ -51,16 +56,16 @@ new-code-lite:
 
 new-code:
 	${SUCOURSYS} npm install
-	${SUCOURSYS} python3 manage.py collectstatic --no-input
+	${SUCOURSYS} ${PYTHON} manage.py collectstatic --no-input
 	make new-code-lite
 
 clear-cache:
 	${SUCOURSYS} docker-compose restart memcached
 
 migrate-safe:
-	${SUCOURSYS} python3 manage.py backup_db
-	${SUCOURSYS} python3 manage.py migrate
-	${SUCOURSYS} python3 manage.py backup_db
+	${SUCOURSYS} ${PYTHON} manage.py backup_db
+	${SUCOURSYS} ${PYTHON} manage.py migrate
+	${SUCOURSYS} ${PYTHON} manage.py backup_db
 
 503:
 	${SUCOURSYS} touch ${COURSYS_DIR}/503
@@ -73,7 +78,7 @@ rm503:
 
 rebuild:
 	sudo apt update && sudo apt upgrade
-	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
+	sudo ${PYTHON} -m pip install -r ${COURSYS_DIR}/requirements.txt
 	${DOCKERCOMPOSE} build --pull
 	${DOCKERCOMPOSE} up -d
 	make new-code
@@ -102,10 +107,10 @@ kinit:
 	${SUCOURSYS} ./kinit.sh
 
 manage: # used like: "make manage ARGS=shell"
-	${SUCOURSYS} python3 manage.py $(ARGS)
+	${SUCOURSYS} ${PYTHON} manage.py $(ARGS)
 shell:
-	${SUCOURSYS} python3 manage.py shell
+	${SUCOURSYS} ${PYTHON} manage.py shell
 dbshell:
-	${SUCOURSYS} python3 manage.py dbshell
+	${SUCOURSYS} ${PYTHON} manage.py dbshell
 backup_db:
-	${SUCOURSYS} python3 manage.py backup_db
+	${SUCOURSYS} ${PYTHON} manage.py backup_db

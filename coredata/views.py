@@ -21,7 +21,6 @@ from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime, os
-import iso8601
 from functools import reduce
 from operator import itemgetter
 import csv
@@ -1498,9 +1497,9 @@ def _offering_meeting_time_data(request, offering):
     fullcalendar.js data for this offering's events
     """
     try:
-        st = iso8601.parse_date(request.GET['start'])
-        en = iso8601.parse_date(request.GET['end'])
-    except (KeyError, ValueError, iso8601.ParseError):
+        st = datetime.datetime.fromisoformat(request.GET['start'])
+        en = datetime.datetime.fromisoformat(request.GET['end'])
+    except (KeyError, ValueError):
         return NotFoundResponse(request, errormsg="Bad request")
 
     local_tz = pytz.timezone(settings.TIME_ZONE)

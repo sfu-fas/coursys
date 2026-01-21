@@ -4,8 +4,10 @@ import datetime
 # Django
 from django.test import TestCase
 # Local
-from coredata.models import Unit, Person, Semester, Course, CourseOffering, \
+from coredata.models import Role, Unit, Person, Semester, Course, CourseOffering, \
                             Member
+from courselib.testing import Client, test_views
+from privacy.models import PRIVACY_VERSION
 from ra.models import Account
 # App
 from .models import ContractFrozen, HiringSemester, TACategory, TAContract, \
@@ -424,3 +426,31 @@ class TAContractTestCase(TestCase):
         self.assertEqual(course.holiday_hours, decimal.Decimal('3.3'))
         self.assertEqual(course.hours, decimal.Decimal('126'))
 
+    def test_pages(self):
+        contract = self.get_contract()
+        unit = contract.category.hiring_semester.unit
+        semester = contract.category.hiring_semester.semester
+        tacourse = TACourse.objects.filter(contract=contract).first()
+        course = tacourse.course
+
+        admin = Person(emplid="300000001",
+                        userid="adminy",
+                        first_name="Testy",
+                        last_name="Adminerson")
+        admin.config["privacy_signed"] = True
+        admin.config["privacy_date"] = datetime.date.today()
+        admin.config["privacy_version"] = PRIVACY_VERSION
+        admin.save()
+
+        r = Role(person=admin, role='TAAD', unit=unit, expiry=datetime.date.today() + datetime.timedelta(days=365))
+        r.save()
+
+        c = Client()
+        c.login_user('adminy')
+        test_views(self, c, 'tacontracts:', ['list_all_semesters', 'descriptions', 'new_description', 'new_semester'], {})
+        test_views(self, c, 'tacontracts:', ['new_contract', 'new_category', 'view_categories', 'list_all_contracts', 'list_all_contracts_by_course', 'view_financials'],
+                   {'semester': semester.name, 'unit_slug': unit.label})
+        test_views(self, c, 'tacontracts:', ['view_contract', 'edit_contract', 'new_course', 'new_attachment'],
+                   {'semester': semester.name, 'unit_slug': unit.label, 'contract_slug': contract.slug})
+        test_views(self, c, 'tacontracts:', ['edit_course'],
+                   {'semester': semester.name, 'unit_slug': unit.label, 'contract_slug': contract.slug, 'course_slug': course.slug})

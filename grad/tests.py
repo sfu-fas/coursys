@@ -63,12 +63,17 @@ class GradTest(TestCase):
         response = client.get(reverse('grad:search'))
         self.assertEqual(response.status_code, 200)
     
-    def test_that_grad_search_with_csv_option_returns_csv(self):
+    def test_grad_search_exports(self):
         client = Client()
         client.login_user('dzhao')
+
         response = client.get(reverse('grad:search'), {'columns':'person.first_name', 'csv':'sure'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
+
+        response = client.get(reverse('grad:search'), {'columns':'person.first_name', 'excel':'sure'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/vnd.ms-excel')
 
     def test_grad_pages(self):
         """
