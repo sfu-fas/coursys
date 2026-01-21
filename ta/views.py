@@ -613,6 +613,19 @@ def _edit_tug(request, course_slug, userid, tug=None):
     else:  
         tssu_link = 'https://www.sfu.ca/human-resources/tssu.html'
 
+	# copy the TUG numbers from a previous term of a TA 
+    # in the same course, same instructor, same number of BUs
+    copytug = None
+    try:
+        previoustug = TUG.objects.filter(member__offering__semester=tug.member.offering.semester.previous_semester(), member__role="TA", member__person=member.person, 
+                                     member__offering__subject=tug.member.offering.subject, member__offering__number=tug.member.offering.number, base_units=bu).first()
+        if previoustug:
+            for instructor in previoustug.member.offering.instructors():
+                if (instructor.userid == request.user.username):                
+                    copytug = previoustug
+    except:
+        copytug = None
+
     context = {'ta':member.person,
                'course':course,
                'form':form,
@@ -623,6 +636,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                'tssu_link': tssu_link,
                'draft': draft,                
+               'previoustug': copytug,
                }
     return render(request,'ta/edit_tug.html',context)
 
@@ -1929,6 +1943,10 @@ def all_contracts(request, post_slug):
                 contract.status = 'OPN'
                 _create_news(app, offer_url, from_user, contract.deadline, contract.total_bu())
                 contract.save()
+                l = LogEntry(userid=request.user.username,
+                description="Update contract status to Offered (by send button) for %s." % (contract.application.person.name()),
+                related_object=contract)
+                l.save()  
                 ccount += 1
                 
         if ccount > 1:
@@ -2338,6 +2356,12 @@ def edit_contract(request, post_slug, userid):
                 formset.save()
                 contract.save()
 
+                if contract.status == 'OPN':
+                    l = LogEntry(userid=request.user.username,
+                        description="Update contract status to Offered for %s." % (contract.application.person.name()),
+                        related_object=contract)
+                    l.save()
+                    
                 if not editing:
                     messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
