@@ -1,7 +1,7 @@
 from django.urls import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
-from django.utils.http import urlquote
+import urllib.parse
 from coredata.models import Person, Role
 import datetime
 
@@ -48,7 +48,7 @@ def privacy_redirect(request):
     """
     privacy_url = reverse('config:privacy')
     path = '%s?%s=%s' % (privacy_url, REDIRECT_FIELD_NAME,
-                         urlquote(request.get_full_path()))
+                         urllib.parse.quote(request.get_full_path()))
     return HttpResponseRedirect(path)
 
 
@@ -80,5 +80,5 @@ def privacy_da_redirect(request):
     """
     privacy_url = reverse('config:privacy_da')
     path = '%s?%s=%s' % (privacy_url, REDIRECT_FIELD_NAME,
-                         urlquote(request.get_full_path()))
+                         urllib.parse.quote(request.get_full_path()))
     return HttpResponseRedirect(path)

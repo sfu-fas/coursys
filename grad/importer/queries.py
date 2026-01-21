@@ -20,7 +20,7 @@ def grad_program_changes(acad_prog):
     return list(db)
 
 @SIMS_problem_handler
-@cache_by_args
+#@cache_by_args
 def grad_appl_program_changes(acad_prog):
     """
     ps_adm_appl_data records where the fee has actually been paid: we don't bother looking at them until then.

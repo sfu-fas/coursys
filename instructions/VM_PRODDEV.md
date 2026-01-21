@@ -14,7 +14,7 @@ vagrant ssh
 Then in the VM, get appropriate configuration in place. That is likely something like this:
 ```shell
 cd /coursys/
-echo -e "DEPLOY_MODE = 'proddev'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'localhost'\nEMAIL_PORT = 2525\nEMAIL_USE_SSL = False" | sudo tee courses/localsettings.py
+echo -e "DEPLOY_MODE = 'proddev'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'localhost'\nEMAIL_PORT = 2525\nEMAIL_USE_SSL = False\nMOSS_DISTRIBUTION_PATH = '/home/vagrant/moss'\nCSRF_TRUSTED_ORIGINS = ['http://localhost:8080']\n#FORCE_CAS = True" | sudo tee courses/localsettings.py
 echo -e "RABBITMQ_PASSWORD = 'rabbitmq_password'" | sudo tee courses/secrets.py
 ```
 
@@ -28,6 +28,7 @@ make start-all
 python3 manage.py loaddata fixtures/*.json
 python3 manage.py update_index
 make restart-all
+make kinit
 ```
 
 In theory, should be able to access http://localhost:8080/ for the site, and http://localhost:8025/ for the development email.

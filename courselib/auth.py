@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.http import urlquote, urlencode
+from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 from coredata.models import Role, CourseOffering, Member, Semester
@@ -42,7 +42,7 @@ def user_passes_test(test_func, login_url=None,
                 return ForbiddenResponse(request)
             else:
                 path = '%s?%s=%s' % (login_url, redirect_field_name,
-                                     urlquote(request.get_full_path()))
+                                     urllib.parse.quote(request.get_full_path()))
                 return HttpResponseRedirect(path)
         return wrapper
     return decorator

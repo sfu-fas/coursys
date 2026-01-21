@@ -5,7 +5,7 @@ import os
 import errno
 import io
 import csv
-from pipes import quote
+from shlex import quote
 from datetime import datetime
 from typing import List
 
