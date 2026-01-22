@@ -328,6 +328,7 @@ class CaseFacts(CaseEditView):
             'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False],
             'weight': self.case.config.get('weight', ''),
             'mode': self.case.config.get('mode', 'NOAN'),
+            'incident_type': self.case.config.get('incident_type', 'NOAN'),
         }
 
     @staticmethod
@@ -336,6 +337,7 @@ class CaseFacts(CaseEditView):
         case.config['facts_markup'] = form.cleaned_data['facts'][1]
         case.config['weight'] = form.cleaned_data['weight']
         case.config['mode'] = form.cleaned_data['mode']
+        case.config['incident_type'] = form.cleaned_data['incident_type']
         case.save()
         messages.add_message(request, messages.INFO, f"Updated facts for {case.full_name()}.")
 
