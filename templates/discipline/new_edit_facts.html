@@ -23,6 +23,7 @@
         <dl class="dlform">
             {{ form.weight | discipline_field }}
             {{ form.mode | discipline_field }}
+            {{ form.incident_type | discipline_field }}
             {{ form.facts | discipline_field }}
             {% if form.case.group %}{{ form.also_for | discipline_field }}{% endif %}
         </dl>

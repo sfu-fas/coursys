@@ -1,7 +1,7 @@
 from coredata.forms import UnitRoleForm
 from courselib.markup import MarkupContentField
 from django import forms
-from discipline.models import DisciplineGroup, DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, \
+from discipline.models import INCIDENT_TYPE_MUST_ANSWER, DisciplineGroup, DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, \
     DisciplineTemplate, DisciplineCaseBase, MAX_ATTACHMENTS, \
     CaseAttachment, INSTR_PENALTY_CHOICES, INSTR_PENALTY_VALUES, MAX_ATTACHMENTS_TEXT, MODE_CHOICES_MUST_ANSWER
 from coredata.models import Member, Unit
@@ -179,6 +179,8 @@ class FactsForm(CaseEditForm):
          help_text='The work in question and its weight in the course. (e.g. "two assignments worth 5% each", "40% final exam")')
     mode = forms.ChoiceField(choices=MODE_CHOICES_MUST_ANSWER, widget=forms.RadioSelect(), required=True,
          help_text='Type of work in this case. Used for statistics of cases: not included in the incident report.')
+    incident_type = forms.ChoiceField(choices=INCIDENT_TYPE_MUST_ANSWER, widget=forms.RadioSelect(), required=True,
+         help_text='The type of dishonesty. Used for statistics of cases: not included in the incident report.')
     facts = MarkupContentField(label="Description of the case", required=False, allow_math=False, with_wysiwyg=True)
 
 

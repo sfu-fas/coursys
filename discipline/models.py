@@ -42,6 +42,20 @@ MODE_CHOICES_MUST_ANSWER = (
 MODE_CHOICES =  MODE_CHOICES_MUST_ANSWER + (('NOAN', 'no answer'),)
 MODE_CHOICES_DICT = dict(MODE_CHOICES)
 
+INCIDENT_TYPE_MUST_ANSWER = (
+    ('PLAG', 'Plagiarism: presenting the ideas/work of another as your own without proper attribution'),
+    ('COLL', 'Unauthorized collaboration'),
+    ('TECH', 'Using tools such as translation software or generative AI where prohibited'),
+    ('FALS', 'Falsifying records/data: manipulating data/research results; fabricating citations'),
+    ('HELP', 'Assisting others to cheat'),
+    ('CNTR', 'Contract cheating: purchasing the services of a third party to complete assignments/exams'),
+    ('FRAD', 'Fraud: misrepresenting one\'s position to gain an academic advantage'),
+    ('OTHR', 'Other: not in above categories'),
+)
+INCIDENT_TYPE =  INCIDENT_TYPE_MUST_ANSWER + (('NOAN', 'no answer'),)
+INCIDENT_TYPE_DICT = dict(INCIDENT_TYPE)
+
+
 """
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
@@ -239,6 +253,9 @@ class DisciplineCaseBase(models.Model):
 
     def get_mode_display(self):
         return MODE_CHOICES_DICT[self.config.get('mode', 'NOAN')]
+
+    def get_incident_type_display(self):
+        return INCIDENT_TYPE_DICT[self.config.get('incident_type', 'NOAN')]
 
     def sendable(self):
         return self.contacted != 'NONE' and self.response != 'WAIT' and self.facts_wordcount() > 0 and self.penalty != 'WAIT'

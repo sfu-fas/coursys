@@ -328,6 +328,7 @@ class CaseFacts(CaseEditView):
             'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False],
             'weight': self.case.config.get('weight', ''),
             'mode': self.case.config.get('mode', 'NOAN'),
+            'incident_type': self.case.config.get('incident_type', 'NOAN'),
         }
 
     @staticmethod
@@ -336,6 +337,7 @@ class CaseFacts(CaseEditView):
         case.config['facts_markup'] = form.cleaned_data['facts'][1]
         case.config['weight'] = form.cleaned_data['weight']
         case.config['mode'] = form.cleaned_data['mode']
+        case.config['incident_type'] = form.cleaned_data['incident_type']
         case.save()
         messages.add_message(request, messages.INFO, f"Updated facts for {case.full_name()}.")
 
@@ -616,7 +618,7 @@ def chair_csv(request):
     )
     instr_cases.sort(key=lambda c: (c.offering.semester.name, c.offering.name(), c.student.sortname()))
     writer = csv.writer(response)
-    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)'])
+    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)', 'Type (instr provided)'])
     for c in instr_cases:
         writer.writerow([
             c.student.sortname(), c.student.emplid, c.student.email(),
@@ -627,6 +629,7 @@ def chair_csv(request):
             c.owner.email(),
             c.offering.get_mode_display(),
             c.get_mode_display(),
+            c.get_incident_type_display(),
         ])
 
     return response
