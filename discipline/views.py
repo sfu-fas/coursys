@@ -618,7 +618,7 @@ def chair_csv(request):
     )
     instr_cases.sort(key=lambda c: (c.offering.semester.name, c.offering.name(), c.student.sortname()))
     writer = csv.writer(response)
-    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)'])
+    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)', 'Type (instr provided)'])
     for c in instr_cases:
         writer.writerow([
             c.student.sortname(), c.student.emplid, c.student.email(),
@@ -629,6 +629,7 @@ def chair_csv(request):
             c.owner.email(),
             c.offering.get_mode_display(),
             c.get_mode_display(),
+            c.get_incident_type_display(),
         ])
 
     return response

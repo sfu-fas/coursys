@@ -254,6 +254,9 @@ class DisciplineCaseBase(models.Model):
     def get_mode_display(self):
         return MODE_CHOICES_DICT[self.config.get('mode', 'NOAN')]
 
+    def get_incident_type_display(self):
+        return INCIDENT_TYPE_DICT[self.config.get('incident_type', 'NOAN')]
+
     def sendable(self):
         return self.contacted != 'NONE' and self.response != 'WAIT' and self.facts_wordcount() > 0 and self.penalty != 'WAIT'
 
