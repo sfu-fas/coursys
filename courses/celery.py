@@ -22,3 +22,8 @@ app.autodiscover_tasks()
 @app.task(bind=True)
 def debug_task(self):
     print(('Request: {0!r}'.format(self.request)))
+
+
+# quiet the elasticsearch driver's output, https://stackoverflow.com/a/62472055
+import logging
+logging.getLogger('elasticsearch').setLevel(logging.ERROR)
