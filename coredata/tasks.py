@@ -8,7 +8,6 @@ from haystack.utils import loading
 from haystack.utils.app_loading import haystack_get_models, haystack_load_apps
 
 from coredata.queries import SIMSConn, SIMSProblem
-from courselib.search import haystack_update_index, haystack_rebuild_index
 from django.core.management import call_command
 from courselib.celerytasks import task
 from coredata.models import Role, Unit, EnrolmentHistory
@@ -354,13 +353,26 @@ def import_active_grad_gpas():
 
 @task(queue='sims')
 def haystack_update():
-    haystack_update_index()
+    our_update_index.delay(update_only=True)
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
 @task(queue='sims')
 def haystack_rebuild():
-    haystack_rebuild_index()
+    our_clear_index()
+    our_update_index.delay(update_only=False)
+
+
+@task(queue='batch')
+def our_clear_index(commit: bool = True):
+    """
+    Clear the Haystack indexes, equivalent to the clear_index management command.
+    """
+    haystack_connections = loading.ConnectionHandler(settings.HAYSTACK_CONNECTIONS)
+    backends = haystack_connections.connections_info.keys()
+    for using in backends:
+        backend = haystack_connections[using].get_backend()
+        backend.clear(commit=commit)
 
 
 @task(queue='batch')

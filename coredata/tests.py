@@ -4,15 +4,29 @@ from haystack.query import SearchQuerySet
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
                             Member, Role, Unit, EnrolmentHistory, ROLE_CHOICES
 
+from django.core.management import call_command
 from django.urls import reverse
 
-from courselib.search import haystack_update_index, haystack_clear_index, haystack_rebuild_index
 from courselib.testing import basic_page_tests, validate_content, Client, \
                               TEST_COURSE_SLUG, TEST_ROLE_EXPIRY
 
 from django.db import IntegrityError
 from datetime import date, datetime, timedelta
 import pytz, json
+
+
+# aliases to the haystack management commands, for convenience in tests (should be accomplished with coredata.tasks tools in actual system logic)
+
+def haystack_update_index():
+    call_command("update_index", verbosity=0, remove=True)
+
+
+def haystack_rebuild_index():
+    call_command("rebuild_index", verbosity=0, interactive=False)
+
+
+def haystack_clear_index():
+    call_command("clear_index", verbosity=0, interactive=False)
 
 
 def create_semesters():
