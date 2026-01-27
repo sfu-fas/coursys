@@ -224,6 +224,8 @@ def run_moss(main_activity: Activity, activities: List[Activity], language: str,
             raise ValueError('unexpected file produced by MOSS')
 
     result.config['complete'] = True
+    result.config['moss_stdout'] = res.stdout
+    result.config['moss_stderr'] = res.stderr
     result.save()
     return result
 
