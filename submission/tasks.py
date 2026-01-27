@@ -5,7 +5,7 @@ from submission.models.base import SimilarityResult
 from submission.moss import run_moss, MOSSError
 
 
-@task()
+@task(max_retries=3, default_retry_delay=30)
 def run_moss_task(activity_id: int, activity_ids: List[int], language: str, result_id: int):
     activities = Activity.objects.filter(id__in=activity_ids)
     activity = Activity.objects.get(id=activity_id)
@@ -14,4 +14,5 @@ def run_moss_task(activity_id: int, activity_ids: List[int], language: str, resu
         run_moss(activity, list(activities), language, result)
     except MOSSError as e:
         result.config['error'] = str(e)
+        result.config['extra'] = getattr(e, 'extra', None)
         result.save()

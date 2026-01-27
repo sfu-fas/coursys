@@ -46,7 +46,9 @@ MOSS_LANGUAGES_CHOICES = sorted([
 
 
 class MOSSError(RuntimeError):
-    pass
+    def __init__(self, message: str, extra: Optional[str] = None):
+        super().__init__(message)
+        self.extra = extra
 
 
 def check_moss_executable(passed, failed):
@@ -136,14 +138,15 @@ def run_moss(main_activity: Activity, activities: List[Activity], language: str,
         raise MOSSError('No files found for that language to analyze with MOSS.')
 
     # run MOSS
+    os.makedirs(moss_out_dir, exist_ok=True)
     moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
     cmd = [moss_pl, '-l', language, '-o', moss_out_dir] + moss_files
     try:
-        res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH)
+        res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH, capture_output=True)
     except FileNotFoundError:
         raise MOSSError('System not correctly configured with the MOSS executable.')
     if res.returncode != 0:
-        raise MOSSError('MOSS command failed: ' + str(cmd))
+        raise MOSSError('MOSS command failed: ' + str(cmd), extra=str(res.stderr))
 
     # try to deal with MOSS' [profanity suppressed] HTML, and produce SimilarityData objects to represent everything
     for f in os.listdir(moss_out_dir):
