@@ -10,6 +10,12 @@
     color: green;
 }
 
+.actionlist .btn{
+    display: inline-block;
+    margin-right: 5px;
+    margin-left: 0px;
+}
+
 #filterform ul {
     display: flex;
     flex-wrap: wrap;
