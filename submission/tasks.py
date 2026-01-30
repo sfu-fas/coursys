@@ -5,7 +5,7 @@ from submission.models.base import SimilarityResult
 from submission.moss import run_moss, MOSSError
 
 
-@task()
+@task(max_retries=2)
 def run_moss_task(activity_id: int, activity_ids: List[int], language: str, result_id: int):
     activities = Activity.objects.filter(id__in=activity_ids)
     activity = Activity.objects.get(id=activity_id)

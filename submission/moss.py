@@ -255,6 +255,7 @@ class MOSS(object):
         self.result = result
 
     class CreationForm(forms.Form):
+        tool = forms.CharField(initial='moss', widget=forms.HiddenInput())
         language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
         other_offering_activities = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, required=False,
             help_text='Also compare against submissions for these activities from other sections')

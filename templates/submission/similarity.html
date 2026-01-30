@@ -25,4 +25,12 @@
 {{ moss_form|as_dl }}
 <p><input class="submit" type="submit" value="Generate Report" /></p>
 </form>
+
+<h2>Generate JPlag Bundle [BETA]</h2>
+<form action="" method="post">{% csrf_token %}
+<p>Running and serving <a href="https://github.com/jplag/JPlag">JPlag</a> within CourSys is unrealistically challenging: this will produce a ZIP file with everything you need to run JPlag yourself, as long as you have an appropriate Java runtime.</p>
+{{ jplag_form|as_dl }}
+<p><input class="submit" type="submit" value="Generate Bundle" /></p>
+</form>
+
 {% endblock %}
