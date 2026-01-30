@@ -8,7 +8,8 @@ from django.core.management import call_command
 from django.test import TestCase
 
 # course with the test data
-TEST_COURSE_SLUG = '2023fa-cmpt-120-d1'
+TEST_COURSE_SEMESTER = '1267'
+TEST_COURSE_SLUG = '2026fa-cmpt-120-d1'
 
 # when roles can reasonably expire for tests
 TEST_ROLE_EXPIRY = datetime.date.today() + datetime.timedelta(days=365)

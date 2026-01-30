@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, Http404, HttpResponse, HttpRequest
+from django.http import FileResponse, HttpResponseRedirect, Http404, HttpResponse, HttpRequest
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courselib.search import find_member, find_userid_or_emplid
 from grades.models import Activity
@@ -15,6 +15,7 @@ from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
 from submission.moss import MOSS, MOSSError, run_moss_as_task
+from submission.jplag import JPlag, JPlagError, build_jplag_zip
 from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
@@ -479,7 +480,12 @@ def similarity(request, course_slug, activity_slug):
         .select_related('offering', 'offering__semester')
     other_activity_choices = [(a.id, str(a)) for a in activities]
 
-    if request.method == 'POST':
+    moss_form = MOSS.CreationForm()
+    moss_form.fields['other_offering_activities'].choices = other_activity_choices
+    jplag_form = JPlag.CreationForm()
+    jplag_form.fields['other_offering_activities'].choices = other_activity_choices
+
+    if request.method == 'POST' and 'tool' in request.POST and request.POST['tool'] == 'moss':
         moss_form = MOSS.CreationForm(request.POST)
         moss_form.fields['other_offering_activities'].choices = other_activity_choices
         if moss_form.is_valid():
@@ -499,15 +505,42 @@ def similarity(request, course_slug, activity_slug):
                             ))
             except MOSSError as e:
                 messages.add_message(request, messages.ERROR, str(e))
+        
+    elif request.method == 'POST' and 'tool' in request.POST and request.POST['tool'] == 'jplag':
+        jplag_form = JPlag.CreationForm(request.POST)
+        jplag_form.fields['other_offering_activities'].choices = other_activity_choices
+        if jplag_form.is_valid():
+            try:
+                other_ids = jplag_form.cleaned_data['other_offering_activities']
+                other_activities = Activity.objects.filter(id__in=other_ids)
+                activities = [activity] + list(other_activities)
+
+                l = LogEntry(userid=request.user.username,
+                             description=("build JPlag bundle for %s in %s") % (activity, offering),
+                             related_object=activity)
+                l.save()
+
+                # serve the temp file, per https://stackoverflow.com/a/49639372
+                zip = build_jplag_zip(activities=activities, language=jplag_form.cleaned_data['language'])
+                try:
+                    response = FileResponse(open(zip, 'rb'), filename=f'jplag-{activity.slug}.zip')
+                    return response
+                finally:
+                    os.remove(zip)
+
+                
+            except JPlagError as e:
+                messages.add_message(request, messages.ERROR, str(e))
+
     else:
-        moss_form = MOSS.CreationForm()
-        moss_form.fields['other_offering_activities'].choices = other_activity_choices
+        pass
 
     context = {
         'offering': offering,
         'activity': activity,
         'results': results,
         'moss_form': moss_form,
+        'jplag_form': jplag_form,
     }
     return render(request, "submission/similarity.html", context)
 

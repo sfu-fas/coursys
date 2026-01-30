@@ -1,93 +1,12 @@
 [
 {
  "fields": {
-  "end": "2013-04-15",
-  "name": "1131",
-  "start": "2013-01-02"
- },
- "model": "coredata.semester",
- "pk": 1
-},
-{
- "fields": {
-  "end": "2013-08-15",
-  "name": "1134",
-  "start": "2013-05-02"
- },
- "model": "coredata.semester",
- "pk": 2
-},
-{
- "fields": {
-  "end": "2013-12-15",
-  "name": "1137",
-  "start": "2013-09-02"
- },
- "model": "coredata.semester",
- "pk": 3
-},
-{
- "fields": {
-  "end": "2014-04-15",
-  "name": "1141",
-  "start": "2014-01-02"
- },
- "model": "coredata.semester",
- "pk": 4
-},
-{
- "fields": {
-  "end": "2014-08-15",
-  "name": "1144",
-  "start": "2014-05-02"
- },
- "model": "coredata.semester",
- "pk": 5
-},
-{
- "fields": {
-  "end": "2014-12-15",
-  "name": "1147",
-  "start": "2014-09-02"
- },
- "model": "coredata.semester",
- "pk": 6
-},
-{
- "fields": {
-  "end": "2015-04-15",
-  "name": "1151",
-  "start": "2015-01-02"
- },
- "model": "coredata.semester",
- "pk": 7
-},
-{
- "fields": {
-  "end": "2015-08-15",
-  "name": "1154",
-  "start": "2015-05-02"
- },
- "model": "coredata.semester",
- "pk": 8
-},
-{
- "fields": {
-  "end": "2015-12-15",
-  "name": "1157",
-  "start": "2015-09-02"
- },
- "model": "coredata.semester",
- "pk": 9
-},
-{
- "fields": {
   "end": "2016-04-15",
   "name": "1161",
   "start": "2016-01-02"
  },
  "model": "coredata.semester",
- "pk": 10
+ "pk": 1
 },
 {
  "fields": {
@@ -96,7 +15,7 @@
   "start": "2016-05-02"
  },
  "model": "coredata.semester",
- "pk": 11
+ "pk": 2
 },
 {
  "fields": {
@@ -105,7 +24,7 @@
   "start": "2016-09-02"
  },
  "model": "coredata.semester",
- "pk": 12
+ "pk": 3
 },
 {
  "fields": {
@@ -114,7 +33,7 @@
   "start": "2017-01-02"
  },
  "model": "coredata.semester",
- "pk": 13
+ "pk": 4
 },
 {
  "fields": {
@@ -123,7 +42,7 @@
   "start": "2017-05-02"
  },
  "model": "coredata.semester",
- "pk": 14
+ "pk": 5
 },
 {
  "fields": {
@@ -132,7 +51,7 @@
   "start": "2017-09-02"
  },
  "model": "coredata.semester",
- "pk": 15
+ "pk": 6
 },
 {
  "fields": {
@@ -141,7 +60,7 @@
   "start": "2018-01-02"
  },
  "model": "coredata.semester",
- "pk": 16
+ "pk": 7
 },
 {
  "fields": {
@@ -150,7 +69,7 @@
   "start": "2018-05-02"
  },
  "model": "coredata.semester",
- "pk": 17
+ "pk": 8
 },
 {
  "fields": {
@@ -159,7 +78,7 @@
   "start": "2018-09-02"
  },
  "model": "coredata.semester",
- "pk": 18
+ "pk": 9
 },
 {
  "fields": {
@@ -168,7 +87,7 @@
   "start": "2019-01-02"
  },
  "model": "coredata.semester",
- "pk": 19
+ "pk": 10
 },
 {
  "fields": {
@@ -177,7 +96,7 @@
   "start": "2019-05-02"
  },
  "model": "coredata.semester",
- "pk": 20
+ "pk": 11
 },
 {
  "fields": {
@@ -186,7 +105,7 @@
   "start": "2019-09-02"
  },
  "model": "coredata.semester",
- "pk": 21
+ "pk": 12
 },
 {
  "fields": {
@@ -195,7 +114,7 @@
   "start": "2020-01-02"
  },
  "model": "coredata.semester",
- "pk": 22
+ "pk": 13
 },
 {
  "fields": {
@@ -204,7 +123,7 @@
   "start": "2020-05-02"
  },
  "model": "coredata.semester",
- "pk": 23
+ "pk": 14
 },
 {
  "fields": {
@@ -213,7 +132,7 @@
   "start": "2020-09-02"
  },
  "model": "coredata.semester",
- "pk": 24
+ "pk": 15
 },
 {
  "fields": {
@@ -222,7 +141,7 @@
   "start": "2021-01-02"
  },
  "model": "coredata.semester",
- "pk": 25
+ "pk": 16
 },
 {
  "fields": {
@@ -231,7 +150,7 @@
   "start": "2021-05-02"
  },
  "model": "coredata.semester",
- "pk": 26
+ "pk": 17
 },
 {
  "fields": {
@@ -240,7 +159,7 @@
   "start": "2021-09-02"
  },
  "model": "coredata.semester",
- "pk": 27
+ "pk": 18
 },
 {
  "fields": {
@@ -249,7 +168,7 @@
   "start": "2022-01-02"
  },
  "model": "coredata.semester",
- "pk": 28
+ "pk": 19
 },
 {
  "fields": {
@@ -258,7 +177,7 @@
   "start": "2022-05-02"
  },
  "model": "coredata.semester",
- "pk": 29
+ "pk": 20
 },
 {
  "fields": {
@@ -267,7 +186,7 @@
   "start": "2022-09-02"
  },
  "model": "coredata.semester",
- "pk": 30
+ "pk": 21
 },
 {
  "fields": {
@@ -276,7 +195,7 @@
   "start": "2023-01-02"
  },
  "model": "coredata.semester",
- "pk": 31
+ "pk": 22
 },
 {
  "fields": {
@@ -285,7 +204,7 @@
   "start": "2023-05-02"
  },
  "model": "coredata.semester",
- "pk": 32
+ "pk": 23
 },
 {
  "fields": {
@@ -294,7 +213,7 @@
   "start": "2023-09-02"
  },
  "model": "coredata.semester",
- "pk": 33
+ "pk": 24
 },
 {
  "fields": {
@@ -303,7 +222,7 @@
   "start": "2024-01-02"
  },
  "model": "coredata.semester",
- "pk": 34
+ "pk": 25
 },
 {
  "fields": {
@@ -312,7 +231,7 @@
   "start": "2024-05-02"
  },
  "model": "coredata.semester",
- "pk": 35
+ "pk": 26
 },
 {
  "fields": {
@@ -321,7 +240,7 @@
   "start": "2024-09-02"
  },
  "model": "coredata.semester",
- "pk": 36
+ "pk": 27
 },
 {
  "fields": {
@@ -330,7 +249,7 @@
   "start": "2025-01-02"
  },
  "model": "coredata.semester",
- "pk": 37
+ "pk": 28
 },
 {
  "fields": {
@@ -339,7 +258,7 @@
   "start": "2025-05-02"
  },
  "model": "coredata.semester",
- "pk": 38
+ "pk": 29
 },
 {
  "fields": {
@@ -348,7 +267,7 @@
   "start": "2025-09-02"
  },
  "model": "coredata.semester",
- "pk": 39
+ "pk": 30
 },
 {
  "fields": {
@@ -357,7 +276,7 @@
   "start": "2026-01-02"
  },
  "model": "coredata.semester",
- "pk": 40
+ "pk": 31
 },
 {
  "fields": {
@@ -366,7 +285,7 @@
   "start": "2026-05-02"
  },
  "model": "coredata.semester",
- "pk": 41
+ "pk": 32
 },
 {
  "fields": {
@@ -375,7 +294,7 @@
   "start": "2026-09-02"
  },
  "model": "coredata.semester",
- "pk": 42
+ "pk": 33
 },
 {
  "fields": {
@@ -384,7 +303,7 @@
   "start": "2027-01-02"
  },
  "model": "coredata.semester",
- "pk": 43
+ "pk": 34
 },
 {
  "fields": {
@@ -393,7 +312,7 @@
   "start": "2027-05-02"
  },
  "model": "coredata.semester",
- "pk": 44
+ "pk": 35
 },
 {
  "fields": {
@@ -402,7 +321,7 @@
   "start": "2027-09-02"
  },
  "model": "coredata.semester",
- "pk": 45
+ "pk": 36
 },
 {
  "fields": {
@@ -411,7 +330,7 @@
   "start": "2028-01-02"
  },
  "model": "coredata.semester",
- "pk": 46
+ "pk": 37
 },
 {
  "fields": {
@@ -420,7 +339,7 @@
   "start": "2028-05-02"
  },
  "model": "coredata.semester",
- "pk": 47
+ "pk": 38
 },
 {
  "fields": {
@@ -429,7 +348,7 @@
   "start": "2028-09-02"
  },
  "model": "coredata.semester",
- "pk": 48
+ "pk": 39
 },
 {
  "fields": {
@@ -438,7 +357,7 @@
   "start": "2029-01-02"
  },
  "model": "coredata.semester",
- "pk": 49
+ "pk": 40
 },
 {
  "fields": {
@@ -447,7 +366,7 @@
   "start": "2029-05-02"
  },
  "model": "coredata.semester",
- "pk": 50
+ "pk": 41
 },
 {
  "fields": {
@@ -456,7 +375,7 @@
   "start": "2029-09-02"
  },
  "model": "coredata.semester",
- "pk": 51
+ "pk": 42
 },
 {
  "fields": {
@@ -465,7 +384,7 @@
   "start": "2030-01-02"
  },
  "model": "coredata.semester",
- "pk": 52
+ "pk": 43
 },
 {
  "fields": {
@@ -474,7 +393,7 @@
   "start": "2030-05-02"
  },
  "model": "coredata.semester",
- "pk": 53
+ "pk": 44
 },
 {
  "fields": {
@@ -483,7 +402,7 @@
   "start": "2030-09-02"
  },
  "model": "coredata.semester",
- "pk": 54
+ "pk": 45
 },
 {
  "fields": {
@@ -492,7 +411,7 @@
   "start": "2031-01-02"
  },
  "model": "coredata.semester",
- "pk": 55
+ "pk": 46
 },
 {
  "fields": {
@@ -501,7 +420,7 @@
   "start": "2031-05-02"
  },
  "model": "coredata.semester",
- "pk": 56
+ "pk": 47
 },
 {
  "fields": {
@@ -510,7 +429,7 @@
   "start": "2031-09-02"
  },
  "model": "coredata.semester",
- "pk": 57
+ "pk": 48
 },
 {
  "fields": {
@@ -519,7 +438,7 @@
   "start": "2032-01-02"
  },
  "model": "coredata.semester",
- "pk": 58
+ "pk": 49
 },
 {
  "fields": {
@@ -528,7 +447,7 @@
   "start": "2032-05-02"
  },
  "model": "coredata.semester",
- "pk": 59
+ "pk": 50
 },
 {
  "fields": {
@@ -537,11 +456,92 @@
   "start": "2032-09-02"
  },
  "model": "coredata.semester",
+ "pk": 51
+},
+{
+ "fields": {
+  "end": "2033-04-15",
+  "name": "1331",
+  "start": "2033-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 52
+},
+{
+ "fields": {
+  "end": "2033-08-15",
+  "name": "1334",
+  "start": "2033-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 53
+},
+{
+ "fields": {
+  "end": "2033-12-15",
+  "name": "1337",
+  "start": "2033-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 54
+},
+{
+ "fields": {
+  "end": "2034-04-15",
+  "name": "1341",
+  "start": "2034-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 55
+},
+{
+ "fields": {
+  "end": "2034-08-15",
+  "name": "1344",
+  "start": "2034-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 56
+},
+{
+ "fields": {
+  "end": "2034-12-15",
+  "name": "1347",
+  "start": "2034-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 57
+},
+{
+ "fields": {
+  "end": "2035-04-15",
+  "name": "1351",
+  "start": "2035-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 58
+},
+{
+ "fields": {
+  "end": "2035-08-15",
+  "name": "1354",
+  "start": "2035-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 59
+},
+{
+ "fields": {
+  "end": "2035-12-15",
+  "name": "1357",
+  "start": "2035-09-02"
+ },
+ "model": "coredata.semester",
  "pk": 60
 },
 {
  "fields": {
-  "monday": "2013-01-07",
+  "monday": "2016-01-04",
   "semester": 1,
   "week": 1
  },
@@ -550,7 +550,7 @@
 },
 {
  "fields": {
-  "monday": "2013-05-06",
+  "monday": "2016-05-02",
   "semester": 2,
   "week": 1
  },
@@ -559,7 +559,7 @@
 },
 {
  "fields": {
-  "monday": "2013-09-02",
+  "monday": "2016-09-05",
   "semester": 3,
   "week": 1
  },
@@ -568,7 +568,7 @@
 },
 {
  "fields": {
-  "monday": "2014-01-06",
+  "monday": "2017-01-02",
   "semester": 4,
   "week": 1
  },
@@ -577,7 +577,7 @@
 },
 {
  "fields": {
-  "monday": "2014-05-05",
+  "monday": "2017-05-01",
   "semester": 5,
   "week": 1
  },
@@ -586,7 +586,7 @@
 },
 {
  "fields": {
-  "monday": "2014-09-01",
+  "monday": "2017-09-04",
   "semester": 6,
   "week": 1
  },
@@ -595,7 +595,7 @@
 },
 {
  "fields": {
-  "monday": "2015-01-05",
+  "monday": "2018-01-01",
   "semester": 7,
   "week": 1
  },
@@ -604,7 +604,7 @@
 },
 {
  "fields": {
-  "monday": "2015-05-04",
+  "monday": "2018-05-07",
   "semester": 8,
   "week": 1
  },
@@ -613,7 +613,7 @@
 },
 {
  "fields": {
-  "monday": "2015-09-07",
+  "monday": "2018-09-03",
   "semester": 9,
   "week": 1
  },
@@ -622,7 +622,7 @@
 },
 {
  "fields": {
-  "monday": "2016-01-04",
+  "monday": "2019-01-07",
   "semester": 10,
   "week": 1
  },
@@ -631,7 +631,7 @@
 },
 {
  "fields": {
-  "monday": "2016-05-02",
+  "monday": "2019-05-06",
   "semester": 11,
   "week": 1
  },
@@ -640,7 +640,7 @@
 },
 {
  "fields": {
-  "monday": "2016-09-05",
+  "monday": "2019-09-02",
   "semester": 12,
   "week": 1
  },
@@ -649,7 +649,7 @@
 },
 {
  "fields": {
-  "monday": "2017-01-02",
+  "monday": "2020-01-06",
   "semester": 13,
   "week": 1
  },
@@ -658,7 +658,7 @@
 },
 {
  "fields": {
-  "monday": "2017-05-01",
+  "monday": "2020-05-04",
   "semester": 14,
   "week": 1
  },
@@ -667,7 +667,7 @@
 },
 {
  "fields": {
-  "monday": "2017-09-04",
+  "monday": "2020-09-07",
   "semester": 15,
   "week": 1
  },
@@ -676,7 +676,7 @@
 },
 {
  "fields": {
-  "monday": "2018-01-01",
+  "monday": "2021-01-04",
   "semester": 16,
   "week": 1
  },
@@ -685,7 +685,7 @@
 },
 {
  "fields": {
-  "monday": "2018-05-07",
+  "monday": "2021-05-03",
   "semester": 17,
   "week": 1
  },
@@ -694,7 +694,7 @@
 },
 {
  "fields": {
-  "monday": "2018-09-03",
+  "monday": "2021-09-06",
   "semester": 18,
   "week": 1
  },
@@ -703,7 +703,7 @@
 },
 {
  "fields": {
-  "monday": "2019-01-07",
+  "monday": "2022-01-03",
   "semester": 19,
   "week": 1
  },
@@ -712,7 +712,7 @@
 },
 {
  "fields": {
-  "monday": "2019-05-06",
+  "monday": "2022-05-02",
   "semester": 20,
   "week": 1
  },
@@ -721,7 +721,7 @@
 },
 {
  "fields": {
-  "monday": "2019-09-02",
+  "monday": "2022-09-05",
   "semester": 21,
   "week": 1
  },
@@ -730,7 +730,7 @@
 },
 {
  "fields": {
-  "monday": "2020-01-06",
+  "monday": "2023-01-02",
   "semester": 22,
   "week": 1
  },
@@ -739,7 +739,7 @@
 },
 {
  "fields": {
-  "monday": "2020-05-04",
+  "monday": "2023-05-01",
   "semester": 23,
   "week": 1
  },
@@ -748,7 +748,7 @@
 },
 {
  "fields": {
-  "monday": "2020-09-07",
+  "monday": "2023-09-04",
   "semester": 24,
   "week": 1
  },
@@ -757,7 +757,7 @@
 },
 {
  "fields": {
-  "monday": "2021-01-04",
+  "monday": "2024-01-01",
   "semester": 25,
   "week": 1
  },
@@ -766,7 +766,7 @@
 },
 {
  "fields": {
-  "monday": "2021-05-03",
+  "monday": "2024-05-06",
   "semester": 26,
   "week": 1
  },
@@ -775,7 +775,7 @@
 },
 {
  "fields": {
-  "monday": "2021-09-06",
+  "monday": "2024-09-02",
   "semester": 27,
   "week": 1
  },
@@ -784,7 +784,7 @@
 },
 {
  "fields": {
-  "monday": "2022-01-03",
+  "monday": "2025-01-06",
   "semester": 28,
   "week": 1
  },
@@ -793,7 +793,7 @@
 },
 {
  "fields": {
-  "monday": "2022-05-02",
+  "monday": "2025-05-05",
   "semester": 29,
   "week": 1
  },
@@ -802,7 +802,7 @@
 },
 {
  "fields": {
-  "monday": "2022-09-05",
+  "monday": "2025-09-01",
   "semester": 30,
   "week": 1
  },
@@ -811,7 +811,7 @@
 },
 {
  "fields": {
-  "monday": "2023-01-02",
+  "monday": "2026-01-05",
   "semester": 31,
   "week": 1
  },
@@ -820,7 +820,7 @@
 },
 {
  "fields": {
-  "monday": "2023-05-01",
+  "monday": "2026-05-04",
   "semester": 32,
   "week": 1
  },
@@ -829,7 +829,7 @@
 },
 {
  "fields": {
-  "monday": "2023-09-04",
+  "monday": "2026-09-07",
   "semester": 33,
   "week": 1
  },
@@ -838,7 +838,7 @@
 },
 {
  "fields": {
-  "monday": "2024-01-01",
+  "monday": "2027-01-04",
   "semester": 34,
   "week": 1
  },
@@ -847,7 +847,7 @@
 },
 {
  "fields": {
-  "monday": "2024-05-06",
+  "monday": "2027-05-03",
   "semester": 35,
   "week": 1
  },
@@ -856,7 +856,7 @@
 },
 {
  "fields": {
-  "monday": "2024-09-02",
+  "monday": "2027-09-06",
   "semester": 36,
   "week": 1
  },
@@ -865,7 +865,7 @@
 },
 {
  "fields": {
-  "monday": "2025-01-06",
+  "monday": "2028-01-03",
   "semester": 37,
   "week": 1
  },
@@ -874,7 +874,7 @@
 },
 {
  "fields": {
-  "monday": "2025-05-05",
+  "monday": "2028-05-01",
   "semester": 38,
   "week": 1
  },
@@ -883,7 +883,7 @@
 },
 {
  "fields": {
-  "monday": "2025-09-01",
+  "monday": "2028-09-04",
   "semester": 39,
   "week": 1
  },
@@ -892,7 +892,7 @@
 },
 {
  "fields": {
-  "monday": "2026-01-05",
+  "monday": "2029-01-01",
   "semester": 40,
   "week": 1
  },
@@ -901,7 +901,7 @@
 },
 {
  "fields": {
-  "monday": "2026-05-04",
+  "monday": "2029-05-07",
   "semester": 41,
   "week": 1
  },
@@ -910,7 +910,7 @@
 },
 {
  "fields": {
-  "monday": "2026-09-07",
+  "monday": "2029-09-03",
   "semester": 42,
   "week": 1
  },
@@ -919,7 +919,7 @@
 },
 {
  "fields": {
-  "monday": "2027-01-04",
+  "monday": "2030-01-07",
   "semester": 43,
   "week": 1
  },
@@ -928,7 +928,7 @@
 },
 {
  "fields": {
-  "monday": "2027-05-03",
+  "monday": "2030-05-06",
   "semester": 44,
   "week": 1
  },
@@ -937,7 +937,7 @@
 },
 {
  "fields": {
-  "monday": "2027-09-06",
+  "monday": "2030-09-02",
   "semester": 45,
   "week": 1
  },
@@ -946,7 +946,7 @@
 },
 {
  "fields": {
-  "monday": "2028-01-03",
+  "monday": "2031-01-06",
   "semester": 46,
   "week": 1
  },
@@ -955,7 +955,7 @@
 },
 {
  "fields": {
-  "monday": "2028-05-01",
+  "monday": "2031-05-05",
   "semester": 47,
   "week": 1
  },
@@ -964,7 +964,7 @@
 },
 {
  "fields": {
-  "monday": "2028-09-04",
+  "monday": "2031-09-01",
   "semester": 48,
   "week": 1
  },
@@ -973,7 +973,7 @@
 },
 {
  "fields": {
-  "monday": "2029-01-01",
+  "monday": "2032-01-05",
   "semester": 49,
   "week": 1
  },
@@ -982,7 +982,7 @@
 },
 {
  "fields": {
-  "monday": "2029-05-07",
+  "monday": "2032-05-03",
   "semester": 50,
   "week": 1
  },
@@ -991,7 +991,7 @@
 },
 {
  "fields": {
-  "monday": "2029-09-03",
+  "monday": "2032-09-06",
   "semester": 51,
   "week": 1
  },
@@ -1000,7 +1000,7 @@
 },
 {
  "fields": {
-  "monday": "2030-01-07",
+  "monday": "2033-01-03",
   "semester": 52,
   "week": 1
  },
@@ -1009,7 +1009,7 @@
 },
 {
  "fields": {
-  "monday": "2030-05-06",
+  "monday": "2033-05-02",
   "semester": 53,
   "week": 1
  },
@@ -1018,7 +1018,7 @@
 },
 {
  "fields": {
-  "monday": "2030-09-02",
+  "monday": "2033-09-05",
   "semester": 54,
   "week": 1
  },
@@ -1027,7 +1027,7 @@
 },
 {
  "fields": {
-  "monday": "2031-01-06",
+  "monday": "2034-01-02",
   "semester": 55,
   "week": 1
  },
@@ -1036,7 +1036,7 @@
 },
 {
  "fields": {
-  "monday": "2031-05-05",
+  "monday": "2034-05-01",
   "semester": 56,
   "week": 1
  },
@@ -1045,7 +1045,7 @@
 },
 {
  "fields": {
-  "monday": "2031-09-01",
+  "monday": "2034-09-04",
   "semester": 57,
   "week": 1
  },
@@ -1054,7 +1054,7 @@
 },
 {
  "fields": {
-  "monday": "2032-01-05",
+  "monday": "2035-01-01",
   "semester": 58,
   "week": 1
  },
@@ -1063,7 +1063,7 @@
 },
 {
  "fields": {
-  "monday": "2032-05-03",
+  "monday": "2035-05-07",
   "semester": 59,
   "week": 1
  },
@@ -1072,7 +1072,7 @@
 },
 {
  "fields": {
-  "monday": "2032-09-06",
+  "monday": "2035-09-03",
   "semester": 60,
   "week": 1
  },
@@ -1143,10 +1143,10 @@
  "fields": {
   "config": "{}",
   "emplid": 200000001,
-  "first_name": "Gregorʏ",
-  "last_name": "Baker",
+  "first_name": "Greġ",
+  "last_name": "Baκer",
   "middle_name": null,
-  "pref_first_name": "Greg",
+  "pref_first_name": "Greġ",
   "temporary": false,
   "title": null,
   "userid": "ggbaker"
