@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
 {% load inventory_display %}
 {% load browser_display %}
@@ -22,24 +22,20 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-    <h2>Actions</h2>
-    <ul>
-        <li><a href="{% url "inventory:new_asset" %}">Add New Asset</a></li>
-        <li><a href="{% url "inventory:inventory_download" %}">Download CSV</a></li>
-    </ul>
-</div>
-{% endblock %}
-
 {% block content %}
+<div class="actionlist">
+    <a class="btn" href="{% url "inventory:new_asset" %}">Add New Asset</a>
+    <a class="btn" href="{% url "inventory:inventory_download" %}">Download CSV</a>
+</div>
     <form action="" id="filterform">
         <h4 class="collapse">Filters</h4>
-        <ul>
-            {{ form.categories|browser_field }}
-            {{ form.in_stock_status|browser_field }}
-            {{ form.brand|browser_field }}
-        </ul>
+        <div>
+            <ul>
+                {{ form.categories|browser_field }}
+                {{ form.in_stock_status|browser_field }}
+                {{ form.brand|browser_field }}
+            </ul>
+        </div>
     </form>
     <table id="assets" class="display">
     <thead>
@@ -47,6 +43,7 @@ $(document).ready(function() {
             <td>Name</td>
             <td>Qty</td>
             <td>Category</td>
+            <td>Price</td>
             <td>Location</td>
             <td>Last Modified</td>
             <td>Stock Status</td>

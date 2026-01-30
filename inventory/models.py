@@ -30,6 +30,15 @@ CATEGORY_CHOICES = {
     ('PPE', 'PPE')
 }
 
+CURRENT_CATEGORY_CHOICES = {
+    ('SWAG', 'Swag'),
+    ('BROC', 'Brochures'),
+    ('EVEN', 'Events'),
+    ('GEN', 'General'),
+    ('OFF', 'Office Supplies'),
+    ('PPE', 'PPE')
+}
+
 STOCK_STATUS_CHOICES = {
     (0, "Out of stock"),
     (1, "Low Stock"),
@@ -228,7 +237,7 @@ def assets_from_csv(request, data, save=False):
 
     # Create a category map, so we can map the given string to a proper category:
     category_lookup = {}
-    for cat in CATEGORY_CHOICES:
+    for cat in CURRENT_CATEGORY_CHOICES:
         category_lookup[cat[1].upper()] = cat[0]
     # The request should still have the units for which the user has the correct role
     line_counter = 0
