@@ -6,7 +6,7 @@ from django.core import serializers
 from coredata.importer import first_monday
 from coredata.models import Person, Unit, Role, Semester, CourseOffering, Course, Member, GENDER_DESCR, VISA_STATUSES, \
     CAMPUS_CHOICES, SemesterWeek
-from courselib.testing import TEST_COURSE_SLUG
+from courselib.testing import TEST_COURSE_SEMESTER, TEST_COURSE_SLUG
 import itertools, random, string
 import datetime
 
@@ -16,7 +16,7 @@ from groups.models import Group, GroupMember
 from marking.models import ActivityComponent
 from privacy.models import set_privacy_signed, set_privacy_da_signed
 from submission.models import SubmissionComponent
-from submission.models.code import CodeComponent
+from submission.models.codefile import CodefileComponent
 from submission.models.pdf import PDFComponent
 
 
@@ -37,9 +37,9 @@ fake_emplid = 200000001
 role_expiry = datetime.date.today() + datetime.timedelta(days=365*10)
 
 
-def create_person(fname, prefname, lname, userid):
+def create_person(fname, lname, userid):
     global fake_emplid
-    p = Person(first_name=fname, pref_first_name=prefname, last_name=lname, userid=userid)
+    p = Person(first_name=fname, pref_first_name=fname, last_name=lname, userid=userid)
     p.emplid = fake_emplid
     p.save()
     fake_emplid += 1
@@ -80,7 +80,7 @@ def create_units():
 def create_basedata():
     create_semesters()
     create_units()
-    p = create_person('Gregorʏ', 'Greg', 'Baker', 'ggbaker')
+    p = create_person('Greġ', 'Baκer', 'ggbaker')
 
     return itertools.chain(
         Semester.objects.all(),
@@ -90,8 +90,8 @@ def create_basedata():
     )
 
 def create_admin_data():
-    create_person('Anthony', 'Tony', 'Dixon', 'dixon')
-    admin = create_person('Danyu', 'Danyu', 'Zhao', 'dzhao')
+    create_person('Tony', 'Dixon', 'dixon')
+    admin = create_person('Danyu', 'Zhao', 'dzhao')
     set_privacy_signed(admin)
     set_privacy_da_signed(admin)
     config = UserConfig(user=admin, key='photo-agreement', value={'agree': True})
@@ -104,7 +104,7 @@ def create_admin_data():
     Role(person=admin, role='OUTR', unit=u, expiry=role_expiry).save()
     Role(person=admin, role='SPAC', unit=u, expiry=role_expiry).save()
 
-    sysadmin = create_person('Phil', 'Phil', 'Boutrol', 'pba7')
+    sysadmin = create_person('Phil', 'Boutros', 'pba7')
     Role(person=sysadmin, role='SYSA', unit=Unit.objects.get(slug='univ'), expiry=role_expiry).save()
     Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(slug='univ'),
               expiry=role_expiry).save()
@@ -115,7 +115,7 @@ def create_test_offering():
 
     test_course = Course(subject='CMPT', number='120', title='Intro to CS and Progr I')
     test_course.save()
-    semester = Semester.objects.get(name='1237')
+    semester = Semester.objects.get(name=TEST_COURSE_SEMESTER)
     test_offering = CourseOffering(
         semester=semester, subject='CMPT', number='120', section='D100',
         title='Intro to CS and Progr I', owner=Unit.objects.get(slug='cmpt'),
@@ -161,25 +161,14 @@ def create_test_offering():
     for i in range(20):
         userid = "0aaa%i" % (i)
         fname = randname(8)
-        p = random.randint(1, 2)
-        if p == 1:
-            pref = fname[:4]
-        else:
-            pref = fname
         p = Person(emplid=300000300 + i, userid=userid, last_name='Student', first_name=fname,
-                   middle_name=randname(6), pref_first_name=pref)
+                   middle_name=randname(6))
         p.save()
         Member(person=p, offering=test_offering, role='STUD').save()
 
         userid = "0ggg%i" % (i)
         fname = randname(8)
-        p = random.randint(1, 2)
-        if p == 1:
-            pref = fname[:4]
-        else:
-            pref = fname
-        p = Person(emplid=300000500 + i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6),
-                   pref_first_name=pref)
+        p = Person(emplid=300000500 + i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6))
         p.config['gender'] = random.choice(list(GENDER_DESCR.keys()))
         p.config['gpa'] = round(random.triangular(0.0, 4.33, 2.33), 2)
         p.config['visa'] = random.choice([x for x, _ in VISA_STATUSES])
@@ -213,8 +202,8 @@ def create_test_offering():
                       due_date=None, percent=0, group=False, numeric_activity=total, position=6).save()
 
     # make A1 submittable and markable
-    s = CodeComponent(activity=a1, title="Cöde File", description="The code you're submitting.",
-                      allowed=".py,.java")
+    s = CodefileComponent(activity=a1, title="Cöde File", description="The code you're submitting.",
+                      filename=".py", filename_type="EXT")
     s.save()
     s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
                      specified_filename="report.pdf")
@@ -264,7 +253,7 @@ def create_coredata():
         CalNumericActivity.objects.all(),
         CalLetterActivity.objects.all(),
         SubmissionComponent.objects.all(),
-        CodeComponent.objects.all(),
+        CodefileComponent.objects.all(),
         PDFComponent.objects.all(),
         Group.objects.all(),
         GroupMember.objects.all(),
