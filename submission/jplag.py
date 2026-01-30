@@ -5,9 +5,7 @@ import tempfile
 from typing import Iterable, Optional
 import zipfile
 from django import forms
-from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
-from django.http import HttpResponse
 import urllib
 from coredata.models import CourseOffering
 from grades.models import Activity
@@ -80,15 +78,10 @@ class JPlag(object):
 
 def get_jplag_jar():
     if not os.path.isfile(JPLAG_CACHE_FILE):
-        print("FETCHING JAR")
         with urllib.request.urlopen(JPLAG_RELEASE_URL) as req, open(JPLAG_CACHE_FILE, 'wb') as jarfile:
             assert req.status == 200
             jar = req.read()
             jarfile.write(jar)
-            return jar
-    else:
-        with open(JPLAG_CACHE_FILE, 'rb') as jarfile:
-            return jarfile.read()
 
 
 README_TEMPLATE = Template("""# JPlag Instructions
@@ -120,7 +113,8 @@ def build_jplag_zip(activities: Iterable[Activity], language: str) -> str:
     with zipfile.ZipFile(tmp.name, "w") as zip:
         # prep general ZIP contents
         zip.writestr(f"{base_dir}/base-code/", "")
-        zip.writestr(f"{base_dir}/{JPLAG_JAR_FILENAME}", get_jplag_jar())
+        get_jplag_jar()
+        zip.write(JPLAG_CACHE_FILE, arcname=f"{base_dir}/{JPLAG_JAR_FILENAME}")
         cmd = f"java -jar {JPLAG_JAR_FILENAME} --language={language} code/*"
         bccmd = f"java -jar {JPLAG_JAR_FILENAME} --language={language} --base-code=base-code code/*"
         zip.writestr(f"{base_dir}/README.md", README_TEMPLATE.substitute(cmd=cmd, bccmd=bccmd))
