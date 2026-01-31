@@ -18,14 +18,14 @@ from submission.models.codefile import SubmittedCodefile
 JPLAG_RELEASE_URL = 'https://github.com/jplag/JPlag/releases/download/v6.3.0/jplag-6.3.0-jar-with-dependencies.jar'
 
 JPLAG_JAR_FILENAME = 'jplag-6.3.0-jar-with-dependencies.jar'
-JPLAG_CACHE_FILE = f'/tmp/{JPLAG_JAR_FILENAME}'
+#JPLAG_CACHE_FILE = f'/tmp/{JPLAG_JAR_FILENAME}'
 
 # JPlag language choices. Incomplete: included ones I imagine we might use.
 # See https://github.com/jplag/JPlag?tab=readme-ov-file#supported-languages
 JPLAG_LANGUAGES = {  # MOSS language specifier: file extension
     'java': 'java',
     'c': 'c',
-    'cc': 'cpp',
+    'cpp': 'cpp',
     'csharp': 'cs',
     'python3': 'py',
     'javascript': 'js',
@@ -41,7 +41,7 @@ JPLAG_LANGUAGES = {  # MOSS language specifier: file extension
 JPLAG_LANGUAGES_CHOICES = sorted([
     ('java', 'Java (*.java)'),
     ('c', 'C (*.c)'),
-    ('cc', 'C++ (*.cpp)'),
+    ('cpp', 'C++ (*.cpp)'),
     ('csharp', 'C# (*.cs)'),
     ('python3', 'Python 3 (*.py)'),
     ('javascript', 'JavaScript (*.js)'),
@@ -76,27 +76,32 @@ class JPlag(object):
             help_text='Also compare against submissions for these activities from other sections')
 
 
-def get_jplag_jar():
-    if not os.path.isfile(JPLAG_CACHE_FILE):
-        with urllib.request.urlopen(JPLAG_RELEASE_URL) as req, open(JPLAG_CACHE_FILE, 'wb') as jarfile:
-            assert req.status == 200
-            jar = req.read()
-            jarfile.write(jar)
+# def get_jplag_jar():
+#     if not os.path.isfile(JPLAG_CACHE_FILE):
+#         with urllib.request.urlopen(JPLAG_RELEASE_URL) as req, open(JPLAG_CACHE_FILE, 'wb') as jarfile:
+#             assert req.status == 200
+#             jar = req.read()
+#             jarfile.write(jar)
 
 
-README_TEMPLATE = Template("""# JPlag Instructions
+README_TEMPLATE = Template(f"""# JPlag Instructions
+
+Prerequisite: the JPlag JAR file, possibly from {JPLAG_RELEASE_URL}.
+```sh
+wget {JPLAG_RELEASE_URL} -O {JPLAG_JAR_FILENAME}
+```
 
 You can run JPlag and view its results with this command:
 ```sh
-$cmd
+java -jar {JPLAG_JAR_FILENAME} --language=$language $oldcodechain code/$currentslug
 ```
 If you have distributed partial solutions or template code, put it into the `base-code` directory
 and use this command:
 ```sh
-$bccmd
+java -jar {JPLAG_JAR_FILENAME} --language=$language --base-code=base-code $oldcodechain code/$currentslug
 ```
 
-For more options, see the [JPlag README](https://github.com/jplag/JPlag).
+For more command line options, see the [JPlag README](https://github.com/jplag/JPlag).
 """)
 
 
@@ -109,15 +114,20 @@ def build_jplag_zip(activities: Iterable[Activity], language: str) -> str:
     base_dir = f'jplag-{activities[0].slug}'
     code_dir = f'{base_dir}/code'
     tmp = tempfile.NamedTemporaryFile(delete=False)
+    main_activity = activities[0]
+    old_activities = activities[1:]
     
     with zipfile.ZipFile(tmp.name, "w") as zip:
         # prep general ZIP contents
         zip.writestr(f"{base_dir}/base-code/", "")
-        get_jplag_jar()
-        zip.write(JPLAG_CACHE_FILE, arcname=f"{base_dir}/{JPLAG_JAR_FILENAME}")
-        cmd = f"java -jar {JPLAG_JAR_FILENAME} --language={language} code/*"
-        bccmd = f"java -jar {JPLAG_JAR_FILENAME} --language={language} --base-code=base-code code/*"
-        zip.writestr(f"{base_dir}/README.md", README_TEMPLATE.substitute(cmd=cmd, bccmd=bccmd))
+        # get_jplag_jar()
+        # zip.write(JPLAG_CACHE_FILE, arcname=f"{base_dir}/{JPLAG_JAR_FILENAME}")
+        oldcodechain=' '.join(f'-old=code/{a.offering.slug}' for a in old_activities)
+        zip.writestr(f"{base_dir}/README.md", README_TEMPLATE.substitute(
+            language=language,
+            currentslug=main_activity.offering.slug,
+            oldcodechain=oldcodechain
+        ))
 
         # assemble all of the code files
         for a in activities:
