@@ -205,7 +205,7 @@ class GradesTest(TestCase):
         client = Client()
         client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, "Gregorʏ (Greg) Baker")
+        self.assertContains(response, "Greġ Baκer")
         self.assertContains(response, 'href="' + reverse('offering:groups:groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         response = basic_page_tests(self, client, a.get_absolute_url())

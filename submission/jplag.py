@@ -122,7 +122,7 @@ def build_jplag_zip(activities: Iterable[Activity], language: str) -> str:
         zip.writestr(f"{base_dir}/base-code/", "")
         # get_jplag_jar()
         # zip.write(JPLAG_CACHE_FILE, arcname=f"{base_dir}/{JPLAG_JAR_FILENAME}")
-        oldcodechain=' '.join(f'-old=code/{a.offering.slug}' for a in old_activities)
+        oldcodechain=' '.join(f'--old=code/{a.offering.slug}' for a in old_activities)
         zip.writestr(f"{base_dir}/README.md", README_TEMPLATE.substitute(
             language=language,
             currentslug=main_activity.offering.slug,
