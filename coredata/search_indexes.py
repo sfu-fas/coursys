@@ -76,7 +76,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
         return Member
 
     def index_queryset(self, using=None):
-        cutoff = datetime.date.today() - datetime.timedelta(days=365*5)
+        cutoff = datetime.date.today() - datetime.timedelta(days=365*7)
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role__in=['STUD', 'TA']) \
                 .select_related('person', 'offering__semester') \
@@ -91,7 +91,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
                   str(m.person.emplid), m.person.first_name, m.person.last_name]
         if m.person.real_pref_first() != m.person.first_name:
             fields.append(m.person.real_pref_first())
-        if 'legal_first_name_do_not_use' in m.person.config:
+        if ' ' in m.person.config:
             # if the person has a legal first name stored, include it for searching, but it will still never be displayed by the system
             fields.append(m.person.config['legal_first_name_do_not_use'])
         if m.person.userid:
