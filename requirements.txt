@@ -2,7 +2,7 @@
 # TODO possibly need to update .save overrides with : https://docs.djangoproject.com/en/5.2/topics/db/models/#overriding-predefined-model-methods
 # https://docs.djangoproject.com/en/5.2/releases/5.0/#migrating-existing-uuidfield-on-mariadb-10-7
 # https://www.albertyw.com/note/django-5-mariadb-uuidfield
-django==4.2.23  # Django 5.0 and later requires Python 3.10: prod is 3.8
+django==4.2.28  # Django 5.0 and later requires Python 3.10: prod is 3.8
 
 Creoleparser==0.7.5
 Genshi==0.7.9
