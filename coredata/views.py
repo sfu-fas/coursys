@@ -1659,7 +1659,7 @@ def _course_drop_data(offering):
 
     return data
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'REPV'])
 def course_enrolment_download(request, course_slug):
     """
     Download enrolment data for a course offering
@@ -1681,7 +1681,7 @@ def course_enrolment_download(request, course_slug):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'REPV'])
 def course_enrolment(request, course_slug):
     """
     Enrolment data and analytics for a course offering

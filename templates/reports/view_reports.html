@@ -4,6 +4,19 @@
 {% block h1 %}Reports{% endblock %}
 
 {% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.reports').DataTable({
+        'bPaginate': false,
+        'bInfo': true,
+        'scrollY': false,
+        'bJQueryUI': true,
+        'columnDefs': [
+            { 'width': '25%', 'targets': 1 }
+        ]
+    });
+});
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -22,12 +35,22 @@
 {% endblock %}
 
 {% block content %}
-
-<ul>
-{% for report in reports %}
-    <li><a href="{% url "reports:view_report" report=report.slug%}">{{report.name}}</a></li>
-{% endfor %}
-</ul>
+<table id="reports" class="reports display">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Last Successful Run</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for report in reports %}
+        <tr>
+            <td><a href="{% url "reports:view_report" report=report.slug%}">{{report.name}}</a></td>
+            <td>{% if report.last_successful_run_date %}<span class="sort">{{ report.last_successful_run_date.isoformat }}</span>{{ report.last_successful_run_date }}{% endif %}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
 {% if not reports %}
     <p>There are no reports available for you. Maybe you need to speak to a system administrator?</p>

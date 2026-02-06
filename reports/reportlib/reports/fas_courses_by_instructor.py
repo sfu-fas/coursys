@@ -11,7 +11,7 @@ class CourseHistoryByInstructorReport(Report):
 
     def run(self):
         sems = Semester.objects.filter(name__gte='1094', name__lte=Semester.current().offset(2).name)
-        u = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC'])
+        u = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC', 'SEE'])
         courses = CourseOffering.objects.prefetch_related('meeting_time').filter(semester__in=sems, owner__in=u,
                                                                                  graded=True).exclude(
             flags=CourseOffering.flags.combined).exclude(subject='DDP').order_by('semester', 'subject', 'number')
