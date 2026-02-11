@@ -264,7 +264,7 @@ if deploy_mode != 'devel'
   cron "celery restart" do
     user 'root'
     minute '0'
-    hour '7'
+    hour '5,11,17,23 '
     command "systemctl restart celery celerybeat"
   end
 
