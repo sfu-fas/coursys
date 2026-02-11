@@ -35,6 +35,18 @@ import os
 
 UNIVERSITY_UNIT = 'UNIV'
 PRIMARY_FACULTY_UNIT = 'APSC'
+UNDELIVERABLE_DOMAINS = (
+    '@example.com',
+    '@example.net',
+    '@example.org',
+    '@example.edu',
+)
+
+def _is_undeliverable_email(email: str) -> bool:
+    """
+    check if email provided is one we know is undeliverable
+    """
+    return email.lower().endswith(UNDELIVERABLE_DOMAINS)
 #######################################################################
 # Group Management
 
@@ -1805,7 +1817,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                     if 'add-nonsfu' in request.POST and sheet.is_initial and owner_form.initiators == "ANY":
                         nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
                         if nonSFUFormFillerForm.is_valid():
-                            nonSFUFormFiller = nonSFUFormFillerForm.save()
+                            nonSFUFormFiller = nonSFUFormFillerForm.save(commit=False)
+                            if _is_undeliverable_email(nonSFUFormFiller.email_address):
+                                return HttpResponseRedirect(reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': form_slug}))
+                            nonSFUFormFiller.save()
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
                                 description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
