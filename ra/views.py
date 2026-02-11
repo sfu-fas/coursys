@@ -192,6 +192,18 @@ class RANewRequestWizard(SessionWizardView):
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
     
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            response = super(RANewRequestWizard,self).dispatch(request, *args, **kwargs)
+        except KeyError:
+            self.storage.reset()
+            messages.error(
+                request,
+                "This form session is no longer active."
+            )
+            return HttpResponseRedirect(reverse('ra:browse_appointments'))
+        return response
+
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         reappoint = 'ra_slug' in self.kwargs
@@ -424,6 +436,18 @@ class RAEditRequestWizard(SessionWizardView):
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
     
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            response = super(RAEditRequestWizard,self).dispatch(request, *args, **kwargs)
+        except KeyError:
+            self.storage.reset()
+            messages.error(
+                request,
+                "This form session is no longer active."
+            )
+            return HttpResponseRedirect(reverse('ra:browse_appointments'))
+        return response
+
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         context.update({'fas_contact': FAS_CONTACT})
