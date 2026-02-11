@@ -1,4 +1,4 @@
-from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES, STOCK_STATUS_CHOICES,\
+from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES, CURRENT_CATEGORY_CHOICES, STOCK_STATUS_CHOICES,\
     assets_from_csv
 from django import forms
 from coredata.models import Unit
@@ -16,7 +16,7 @@ class AssetForm(forms.ModelForm):
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
-        SORTED_CATEGORIES = sorted(CATEGORY_CHOICES, key=lambda x: x[1])
+        SORTED_CATEGORIES = sorted(CURRENT_CATEGORY_CHOICES, key=lambda x: x[1])
         self.fields['category'].choices = SORTED_CATEGORIES
 
     class Meta:
@@ -104,7 +104,7 @@ class InventoryUploadForm(forms.Form):
 
 
 class InventoryFilterForm(forms.Form):
-    categories = forms.MultipleChoiceField(choices=CATEGORY_CHOICES, initial=[], widget=CheckboxSelectTerse())
+    categories = forms.MultipleChoiceField(choices=CURRENT_CATEGORY_CHOICES, initial=[], widget=CheckboxSelectTerse())
     in_stock_status = forms.MultipleChoiceField(choices=STOCK_STATUS_CHOICES, initial=[], widget=CheckboxSelectTerse())
     brand = forms.ChoiceField()
 

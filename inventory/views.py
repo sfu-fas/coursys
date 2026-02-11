@@ -34,8 +34,8 @@ def add_asset_display_class(asset):
 
 class InventoryDataJSON(BaseDatatableView):
     model = Asset
-    columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock_status', 'actions']
-    order_columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock_status', 'actions']
+    columns = ['name', 'quantity', 'category', 'price', 'location', 'last_modified', 'stock_status', 'actions']
+    order_columns = ['name', 'quantity', 'category', 'price', 'location', 'last_modified', 'stock_status', 'actions']
 
     def get_initial_queryset(self):
         qs = Asset.objects.visible(self.request.units)

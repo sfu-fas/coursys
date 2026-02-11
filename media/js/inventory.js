@@ -88,48 +88,63 @@ function inventory_browser_ready(url) {
         'bPaginate': true,
         'processing': true,
         'serverSide': true,
+        'scrollY': false, 
         'columnDefs': [
             {
                 name: 'name',
                 orderable: true,
                 searchable: true,
-                targets: [0]
+                targets: [0],
+                width: '27%'
             },
             {
                 name: 'qty',
                 orderable: true,
                 searchable: true,
-                targets: [1]
+                targets: [1],
+                width: '5%',
             },
             {
                 name: 'category',
                 orderable: true,
                 searchable: true,
-                targets: [2]
+                targets: [2],
+                width: '10%',
+            },
+            {
+                name: 'price',
+                orderable: true,
+                searchable: true,
+                targets: [3],
+                width: '10%'
             },
             {
                 name: 'location',
                 orderable: true,
                 searchable: true,
-                targets: [3]
+                targets: [4],
+                width: '15%'
             },
             {
                 name: 'last_modified',
                 orderable: true,
                 searchable: true,
-                targets: [4]
+                targets: [5],
+                width: '10%'
             },
             {
                 name: 'stock_status',
                 orderable: true,
                 searchable: true,
-                targets: [5]
+                targets: [6],
+                width: '10%'
             },
             {
                 name: 'actions',
                 orderable: false,
                 searchable: false,
-                targets: [6]
+                targets: [7],
+                width: '13%'
             },
         ],
         'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
