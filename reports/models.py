@@ -50,6 +50,14 @@ class Report(models.Model):
         """
         return len(self.expired_schedule_rules()) > 0
     
+    @property
+    def last_successful_run_date(self):
+        """
+        Returns the most recent successful run of this report, or None if there are no successful runs. 
+        """
+        runs = Run.objects.filter(report=self, success=True).order_by('-created_at')
+        return runs.first().created_at if runs.exists() else None
+    
     def run(self, manual=False):
         hardcoded_reports = HardcodedReport.objects.filter(report=self)
         queries = Query.objects.filter(report=self)
