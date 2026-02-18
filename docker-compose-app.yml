@@ -1,0 +1,98 @@
+services:
+  mysql:
+    image: 'mariadb:11.8'
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - /data/mysql:/var/lib/mysql:rw
+    environment:
+      - MYSQL_USER=coursysuser
+      - MYSQL_PASSWORD=coursyspassword
+      - MYSQL_DATABASE=coursys
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    networks:
+      - internal
+
+  rabbitmq:
+    image: 'rabbitmq:3'
+    restart: always
+    volumes:
+      - /data/rabbitmq:/var/lib/rabbitmq:rw
+    environment:
+      - RABBITMQ_DEFAULT_USER=coursys
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=myvhost
+    networks:
+      - internal
+
+  elasticsearch:
+    image: 'elasticsearch:5.6.16'
+    restart: always
+    ports:
+      - "9200"
+      - "9300"
+    volumes:
+      - /data/elasticsearch:/usr/share/elasticsearch/data:rw
+    environment:
+      - discovery.type=single-node
+      - allocation.disk.threshold_enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+    networks:
+      - internal
+
+  memcached:
+    image: 'memcached:1'
+    restart: always
+    networks:
+      - internal
+
+  nginx:
+    image: 'nginx:1'
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    volumes:
+      - static:/static
+    networks:
+      - internal
+      - external
+
+  app:
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    init: true
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - memcached
+      - mysql
+    volumes:
+      - static:/static
+    networks:
+      - internal
+
+  celery:
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    init: true
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - memcached
+      - mysql
+    networks:
+      - internal
+    command: celery -A courses worker -l INFO -B
+
+volumes:
+  static:
+
+networks:
+  internal:
+  external:
+    driver: bridge

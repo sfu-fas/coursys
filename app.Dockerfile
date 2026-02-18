@@ -1,0 +1,27 @@
+FROM python:3.13
+
+RUN apt-get update \
+  && apt-get install -y locales-all npm libfreetype-dev default-mysql-client \
+  && apt-get install -y locales-all npm unixodbc-dev krb5-user tdsodbc \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
+COPY requirements.txt /requirements.txt
+RUN python3 -m pip install -r /requirements.txt
+
+ARG DEPLOY_MODE=devel
+
+COPY . /coursys
+COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
+COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
+
+ENV DEPLOY_MODE=${DEPLOY_MODE}
+ENV LANG=en_CA.UTF-8
+WORKDIR /coursys
+
+RUN useradd -s /bin/bash coursys
+RUN mkdir /static && chown coursys /static
+
+USER coursys
+CMD gunicorn --workers=5 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
