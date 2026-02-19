@@ -1,0 +1,149 @@
+services:
+  mysql:
+    image: 'mariadb:11.8'
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql:/var/lib/mysql:rw
+    environment:
+      - MYSQL_USER=coursysuser
+      - MYSQL_PASSWORD=coursyspassword
+      - MYSQL_DATABASE=coursys
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      timeout: 5s
+      interval: 10s
+      start_period: 5s
+    networks:
+      - internal
+
+  smtp4dev:
+    image: 'rnwood/smtp4dev'
+    restart: always
+    ports:
+      - "0.0.0.0:8025:80"
+    networks:
+      - internal
+      - external
+
+  rabbitmq:
+    image: 'rabbitmq:3'
+    restart: always
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq:rw
+    environment:
+      - RABBITMQ_DEFAULT_USER=coursys
+      - RABBITMQ_DEFAULT_PASS=rabbitmq_password
+      - RABBITMQ_DEFAULT_VHOST=myvhost
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+      interval: 30s
+      start_period: 10s
+    networks:
+      - internal
+
+  elasticsearch:
+    image: 'elasticsearch:5.6.16'
+    restart: always
+    ports:
+      - "9200"
+      - "9300"
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data:rw
+    environment:
+      - discovery.type=single-node
+      - allocation.disk.threshold_enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null || exit 1
+      timeout: 30s
+      interval: 60s
+      start_period: 15s
+    networks:
+      - internal
+
+  memcached:
+    image: 'memcached:1-alpine'
+    restart: always
+    healthcheck:
+      test: echo "version" | nc -vn -w 1 127.0.0.1 11211
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    networks:
+      - internal
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    healthcheck:
+      test: curl --fail http://localhost:80/static/icons/favicon.ico || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    volumes:
+      - static:/static:ro
+    networks:
+      - internal
+      - external
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        - DEPLOY_MODE=demo
+    init: true
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - memcached
+      - mysql
+    healthcheck:
+      test: curl --fail http://localhost:8000/browse/ || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    volumes:
+      - static:/static:rw
+    networks:
+      - internal
+
+  celery:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        - DEPLOY_MODE=demo
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - memcached
+      - mysql
+    healthcheck:
+      test: curl --fail http://localhost:9000/ || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    networks:
+      - internal
+    command: celery -A courses worker -l INFO -B
+
+volumes:
+  static:
+  mysql:
+  rabbitmq:
+  elasticsearch:
+
+networks:
+  internal:
+  external:

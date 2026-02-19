@@ -242,10 +242,11 @@ if DEPLOY_MODE in ['production', 'proddev']:
     } }
     if getattr(localsettings, 'MEMCACHED_HOST', None):
         CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
+    HAYSTACK_HOST = getattr(localsettings, 'HAYSTACK_HOST', '127.0.0.1')
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
-            'URL': 'http://127.0.0.1:9200/',
+            'URL': f'http://{HAYSTACK_HOST}:9200/',
             'INDEX_NAME': 'haystack',
             'TIMEOUT': 60,
         },
