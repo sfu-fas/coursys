@@ -1,7 +1,7 @@
 services:
+
   mysql:
     image: 'mariadb:11.8'
-    restart: always
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - mysql:/var/lib/mysql:rw
@@ -20,16 +20,19 @@ services:
 
   smtp4dev:
     image: 'rnwood/smtp4dev'
-    restart: always
     ports:
-      - "0.0.0.0:8025:80"
+      - "8025:80"
+    healthcheck:
+      test: curl --fail http://localhost:80/ || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 10s
     networks:
       - internal
       - external
 
   rabbitmq:
     image: 'rabbitmq:3'
-    restart: always
     volumes:
       - rabbitmq:/var/lib/rabbitmq:rw
     environment:
@@ -46,7 +49,6 @@ services:
 
   elasticsearch:
     image: 'elasticsearch:5.6.16'
-    restart: always
     ports:
       - "9200"
       - "9300"
@@ -67,7 +69,6 @@ services:
 
   memcached:
     image: 'memcached:1-alpine'
-    restart: always
     healthcheck:
       test: echo "version" | nc -vn -w 1 127.0.0.1 11211
       timeout: 5s
@@ -80,7 +81,6 @@ services:
     build:
       context: .
       dockerfile: docker/nginx.Dockerfile
-    restart: always
     ports:
       - "80:80"
     depends_on:
@@ -102,7 +102,7 @@ services:
       dockerfile: docker/app.Dockerfile
       args:
         - DEPLOY_MODE=demo
-    init: true
+    init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -117,6 +117,8 @@ services:
       - static:/static:rw
     networks:
       - internal
+    deploy:
+      replicas: 2
 
   celery:
     build:
@@ -136,13 +138,17 @@ services:
       start_period: 5s
     networks:
       - internal
-    command: celery -A courses worker -l INFO -B
+    deploy:
+      replicas: 2
+    command: celery -A courses worker --loglevel INFO --concurrency 1 --beat
+
 
 volumes:
   static:
   mysql:
   rabbitmq:
   elasticsearch:
+  logstash:
 
 networks:
   internal:
