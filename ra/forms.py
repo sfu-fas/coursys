@@ -833,6 +833,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+        ra_benefits = cleaned_data.get('ra_benefits')
 
         ra_other_duties = cleaned_data.get('ra_other_duties')
         ra_duties_ex = cleaned_data.get('ra_duties_ex')
@@ -846,6 +847,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
+        edit = self.initial['edit']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -889,6 +891,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
                 raise forms.ValidationError('Please enter at least one job duty.')
 
+        if start_date and not edit:
+            if start_date > NEW_RA_WAGE_DATE and (ra_benefits == "N" or ra_benefits =="NE"):
+                self.add_error('ra_benefits', 'According to the TSSU collective agreement, all Research Assistant and Research Support (RA) employees are eligible for Extended Health and Dental Benefits. Effective April 1, 2026, PIs will be required to include these benefits and budget to cover 75% of the cost.')
 
         # remove irrelevant fields
         if backdated:
