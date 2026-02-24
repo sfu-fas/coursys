@@ -266,7 +266,7 @@ class RANewRequestWizard(SessionWizardView):
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': False}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
@@ -510,7 +510,7 @@ class RAEditRequestWizard(SessionWizardView):
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': (req.draft == False)}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
