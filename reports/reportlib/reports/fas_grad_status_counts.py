@@ -5,7 +5,7 @@ from grad.models import GradStudent, GradProgram
 
 class FASGradStatusCountsReport(Report):
     title = "FAS Grad Student Status Counts"
-    description = "A report that provides a count of each group of grad students in FAS by their grad status (e.g. active, completed, etc.)"
+    description = "A report that provides a count of each group of grad students in FAS by their grad status"
 
     def run(self):
         units = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC', 'SEE'])
