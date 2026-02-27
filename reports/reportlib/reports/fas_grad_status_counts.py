@@ -8,7 +8,6 @@ class FASGradStatusCountsReport(Report):
     description = "A report that provides a count of each group of grad students in FAS by their grad status (e.g. active, completed, etc.)"
 
     def run(self):
-        # previous 5 years
         units = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC', 'SEE'])
         results = Table()
         results.append_column('Unit')
