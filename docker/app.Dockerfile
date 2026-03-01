@@ -9,6 +9,7 @@ RUN apt-get update \
 ARG DEPLOY_MODE=devel
 ENV DEPLOY_MODE=${DEPLOY_MODE}
 ENV LANG=en_CA.UTF-8
+ENV IN_DOCKER=yes
 WORKDIR /coursys
 
 RUN useradd -s /bin/bash coursys
@@ -18,10 +19,9 @@ RUN pip install --upgrade pip
 COPY requirements.txt /requirements.txt
 RUN python3 -m pip install -r /requirements.txt
 
-
 COPY . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 
 USER coursys
-CMD gunicorn --workers=5 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
+CMD gunicorn --workers=2 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application

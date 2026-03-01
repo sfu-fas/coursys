@@ -366,7 +366,6 @@ def deploy_checks(request=None):
         8000, # gunicorn
         11211, # memcached
         9200, 9300, # elasticsearch
-        8983,  # solr
     ]
     connected = []
     for p in ports:
@@ -381,7 +380,8 @@ def deploy_checks(request=None):
         finally:
             s.close()
 
-    if connected:
+    if 'IN_DOCKER' not in os.environ and connected:
+        # trust that inside docker containers, we're managing network connectivity properly (and in a way undetectable from inside)
         failed.append(('Ports listening externally', 'got connections to port ' + ','.join(str(p) for p in connected)))
     else:
         passed.append(('Ports listening externally', 'okay'))

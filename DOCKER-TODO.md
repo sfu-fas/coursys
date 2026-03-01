@@ -1,8 +1,8 @@
 * kinit auth piped in somehow
 * submission dir
 * DB backup dir
-* moss distribution
-* redirect vs serve hosts in nginx
+* maintenance mode/503 handling
+* logrotate
 
 
 ## Compose Notes

@@ -86,12 +86,13 @@ services:
     depends_on:
       - app
     healthcheck:
-      test: curl --fail http://localhost:80/static/icons/favicon.ico || exit 1
+      test: curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
       timeout: 5s
       interval: 60s
       start_period: 5s
     volumes:
       - static:/static:ro
+      - ./nginx-logs:/nginx-logs
     networks:
       - internal
       - external
@@ -109,7 +110,7 @@ services:
       - memcached
       - mysql
     healthcheck:
-      test: curl --fail http://localhost:8000/browse/ || exit 1
+      test: curl --fail http://localhost:8000/browse/?healthcheck || exit 1
       timeout: 5s
       interval: 60s
       start_period: 5s
@@ -120,35 +121,27 @@ services:
     deploy:
       replicas: 2
 
+  celerybeat:
+    extends: app
+    healthcheck:
+      test: echo  # I see no meaningful check, except existing
+    deploy:
+      replicas: 1
+    command: celery -A courses beat --loglevel INFO
+
   celery:
-    build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      args:
-        - DEPLOY_MODE=demo
-    depends_on:
-      - rabbitmq
-      - elasticsearch
-      - memcached
-      - mysql
+    extends: app
     healthcheck:
       test: curl --fail http://localhost:9000/ || exit 1
-      timeout: 5s
-      interval: 60s
-      start_period: 5s
-    networks:
-      - internal
     deploy:
       replicas: 2
-    command: celery -A courses worker --loglevel INFO --concurrency 1 --beat
-
+    command: celery -A courses worker --loglevel INFO --concurrency 1
 
 volumes:
   static:
   mysql:
   rabbitmq:
   elasticsearch:
-  logstash:
 
 networks:
   internal:

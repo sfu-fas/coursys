@@ -210,7 +210,7 @@ def _get_photos(emplids):
     headers = {'Authorization': 'Bearer ' + token}
     try:
         photo_request_obj = urllib.request.Request(url=photo_url, headers=headers)
-        photo_request = url_opener.open(photo_request_obj, timeout=30)
+        photo_request = url_opener.open(photo_request_obj, timeout=20)
     except IOError:
         return {}
 
