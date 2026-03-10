@@ -17,6 +17,7 @@ from onlineforms.models import FormGroup, FormGroupMember
 from log.models import LogEntry
 from coredata.models import LONG_LIVED_ROLES
 from django.urls import reverse
+from django.db import transaction
 from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
@@ -110,6 +111,7 @@ def renew_role(request, role_id):
     return HttpResponseRedirect(reverse('sysadmin:role_list'))
 
 @requires_global_role("SYSA")
+@transaction.atomic
 def delete_role(request, role_id):
     role = get_object_or_404(Role, pk=role_id)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
@@ -522,15 +524,16 @@ def list_anypersons(request):
 
 
 @requires_global_role("SYSA")
+@transaction.atomic
 def delete_anyperson(request, anyperson_id):
     anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
     if request.method == 'POST':
-        anyperson.delete()
         messages.success(request, 'Deleted anyperson for %s' % anyperson)
         l = LogEntry(userid=request.user.username,
                      description="deleted anyperson: %s" % anyperson,
                      related_object=anyperson)
         l.save()
+        anyperson.delete()
     return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
@@ -614,15 +617,16 @@ def edit_futureperson(request, futureperson_id):
 
 
 @requires_global_role("SYSA")
+@transaction.atomic
 def delete_futureperson(request, futureperson_id):
     if request.method == 'POST':
         futureperson = FuturePerson.objects.get(pk=futureperson_id)
-        futureperson.delete()
         messages.success(request, 'Deleted futureperson %s' % futureperson)
         l = LogEntry(userid=request.user.username,
                      description="deleted futureperson: %s" % futureperson,
                      related_object=futureperson)
         l.save()
+        futureperson.delete()
     return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
 
 @requires_global_role("SYSA")
@@ -664,15 +668,16 @@ def list_roleaccounts(request):
     return render(request, 'coredata/role_accounts.html', context)
 
 @requires_global_role("SYSA")
+@transaction.atomic
 def delete_roleaccount(request, roleaccount_id):
     roleaccount = RoleAccount.objects.get(pk=roleaccount_id)
     if request.method == 'POST':
-        roleaccount.delete()
         messages.success(request, 'Deleted roleaccount %s' % roleaccount)
         l = LogEntry(userid=request.user.username,
                      description="deleted roleaccount: %s" % roleaccount,
                      related_object=roleaccount)
         l.save()
+        roleaccount.delete()
     return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
 
 @requires_global_role("SYSA")
@@ -838,6 +843,7 @@ def new_unit_role(request):
     return render(request, 'coredata/new_unit_role.html', context)
 
 @requires_role("ADMN")
+@transaction.atomic
 def offboard_unit(request):
     if request.method == 'POST':
         form = OffboardForm(request.POST)
@@ -850,22 +856,22 @@ def offboard_unit(request):
             groups = FormGroup.objects.filter(members=person, unit__in=Unit.sub_units(request.units))
             if delete_roles:
                 for role in roles:
-                    role.delete()
                     l = LogEntry(userid=request.user.username,
                                  description=("Deleted role: %s in %s via offboarding form.") % (role, role.unit),
                                  related_object=role)
                     l.save()
                     messages.success(request, "Removed role %s as %s in %s." % (person, role.get_role_display(), role.unit.label))
+                    role.delete()
             if delete_formgroups:
                 for group in groups:
                     member = FormGroupMember.objects.get(person=person, formgroup=group)
-                    member.delete()
                     l = LogEntry(userid=request.user.username,
                                  description=("Removed %s from form group %s (%i) via offboarding form.") % (
                                               person.userid_or_emplid(), group, group.id),
                                  related_object=group)
                     l.save()
                     messages.success(request, "Removed %s from formgroup %s" % (person, group))
+                    member.delete()
             return HttpResponseRedirect(reverse('admin:unit_role_list'))
     else:
         form = OffboardForm()
@@ -947,6 +953,7 @@ def renew_unit_role(request, role_id):
     return HttpResponseRedirect(reverse('admin:unit_role_list'))
 
 @requires_role("ADMN")
+@transaction.atomic
 def delete_unit_role(request, role_id):
     if request.method != 'POST':
         return ForbiddenResponse(request)
