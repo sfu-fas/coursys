@@ -113,6 +113,9 @@ def renew_role(request, role_id):
 @requires_global_role("SYSA")
 @transaction.atomic
 def delete_role(request, role_id):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
     role = get_object_or_404(Role, pk=role_id)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
     #LOG EVENT#
