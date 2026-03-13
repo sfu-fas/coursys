@@ -381,11 +381,10 @@
 </div>
 {% endif %}
 
-{% if graduate_research_assistant %}
+{% if graduate_research_assistant and req.get_scholarship_confirmation_complete %}
   <div class="table_container">
     <h2>True Scholarship Questionnaire</h2>
     <table class="info">
-      {% if req.get_scholarship_confirmation_complete %}
       <br><b>Does/Will the funding from your grant(s) result in research or research-related activities being performed by the student that:</b>
       <tr><th style="width:90%">primarily contribute to the student’s academic progress, for example by inclusion in the student’s thesis?</th>
         <td>{{ req.scholarship_confirmation_1|yesno|capfirst }}</td>
@@ -427,12 +426,6 @@
        <br><tr><th>Any important notes:</th>
         <td>{% if req.scholarship_notes %}{{ req.scholarship_notes }}{% else %}None.{% endif %}</td>
       </td></tr>
-    </table>  
-      {% else %}
-        <tr><td>
-          Not Completed.
-        </td></tr>
-      {% endif %}
     </table>
   </div>
 {% endif %}

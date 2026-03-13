@@ -493,18 +493,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                                             label="Scholarship (No added benefit & vacation cost)")
     total_gross = forms.DecimalField(required=False, label="Total Funding Provided")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    scholarship_confirmation_1 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) primarily contribute to the student’s academic progress, for example by inclusion in the student’s thesis?")
-    scholarship_confirmation_2 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) primarily contribute to or benefit someone other than the student, for example by supporting your research program or the grant?")
-    scholarship_confirmation_3 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("c) <u>are not</u> meant to be included in the student’s thesis?"))
-    scholarship_confirmation_4 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("d) <u>are not</u> meant to be part of the student’s education in the student’s academic discipline?"))
-    scholarship_confirmation_5 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) ask the student to perform research or research-related activities at specific times or places?")
-    scholarship_confirmation_6 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) require the student to track and/or report the hours during which the student is performing research or research-related activities?")
-    scholarship_confirmation_7 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="c) ask or expect the student to perform a specified amount of research or research-related activities in a given week?")
-    scholarship_confirmation_8 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="d) ask the student to discuss with you on a regular basis their research and/or research related activities for any reason other than supporting the student’s academic progress?")
-    scholarship_confirmation_9 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="e) ask the student to train or otherwise support other researchers in your research group for any reason other than supporting the student’s academic progress?")
-    scholarship_subsequent = forms.BooleanField(required=False, label="Check if subsequent semester appointments will have the same answers to these questions")
-    scholarship_notes = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Any important notes below")
-
 
     class Meta:
         model = RARequest
@@ -516,26 +504,15 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     def __init__(self, complete=False, *args, **kwargs):
         super(RARequestGraduateResearchAssistantForm, self).__init__(*args, **kwargs)
         
-        config_init = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'scholarship_confirmation_1', 'scholarship_confirmation_2',
-                       'scholarship_confirmation_3', 'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
-                       'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
+        config_init = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
 
-        if complete: 
-            scholarship_confirmation_list = ['scholarship_confirmation_1', 'scholarship_confirmation_2', 'scholarship_confirmation_3', 
-                                             'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
-                                             'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9']
-            for question in scholarship_confirmation_list:
-                self.fields[question].required=False
-
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['backdate_reason', 'scholarship_confirmation_1', 'scholarship_confirmation_2',
-                       'scholarship_confirmation_3', 'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
-                       'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
+        config_clean = ['backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data.get(field, None))
@@ -568,16 +545,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
             if gras_payment_method == "BW":
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
-    
-        scholarship_confirmation_list = ['scholarship_confirmation_1', 'scholarship_confirmation_2', 'scholarship_confirmation_3', 
-                                         'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
-                                         'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9']
-        for question in scholarship_confirmation_list:
-            q = cleaned_data.get(question)
-            if q == "True":
-                self.cleaned_data[question] = True
-            elif q == "False":
-                self.cleaned_data[question] = False
 
         # remove irrelevant information
         if backdated:
