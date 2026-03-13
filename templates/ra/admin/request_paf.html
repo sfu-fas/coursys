@@ -125,7 +125,7 @@
 
   {% if req.get_paf %}
     {% if not req.get_complete and req.hiring_category == "GRAS" %}
-      <p><b>NOTE: The True Scholarship Questionnaire is no longer required to submit along with a ‘Graduate Research Assistant Scholarship’ PAF.</b>
+      <p><b>NOTE: The True Scholarship Questionnaire is no longer required to submit along with a ‘Graduate Research Assistant Scholarship’ PAF.</b></p>
     {% endif %}
     <div class="form_container">
       <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
