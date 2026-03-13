@@ -1376,7 +1376,7 @@ class RARequestForm(SFUMediaMixin):
             else:
                 f.addFromList(duties, self.c)
 
-        elif graduate_research_assistant and self.ra.get_scholarship_confirmation_complete():
+        elif graduate_research_assistant and self.ra.get_scholarship_confirmation_complete() and self.ra.get_complete():
         # PAGE TWO
             self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
             self.c.setFillColor(self.sfu_red)
