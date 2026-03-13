@@ -11,7 +11,7 @@ from forum.models import Post, Identity, THREAD_PRIVACY_CHOICES, AVATAR_TYPE_CHO
 
 class _PostForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
     content = MarkupContentField(label='Post', default_markup=DEFAULT_FORUM_MARKUP, with_wysiwyg=True, restricted=True, rows=10)
-    identity = forms.ChoiceField(choices=[], initial='NAME', widget=forms.RadioSelect)  # choices filled by __init__
+    identity = forms.ChoiceField(choices=[], initial='NAME', widget=forms.RadioSelect)  # choices & initial filled by __init__
 
     class Meta:
         model = Post
@@ -20,10 +20,13 @@ class _PostForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
             'type': forms.RadioSelect,
         }
 
-    def __init__(self, offering_identity: str, member: Member, *args, **kwargs):
+    def __init__(self, offering_identity: str, member: Member, initial_identity: str = 'NAME', *args, **kwargs):
         super().__init__(*args, **kwargs)
         if 'identity' in self.fields:
-            self.fields['identity'].choices = Identity.identity_choices(offering_identity, member)
+            ident_choices = Identity.identity_choices(offering_identity, member)
+            self.fields['identity'].choices = ident_choices
+            assert initial_identity in [idc[0] for idc in ident_choices]  # must be valid for the current offering
+            self.fields['identity'].initial = initial_identity
             ident_url = reverse('offering:forum:identity', kwargs={'course_slug': member.offering.slug})
             self.fields['identity'].help_text = mark_safe('See <a href="%s">discussion forum identities</a> for more information.' % (ident_url,))
 
