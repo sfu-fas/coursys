@@ -95,6 +95,7 @@ class RARequestIntroForm(forms.ModelForm):
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
     coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
+    usra = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=" Is this an Undergraduate Student Research Awards (USRA) faculty supplement?")
     research = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the work performed primarily involve research?")
     thesis = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointment for the student's thesis/project?")
 
@@ -117,7 +118,7 @@ class RARequestIntroForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RARequestIntroForm, self).__init__(*args, **kwargs)
         
-        config_init = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position']
+        config_init = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position', 'usra']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -130,7 +131,7 @@ class RARequestIntroForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position']
+        config_clean = ['people_comments', 'coop', 'student', 'thesis', 'research', 'position', 'usra']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data.get(field, None))
@@ -156,6 +157,12 @@ class RARequestIntroForm(forms.ModelForm):
 
         if nonstudent == None and person == None:
             raise forms.ValidationError("Cannot be a student and not have an SFU ID.")
+        
+        usra = cleaned_data.get('usra')
+        if usra == "True":
+            self.cleaned_data['usra'] = True
+        else:
+            self.cleaned_data['usra'] = False
 
         student = cleaned_data.get('student')
         coop = cleaned_data.get('coop')
@@ -168,11 +175,21 @@ class RARequestIntroForm(forms.ModelForm):
         elif (student == 'U' or student == 'M' or student == 'P'):
             if coop == None or coop == '':
                 self.add_error('coop', error_message)
-            if research == None or research == '':
-                self.add_error('research', error_message)
-            if research == 'True':
-                if thesis == None or thesis == '':
-                    self.add_error('thesis', error_message)
+            if (student == 'U'):
+                if (usra == None or usra == ''):
+                    self.add_error('usra', error_message)
+                if usra == 'False':
+                    if (research == None or research == ''):
+                        self.add_error('research', error_message)
+                    if research == 'False':
+                        if (thesis == None or thesis == ''):
+                            self.add_error('thesis', error_message)
+            if (student == 'M' or student == 'P'):    
+                if research == None or research == '':
+                    self.add_error('research', error_message)
+                if research == 'True':
+                    if thesis == None or thesis == '':
+                        self.add_error('thesis', error_message)
 
         hiring_category = cleaned_data.get('hiring_category')
         if hiring_category == None or hiring_category == 'None':
@@ -189,7 +206,13 @@ class RARequestIntroForm(forms.ModelForm):
         if (student=='N'):
             self.cleaned_data['coop'] = False
             self.cleaned_data['thesis'] = False
-        elif (student=='U' or student == 'M' or student == 'P'):
+            self.cleaned_data['usra'] = False
+        elif (student=='U'):
+            self.cleaned_data['thesis'] = False
+            if usra=='True':
+                self.cleaned_data['research'] = False
+        elif (student == 'M' or student == 'P'):
+            self.cleaned_data['usra'] = False
             if research=='False':
                 self.cleaned_data['thesis'] = False
 
@@ -811,10 +834,11 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         ra_duties_su = cleaned_data.get('ra_duties_su')
         ra_duties_wr = cleaned_data.get('ra_duties_wr')
         ra_duties_pm = cleaned_data.get('ra_duties_pm')
-                
+        
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
         edit = self.initial['edit']
+        usra = self.initial['usra']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -835,7 +859,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE:
+                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date):
                     message = get_minimum_wage_error(start_date, end_date)
@@ -843,7 +867,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE:
+                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date):
                     message = get_minimum_wage_error(start_date, end_date)

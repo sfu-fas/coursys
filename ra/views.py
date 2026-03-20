@@ -192,17 +192,7 @@ class RANewRequestWizard(SessionWizardView):
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
     
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            response = super(RANewRequestWizard,self).dispatch(request, *args, **kwargs)
-        except KeyError:
-            self.storage.reset()
-            messages.error(
-                request,
-                "This form session is no longer active."
-            )
-            return HttpResponseRedirect(reverse('ra:browse_appointments'))
-        return response
+
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
@@ -266,7 +256,9 @@ class RANewRequestWizard(SessionWizardView):
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': False}
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            usra = cleaned_data_intro['usra']
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': False, 'usra': usra}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
@@ -510,7 +502,9 @@ class RAEditRequestWizard(SessionWizardView):
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': (req.draft == False)}
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            usra = cleaned_data_intro['usra']
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': (req.draft == False), 'usra': usra}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
@@ -639,7 +633,6 @@ class RAEditRequestWizard(SessionWizardView):
             req.ra_payment_method = None
 
         req.swpp = False
-        req.usra = False
 
         # draft was submitted 
         if submission:
