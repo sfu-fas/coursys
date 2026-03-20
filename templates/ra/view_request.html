@@ -120,9 +120,7 @@
     {% if not nonstudent %}
     <tr><th>Is Co-Op:</th><td>{{ req.coop|yesno|capfirst }}
         {% if req.swpp and req.coop %} (and applying for funding through SWPP) {% endif %}</td></tr>
-    {% if req.usra %}
-        <tr><th>USRA:</th><td>{{ req.usra|yesno|capfirst }}</td></tr>
-    {% endif %}
+    <tr><th>USRA:</th><td>{{ req.usra|yesno|capfirst }}</td></tr>
     {% if show_mitacs %}
     <tr><th>Funded by Mitacs:</th><td>{{ req.mitacs|yesno|capfirst }}</td></tr>
     {% endif %}
