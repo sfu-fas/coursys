@@ -915,6 +915,8 @@ class RARequestForm(SFUMediaMixin):
             init_comment = "Expected " + str(self.ra.biweekly_hours) + " hours bi-weekly over " + str(self.ra.pay_periods) + " pay periods plus " + str(self.ra.vacation_pay) + "% vacation pay, total pay $" + str(self.ra.total_pay) + ". "
         elif ra_bw or nc_bw:
             init_comment = "Salary amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+            if self.ra.usra:
+                init_comment += "All USRA appointment funding cost (salary plus mandatory benefits) is derived by: $6000 award + faculty supplement.  "
         else:
             init_comment = ""
         
