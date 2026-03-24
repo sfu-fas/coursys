@@ -69,7 +69,7 @@ function studentFieldsUpdate () {
     var usra = $('input[name=intro-usra]:checked')
     if (student.val() != 'N' && student_checked === true) {
         show(['intro-coop'])
-        if (student.val() == 'U') {
+        if (student.val() === 'U') {
             show(['intro-usra'])
             if (usra.val() === 'False') {
                 show(['intro-research'])
@@ -77,7 +77,7 @@ function studentFieldsUpdate () {
                 hide(['intro-research', 'intro-thesis'])
                 setToNone(['intro-research', 'intro-thesis'])
             }
-        } else if (student.val() == 'M' || student.val() == 'P') {
+        } else if (student.val() === 'M' || student.val() === 'P') {
             show(['intro-research'])
             hide(['intro-usra'])
             setToNone(['intro-usra'])
@@ -140,9 +140,9 @@ function hiringCategoryRec () {
     var research =  $('input[name=intro-research]:checked')
     var usra =  $('input[name=intro-usra]:checked')
     
-    if (student.val() === 'N' & research.val() === 'True') {   
+    if (student.val() === 'N' && research.val() === 'True') {   
         researchAssistant()
-    } else if (student.val() === 'N' & research.val() === 'False') {
+    } else if (student.val() === 'N' && research.val() === 'False') {
         nonContinuing()
     } else if (usra.val() === 'True' & student.val() === 'U') {
         researchAssistant()
@@ -150,9 +150,9 @@ function hiringCategoryRec () {
         researchAssistant()
     } else if (research.val() === 'False') {
         nonContinuing()
-    } else if (thesis.val() == 'True') {
+    } else if (thesis.val() === 'True') {
         graduateResearchAssistant()
-    } else if (thesis.val() == 'False') {
+    } else if (thesis.val() === 'False') {
         researchAssistant()
     } else {
         $('#id_intro-hiring_category').val('None')

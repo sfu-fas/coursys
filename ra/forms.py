@@ -181,9 +181,6 @@ class RARequestIntroForm(forms.ModelForm):
                 if usra == 'False':
                     if (research == None or research == ''):
                         self.add_error('research', error_message)
-                    if research == 'False':
-                        if (thesis == None or thesis == ''):
-                            self.add_error('thesis', error_message)
             if (student == 'M' or student == 'P'):    
                 if research == None or research == '':
                     self.add_error('research', error_message)
