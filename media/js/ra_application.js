@@ -144,7 +144,7 @@ function hiringCategoryRec () {
         researchAssistant()
     } else if (student.val() === 'N' && research.val() === 'False') {
         nonContinuing()
-    } else if (usra.val() === 'True' & student.val() === 'U') {
+    } else if (usra.val() === 'True' && student.val() === 'U') {
         researchAssistant()
     } else if (research.val() === 'True' && student.val() === 'U') {
         researchAssistant()
