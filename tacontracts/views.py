@@ -1007,17 +1007,16 @@ def edit_description(request, description_id):
 
 
 @requires_role("TAAD")
-@transaction.atomic
 def delete_description(request, description_id):
     description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
     if request.method == 'POST':
         # Descriptions are actual basically text, we will allow them to delete them.
+        description.delete()
+        messages.success(request, 'Deleted description %s' % description.description)
         l = LogEntry(userid=request.user.username,
                      description="Deleted description: %s" % description.description,
                      related_object=description)
         l.save()
-        description.delete()
-        messages.success(request, 'Deleted description %s' % description.description)
     return HttpResponseRedirect(reverse('tacontracts:descriptions'))
 
 
