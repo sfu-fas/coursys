@@ -300,7 +300,7 @@
     {% endif %}
     {% if graduate_research_assistant %}
     <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
-    {% elif research_assistant and not req.usra %}
+    {% elif research_assistant %}
       {% if ra_bw %}
       <tr><th>Total Gross Pay:</th><td>${{ req.total_pay}}</td></tr>
       {% elif ra_hourly %}
@@ -312,7 +312,7 @@
   </table>
 </div>
 
-{% if research_assistant and not req.usra and not req.backdated and not ra_ls %}
+{% if research_assistant and not req.backdated and not ra_ls %}
 <h3>Entitlement</h3>
 {% if ra_bw %}
 <table class="info">
