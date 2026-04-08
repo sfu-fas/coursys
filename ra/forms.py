@@ -747,10 +747,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
-    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
-                                    label='Extended health/dental benefits (only optional for appointments until March 31, 2026)', 
-                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_health_dentalApril2025.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
-
     total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
     weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
@@ -791,7 +787,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+                'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -801,7 +797,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
-                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 'backdate_reason']
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties', 'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data.get(field, None))
@@ -820,7 +816,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
-        ra_benefits = cleaned_data.get('ra_benefits')
 
         ra_other_duties = cleaned_data.get('ra_other_duties')
         ra_duties_ex = cleaned_data.get('ra_duties_ex')
@@ -834,7 +829,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
-        edit = self.initial['edit']
         usra = self.initial['usra']
 
         if backdated:
@@ -878,10 +872,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
                 raise forms.ValidationError('Please enter at least one job duty.')
-
-        if start_date and not edit:
-            if start_date > NEW_RA_WAGE_DATE and (ra_benefits == "N" or ra_benefits =="NE"):
-                self.add_error('ra_benefits', 'According to the TSSU collective agreement, all Research Assistant and Research Support (RA) employees are eligible for Extended Health and Dental Benefits. Effective April 1, 2026, PIs will be required to include these benefits and budget to cover 75% of the cost.')
 
         # remove irrelevant fields
         if backdated:

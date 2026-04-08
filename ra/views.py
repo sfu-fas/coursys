@@ -381,6 +381,7 @@ class RANewRequestWizard(SessionWizardView):
         if req.hiring_category=="RA":
             req.gras_payment_method = None
             req.nc_payment_method = None
+            req.ra_benefits = 'Y'
         if req.hiring_category=="NC":
             req.gras_payment_method = None
             req.ra_payment_method = None
