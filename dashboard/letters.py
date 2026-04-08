@@ -916,7 +916,7 @@ class RARequestForm(SFUMediaMixin):
         elif ra_bw or nc_bw:
             init_comment = "Salary amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         if research_assistant and self.ra.usra:
-            init_comment += "USRA funding cost (salary plus employer's statutory benefits) is derived by: $6000 award + faculty supplement. "
+            init_comment += "All USRA appointment funding cost (salary plus mandatory benefits) is derived by: $6000 award + faculty supplement. "
         else:
             init_comment = ""
         
