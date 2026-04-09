@@ -303,13 +303,13 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 
 RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
-    ('H', 'No (Hourly - The Appointee will receive 4% vacation pay. Timesheet must be submitted biweekly for the Appointee to be paid.)')
+    ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time. Timesheet must be submitted biweekly for the Appointee to be paid.)')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
-    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
+    ('H', 'Hourly (Vacation pay % will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
     ' timesheets in order for the Appointee to be paid.)'),
     ('LS', 'Lump Sum Amount')
 )
@@ -886,7 +886,7 @@ class RARequest(models.Model):
             elif payment_method == "H":
                 grant_cost = self.get_base_pay()
                 if ra_benefits == "Y":
-                    grant_cost = grant_cost * 1.21
+                    grant_cost = grant_cost * (1.17 + (float(self.vacation_pay) / 100))
                 elif (ra_benefits == "NE" or ra_benefits == "N"):
                     grant_cost = grant_cost * 1.15
             if isinstance(self.ishf_total, float) and self.ishf_subscribers > 0:

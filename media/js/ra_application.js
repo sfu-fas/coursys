@@ -416,7 +416,8 @@ function raH () {
     totalGross = (payPeriods * biweeklyHours * hourlyRate)
     totalPay = totalGross * (1 + (vacationPay/100))
 
-    grantCo = 1.21
+    grantCo = 1.17
+    grantCo = grantCo + (vacationPay/100)
     grantCost = totalGross * grantCo
     
     totalGross = totalGross.toFixed(2)
