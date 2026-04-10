@@ -54,10 +54,8 @@ ISHF_FEE = 75
 # deal with upcoming ra wage requirements
 NEW_RA_WAGE_DATE = datetime.date(2026, 3, 31)
 NEW_RA_WAGE = 24.74
-RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
 
-# other defaults
-MIN_BIWEEKLY_HOURS = 4
+RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
@@ -87,6 +85,7 @@ def add_business_days(date, days):
 
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
+MIN_BIWEEKLY_HOURS = 4
 # unit contacts 
 CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
@@ -886,7 +885,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-            if ra_payment_method == "H" or ra_payment_method == "BW" and edit:
+            if (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
                     self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
 
