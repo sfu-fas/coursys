@@ -888,7 +888,7 @@ class RARequest(models.Model):
                 if ra_benefits == "Y":
                     grant_cost = grant_cost * (1.17 + (float(self.vacation_pay) / 100))
                 elif (ra_benefits == "NE" or ra_benefits == "N"):
-                    grant_cost = grant_cost * 1.15
+                    grant_cost = grant_cost * (1.11 + (float(self.vacation_pay) / 100))
             if isinstance(self.ishf_total, float) and self.ishf_subscribers > 0:
                 grant_cost = grant_cost + self.ishf_total
         return grant_cost
