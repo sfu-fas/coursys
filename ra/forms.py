@@ -707,7 +707,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-            if (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
+            if biweekly_hours is not None and (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
                     self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
             if nc_payment_method == "LS":
@@ -885,7 +885,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-            if (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
+            if biweekly_hours is not None and (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
                     self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
 
