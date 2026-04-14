@@ -362,7 +362,6 @@ function grasLS () {
 }
 
 function raBW () {
-    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     totalPay = $('#id_research_assistant-total_gross').val()
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     weeksVacation = $('#id_research_assistant-weeks_vacation').val()
@@ -379,16 +378,8 @@ function raBW () {
     }
     vacationHours = payPeriods * (weeksVacation / 52.14) * biweeklyHours
 
-    if (raBenefits.val() === 'Y') {
-        grantCo = 1.17
-        grantCost = totalPay * grantCo
-    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
-        grantCo = 1.11
-        grantCost = totalPay * grantCo
-    } else {
-        grantCo = ''
-        grantCost = totalPay
-    }
+    grantCo = 1.17
+    grantCost = totalPay * grantCo
 
     vacationHours = vacationHours.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
@@ -418,23 +409,17 @@ function raBW () {
 }
 
 function raH () {
-    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     hourlyRate = $('#id_research_assistant-gross_hourly').val()
     vacationPay = $('#id_research_assistant-vacation_pay').val()
     payPeriods = $('#id_research_assistant-pay_periods').val()
     totalGross = (payPeriods * biweeklyHours * hourlyRate)
     totalPay = totalGross * (1 + (vacationPay/100))
-    if (raBenefits.val() === 'Y') {
-        grantCo = 1.21
-        grantCost = totalGross * grantCo
-    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
-        grantCo = 1.15
-        grantCost = totalGross * grantCo
-    } else {
-        grantCo = ''
-        grantCost = totalPay
-    }
+
+    grantCo = 1.17
+    grantCo = grantCo + (vacationPay/100)
+    grantCost = totalGross * grantCo
+    
     totalGross = totalGross.toFixed(2)
     totalPay = totalPay.toFixed(2)
     grantCost = grantCost.toFixed(2)

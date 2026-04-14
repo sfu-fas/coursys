@@ -263,7 +263,7 @@ class RANewRequestWizard(SessionWizardView):
             init = {'hiring_category': cleaned_data['hiring_category'], 'edit': False, 'manager': has_role('FDMA', self.request)}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': False}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
@@ -381,6 +381,7 @@ class RANewRequestWizard(SessionWizardView):
         if req.hiring_category=="RA":
             req.gras_payment_method = None
             req.nc_payment_method = None
+            req.ra_benefits = 'Y'
         if req.hiring_category=="NC":
             req.gras_payment_method = None
             req.ra_payment_method = None
@@ -509,7 +510,7 @@ class RAEditRequestWizard(SessionWizardView):
             init = {'hiring_category': cleaned_data['hiring_category'], 'edit': (req.draft == False), 'manager': has_role('FDMA', self.request)}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'], 'edit': (req.draft == False)}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
@@ -638,6 +639,8 @@ class RAEditRequestWizard(SessionWizardView):
         if req.hiring_category=="RA":
             req.gras_payment_method = None
             req.nc_payment_method = None
+            if req.ra_benefits == '':
+                req.ra_benefits = 'Y'
         if req.hiring_category=="NC":
             req.gras_payment_method = None
             req.ra_payment_method = None

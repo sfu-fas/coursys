@@ -73,8 +73,19 @@ def get_minimum_wage_error(start_date, end_date):
         message += ' NOTE: Minimum wage increases on ' + NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + ' to ' + ("$%.2f" % NEW_MIN_WAGE)
     return message
 
+def add_business_days(date, days):
+    """Return the date that is at least 'days' business days (Mon-Fri) after 'date'."""
+    current = date
+    added = 0
+    while added < days:
+        current += datetime.timedelta(days=1)
+        if current.weekday() < 5:  # Monday=0, Friday=4
+            added += 1
+    return current
+
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
+MIN_BIWEEKLY_HOURS = 4
 # unit contacts 
 CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
@@ -94,7 +105,7 @@ class RARequestIntroForm(forms.ModelForm):
     people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':300}), label="Any comments about the Appointee or Hiring Supervisor?")
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
-    coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
+    coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student, and do the hours for this appointment count toward the co-op program?")
     usra = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=" Is this an Undergraduate Student Research Awards (USRA) faculty supplement?")
     research = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the work performed primarily involve research?")
     thesis = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointment for the student's thesis/project?")
@@ -247,7 +258,7 @@ class RARequestDatesForm(forms.ModelForm):
             if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA" and not manager:
                 self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
         if start_date and hiring_category == "RA" and not edit:
-            if start_date <= datetime.date.today():
+            if start_date <= add_business_days(datetime.date.today(), 2):
                 self.add_error('start_date', 'Appointment letters are required to be issued prior to the commencement of all appointments and where possible, a week in advance.')
 
 class RARequestFundingSourceForm(forms.ModelForm):
@@ -611,7 +622,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe("<a href='https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/time-off/vacation'>Minimum 4%</a> (equivalent to two weeks of vacation time)"))
 
     class Meta:
         model = RARequest
@@ -660,6 +671,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
         
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
+        edit = self.initial['edit']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -695,6 +707,9 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+            if biweekly_hours is not None and (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
+                if biweekly_hours < MIN_BIWEEKLY_HOURS:
+                    self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
             if nc_payment_method == "LS":
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
@@ -747,17 +762,13 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
-    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
-                                    label='Extended health/dental benefits (only optional for appointments until March 31, 2026)', 
-                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/TSSUBenefitSummary_health_dentalApril2025.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
-
     total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
     weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe("<a href='https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/time-off/vacation'>Minimum 4%</a> (equivalent to two weeks of vacation time)"))
     
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -791,7 +802,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+                'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -801,7 +812,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
-                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 'backdate_reason']
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties', 'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data.get(field, None))
@@ -820,7 +831,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
-        ra_benefits = cleaned_data.get('ra_benefits')
 
         ra_other_duties = cleaned_data.get('ra_other_duties')
         ra_duties_ex = cleaned_data.get('ra_duties_ex')
@@ -875,13 +885,13 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+            if biweekly_hours is not None and (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
+                if biweekly_hours < MIN_BIWEEKLY_HOURS:
+                    self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
+
 
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
                 raise forms.ValidationError('Please enter at least one job duty.')
-
-        if start_date and not edit:
-            if start_date > NEW_RA_WAGE_DATE and (ra_benefits == "N" or ra_benefits =="NE"):
-                self.add_error('ra_benefits', 'According to the TSSU collective agreement, all Research Assistant and Research Support (RA) employees are eligible for Extended Health and Dental Benefits. Effective April 1, 2026, PIs will be required to include these benefits and budget to cover 75% of the cost.')
 
         # remove irrelevant fields
         if backdated:
