@@ -71,6 +71,9 @@ $(document).ready(function() {
 
 {% block content %}
 {{ SERVER_MESSAGE_INDEX }}
+{% if staff_memberships %}
+<p class="infomessage"><i class="fas fa-info-circle"></i> Greetings and sympathies to any instructors here looking for a Canvas alternative. CourSys typically serves a niche something like "enough for most instructors but not a full learning management system", if that helps manage expectations. If there are particular pain points around migrating from Canvas, or back again once things are settled, feel free to reach out to coursys-help@sfu.ca and we'll do our best to help with the limited resources we have. -GB</p>
+{% endif %}
 
 {% if news_list%}
 <h2>Latest news</h2>
