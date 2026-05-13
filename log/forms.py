@@ -46,8 +46,15 @@ class CeleryTaskForm(EventLogFilterForm):
 
     task.widget.attrs.update(size="15")
 
+
+class MonitoringDataForm(EventLogFilterForm):
+    duration = None
+    metric = forms.CharField(label='Metric')
+
+
 # dict of forms for discovery in log exploration UI
 EVENT_FORM_TYPES = {
     'request': RequestLogForm,
     'task': CeleryTaskForm,
+    'monitoring': MonitoringDataForm,
 }

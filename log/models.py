@@ -165,8 +165,22 @@ class CeleryTaskLog(EventLogEntry):
     table_column_config = [None, None, None]
 
 
+class MonitoringDataLog(EventLogEntry):
+    """
+    Log of a data around system usage/performance.
+
+    Created by logs.tasks
+    """
+    metric = models.CharField(max_length=255, null=False, db_index=True)
+    value = models.FloatField('value', null=False)
+
+    display_columns = ['time', 'metric', 'value']
+    table_column_config = [None, None, None]
+
+
 # dict of EventLogEntry for discovery in log exploration UI
 EVENT_LOG_TYPES = {
     'request': RequestLog,
     'task': CeleryTaskLog,
+    'monitoring': MonitoringDataLog,
 }
