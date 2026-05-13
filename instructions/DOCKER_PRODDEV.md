@@ -46,6 +46,11 @@ In another, start a Django dev server:
 python3 manage.py runserver
 ```
 
+Or if you want to be even more production-like:
+```sh
+gunicorn --workers=5 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 127.0.0.1:8000 courses.wsgi:application
+```
+
 ## Shutting Down
 
 ```shell

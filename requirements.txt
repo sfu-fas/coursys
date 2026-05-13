@@ -37,6 +37,7 @@ whoosh==2.7.4
 cmarkgfm==2024.11.20
 django-ipware==7.0.1
 psutil==7.0.0
+python-on-whales==0.81.0
 intervaltree==3.1.0
 requests
 ntplib==0.4.0
