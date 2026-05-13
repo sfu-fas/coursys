@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import shutil
 import subprocess
 import psutil
 from django.db.models import Avg, Count
@@ -9,10 +10,20 @@ from courselib.celerytasks import task
 from log.models import MonitoringDataLog, RequestLog
 
 
+# sort out the docker executables
+docker = ["docker"]
+if shutil.which("docker-compose"):
+    docker_compose = ["docker-compose", "-f", "./docker-compose.yml"]
+else:
+    docker_compose = ["docker", "compose", "-f", "./docker-compose.yml"]
+
+
 @task(queue="batch")
-def log_all():
+def log_regular():
+    """
+    Logging we want to do regularly: every ~15 minutes.
+    """
     log_system_usage()
-    log_avg_request_duration()
     log_process_usage()
     log_container_usage()
 
@@ -25,81 +36,83 @@ def log_system_usage():
     now = datetime.datetime.now()
     load = psutil.getloadavg()
     vm = psutil.virtual_memory()
-    print(vm)
 
-    log = MonitoringDataLog(
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric="load_1",
         value=load[0],
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric="load_5",
         value=load[1],
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric="load_15",
         value=load[2],
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric="mem_avail_gb",
         value=vm.available / 1e9,
         data={},
-    )
-    log.save()
-
-
-docker = ["docker"]
-docker_compose = ["docker-compose", "-f", "/coursys/docker-compose.yml"]
+    ).save()
 
 
 def log_container(name: str):
-    id = subprocess.check_output(docker_compose + ["ps", "-q", name]).strip()
-    stats_json = subprocess.check_output(
-        docker + ["stats", "--no-stream", "--format", "json", id]
-    ).strip()
-    stats = json.loads(stats_json)
+    """
+    Log information about a single docker container with this docker-compose name.
+    """
     now = datetime.datetime.now()
+    try:
+        id = subprocess.check_output(docker_compose + ["ps", "-q", name]).strip()
+        stats_json = subprocess.check_output(
+            docker + ["stats", "--no-stream", "--format", "json", id]
+        ).strip()
+    except subprocess.CalledProcessError:
+        MonitoringDataLog(
+            time=now,
+            duration=datetime.timedelta(seconds=0),
+            metric=f"{name}_is_missing",
+            value=0,
+            data={},
+        ).save()
+        return
+
+    stats = json.loads(stats_json)
 
     cpu = float(stats["CPUPerc"].replace("%", ""))
     mem = float(stats["MemPerc"].replace("%", ""))
     ps = int(stats["PIDs"])
-    log = MonitoringDataLog(
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_mem_percent",
         value=mem,
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_cpu_percent",
         value=cpu,
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_n_procs",
         value=ps,
         data={},
-    )
-    log.save()
+    ).save()
 
 
 @task(queue="batch")
@@ -126,30 +139,27 @@ def log_process(name: str, pid: int):
                 vm += p.memory_info().vms
                 ps += 1
 
-    log = MonitoringDataLog(
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_mem_used_mb",
         value=vm / 1e6,
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_cpu_percent",
         value=cpu,
         data={},
-    )
-    log.save()
-    log = MonitoringDataLog(
+    ).save()
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
         metric=f"{name}_n_procs",
         value=ps,
         data={},
-    )
-    log.save()
+    ).save()
 
 
 def service_info(name: str):
@@ -162,14 +172,13 @@ def service_info(name: str):
         ).strip()
     )
     if service_pid == 0:
-        log = MonitoringDataLog(
+        MonitoringDataLog(
             time=datetime.datetime.now(),
             duration=datetime.timedelta(seconds=0),
             metric=f"{name}_is_down",
             value=0,
             data={},
-        )
-        log.save()
+        ).save()
     else:
         log_process(name, service_pid)
 
@@ -186,8 +195,9 @@ def log_celery():
 @task(queue="batch")
 def log_process_usage():
     service_info("gunicorn")
-    service_info("celerybeat")
     service_info("nginx")
+    # don't bother with celery for now: can enable if it seems worth watching
+    # service_info("celerybeat")
     # log_celery()
 
 
@@ -197,26 +207,23 @@ def log_avg_request_duration():
     Log average time needed to respond to HTTP requests (by Django, over the last hour).
     """
     now = datetime.datetime.now()
-
     agg = RequestLog.objects.filter(
         time__gte=now - datetime.timedelta(hours=1)
     ).aggregate(duration=Avg("duration"), count=Count("*"))
     avg = agg["duration"]
     count = agg["count"]
-    log = MonitoringDataLog(
+    MonitoringDataLog(
         time=now,
         duration=datetime.timedelta(seconds=0),
-        metric="request_count_hourly",
+        metric="requests_hourly_count",
         value=count,
         data={},
-    )
-    log.save()
+    ).save()
     if avg is not None:
-        log = MonitoringDataLog(
+        MonitoringDataLog(
             time=now,
             duration=datetime.timedelta(seconds=0),
-            metric="request_duration_avg_hourly_ms",
+            metric="requests_hourly_duration_avg_ms",
             value=avg.total_seconds() * 1000,
             data={},
-        )
-        log.save()
+        ).save()
