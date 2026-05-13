@@ -190,7 +190,7 @@ class MonitoringDataJson(BaseDatatableView):
         metric = GET.get('metric[]', None)
 
         if metric:
-            qs = qs.filter(metric__contains=metric)
+            qs = qs.filter(metric=metric)
         
         return qs
 
