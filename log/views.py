@@ -100,6 +100,17 @@ class RequestLogDataJson(BaseDatatableView):
                 d = datetime.timedelta(seconds=secs)
                 qs = qs.filter(duration__gte=d)
 
+        age = GET.get('age[]', 7*24)
+        if age:
+            try:
+                # clamping <= 7 days because the queries are too big in prod
+                hours = min(int(age), 7*24)
+            except ValueError:
+                pass
+            else:
+                cutoff = datetime.datetime.now() - datetime.timedelta(hours=hours)
+                qs = qs.filter(time__gte=cutoff)
+
         method = GET.get('method[]', None)
         if method:
             qs = qs.filter(method=method)
@@ -190,7 +201,7 @@ class MonitoringDataJson(BaseDatatableView):
         metric = GET.get('metric[]', None)
 
         if metric:
-            qs = qs.filter(metric=metric)
+            qs = qs.filter(metric__contains=metric)
         
         return qs
 

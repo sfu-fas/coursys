@@ -169,7 +169,7 @@ class MonitoringDataLog(EventLogEntry):
     """
     Log of a data around system usage/performance.
 
-    Created by logs.tasks
+    Created by logs.tasks.*
     """
     metric = models.CharField(max_length=255, null=False, db_index=True)
     value = models.FloatField('value', null=False)
