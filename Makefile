@@ -60,7 +60,7 @@ new-code:
 	make new-code-lite
 
 clear-cache:
-	${SUCOURSYS} docker-compose restart memcached
+	${DOCKERCOMPOSE} restart memcached
 
 migrate-safe:
 	${SUCOURSYS} ${PYTHON} manage.py backup_db
