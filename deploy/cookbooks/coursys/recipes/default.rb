@@ -111,10 +111,10 @@ if deploy_mode != 'devel'
     not_if 'cat /etc/fstab | grep /swapfile'
   end
 
-  # docker
+  # docker, adapting instructions from https://docs.docker.com/engine/install/ubuntu/
   execute 'docker-key' do
-    command 'mkdir -p /etc/apt/keyrings/ && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
-    creates '/etc/apt/keyrings/docker.gpg'
+    command 'mkdir -p /etc/apt/keyrings/ && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc'
+    creates '/etc/apt/keyrings/docker.asc'
   end
   directory "/lib/systemd/system/docker.service.d" do
     owner 'root'
@@ -132,7 +132,7 @@ if deploy_mode != 'devel'
     command "echo 'Types: deb\nURIs: https://download.docker.com/linux/ubuntu\nSuites: #{ubuntu_release}\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.asc' > /etc/apt/sources.list.d/docker.sources"
     creates '/etc/apt/sources.list.d/docker.sources'
   end
-  package ['docker', 'docker-compose']
+  package ['docker.io', 'docker-compose-v2']
   cookbook_file "/etc/docker/daemon.json" do
     source 'docker-daemon.json'
     owner "root"
@@ -170,12 +170,12 @@ if deploy_mode != 'devel'
   end
 
 
-  execute "pyopenssh-fix" do
+  #execute "pyopenssh-fix" do
     # this is a hack around a broken pip3 + pyOpenSSL install, per https://stackoverflow.com/a/74243128/6871666
     # It should only fire if currently needed (the "not_if" guard)
-    command "wget https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl -O /tmp/pyOpenSSL-24.1.0-py3-none-any.whl && #{python} -m easy_install /tmp/pyOpenSSL-24.1.0-py3-none-any.whl"
-    not_if "#{python_bin_dir}/pip > /dev/null"
-  end
+  #  command "wget https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl -O /tmp/pyOpenSSL-24.1.0-py3-none-any.whl && #{python} -m easy_install /tmp/pyOpenSSL-24.1.0-py3-none-any.whl"
+  #  not_if "#{python_bin_dir}/pip > /dev/null"
+  #end
 
   execute "django-static" do
     command "#{python} manage.py collectstatic --no-input"

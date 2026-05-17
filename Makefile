@@ -1,6 +1,6 @@
 SYSTEMCTL=sudo systemctl
 SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
-DOCKERCOMPOSE=${SUCOURSYS} docker-compose
+DOCKERCOMPOSE=${SUCOURSYS} docker compose
 
 # use the environment $PYTHON for Python executable if set (which it is in proddev and production environments).
 ifndef PYTHON
@@ -60,7 +60,7 @@ new-code:
 	make new-code-lite
 
 clear-cache:
-	${SUCOURSYS} docker-compose restart memcached
+	${DOCKERCOMPOSE} restart memcached
 
 migrate-safe:
 	${SUCOURSYS} ${PYTHON} manage.py backup_db
