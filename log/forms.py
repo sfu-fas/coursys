@@ -25,7 +25,7 @@ class EventLogFilterForm(forms.Form):
 
 class RequestLogForm(EventLogFilterForm):
     method = forms.ChoiceField(choices=METHOD_CHOICES)
-    age = forms.IntegerField(label='Age (h) ≤ ', initial=7*24, max_value=7*24)
+    age = forms.IntegerField(label='Age (h) ≤ ', initial=2, max_value=7*24)
     username = forms.CharField()
     path = forms.CharField(label='Path contains')
     ip = forms.CharField(label='IP address')
