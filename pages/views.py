@@ -29,15 +29,21 @@ def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> tu
 
     Returns: bool if they can/can't have access, and if they can access because of course membership, that Member.
     """
+    if userid == NOT_LOGGED_IN:
+        if acl_value in 'ALL':
+            return True, None
+        else:
+            return False, None
+
     members = Member.objects.filter(person__userid=userid, offering=offering).exclude(role='DROP')
     if not members:
-        if acl_value == 'ALL':
+        if acl_value in ['LOG', 'ALL']:
             return True, None
         else:
             return False, None
 
     m = members[0]
-    if acl_value == 'ALL':
+    if acl_value in ['LOG', 'ALL']:
         return True, m
     elif m.role in MEMBER_ROLES[acl_value]:
         return True, m
@@ -51,9 +57,15 @@ def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -
 
     Returns: bool if they can/can't have access, and if they can access because of granted permission, that PagePermission.
     """
+    if userid == NOT_LOGGED_IN:
+        if acl_value in 'ALL':
+            return True, None
+        else:
+            return False, None
+
     pps = PagePermission.objects.filter(person__userid=userid, offering=offering)
     if not pps:
-        if acl_value == 'ALL':
+        if acl_value in ['LOG', 'ALL']:
             return True, None
         else:
             return False, None
@@ -74,11 +86,7 @@ def _check_allowed(request, offering, acl_value, date=None) -> tuple[bool, Union
     If a release date is given and is in the future, acl_value is tightened accordingly.
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
-
-    if request.user.is_authenticated:
-        userid = request.user.username
-    else:
-        userid = NOT_LOGGED_IN
+    userid = request.user.username if request.user.is_authenticated else NOT_LOGGED_IN
 
     # first option: can access because of Membership.
     allowed, member = _allowed_member(userid, offering, acl_value)
@@ -106,7 +114,7 @@ def _forbidden_response(request, visible_to):
 
 def index_page(request, course_slug):
     """ 
-    Index page for a course's site: 'slug/' === 'slug/Index'
+    Index page for a course's site: 'slug/pages/' === 'slug/pages/Index'
     """
     return view_page(request, course_slug, 'Index')
 
@@ -121,9 +129,8 @@ def all_pages(request, course_slug):
     if allowed and member:
         pages = Page.objects.filter(offering=offering, can_read__in=ACL_ROLES[member.role])
         can_create = member.role in MEMBER_ROLES[offering.page_creators()]
-    elif allowed and not member:
-        # viewing allowed, but not because of a membership
-        pages = Page.objects.filter(offering=offering, can_read='ALL')
+    elif allowed and request.user.is_authenticated:
+        pages = Page.objects.filter(offering=offering, can_read='LOG')
         can_create = False
     else:
         pages = Page.objects.filter(offering=offering, can_read='ALL')
@@ -143,9 +150,8 @@ def view_page(request, course_slug, page_label):
         can_create, member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context, status=404)
-    else:
-        page = pages[0]
 
+    page = pages[0]
     version = page.current_version()
     
     allowed, member = _check_allowed(request, offering, page.can_read, page.releasedate())
@@ -209,8 +215,11 @@ def view_page(request, course_slug, page_label):
 
 def view_file(request, course_slug, page_label):
     return _get_file(request, course_slug, page_label, 'inline')
+
+
 def download_file(request, course_slug, page_label):
     return _get_file(request, course_slug, page_label, 'attachment')
+
 
 def _get_file(request, course_slug, page_label, disposition):
     """
@@ -270,9 +279,11 @@ def page_version(request, course_slug, page_label, version_id):
 def new_page(request, course_slug):
     return _edit_pagefile(request, course_slug, page_label=None, kind="page")
 
+
 @login_required
 def new_file(request, course_slug):
     return _edit_pagefile(request, course_slug, page_label=None, kind="file")
+
 
 @login_required
 def edit_page(request, course_slug, page_label):
@@ -285,6 +296,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     if request.method == 'POST' and 'delete' in request.POST and request.POST['delete'] == 'yes':
         return _delete_pagefile(request, course_slug, page_label, kind)
+
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         if page_label:

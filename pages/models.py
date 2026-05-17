@@ -19,7 +19,7 @@ WRITE_ACL_CHOICES = [
     ('INST', 'instructor'),
     ('STAF', 'instructor and TAs'),
     ('STUD', 'students, instructor and TAs') ]
-READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
+READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('LOG', 'any logged in SFU user'), ('ALL', 'anybody: publicly visible')]
 ACL_DESC = dict(READ_ACL_CHOICES)
 WRITE_ACL_DESC = dict(WRITE_ACL_CHOICES)
 
@@ -30,14 +30,15 @@ MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'INST': set(['APPR', 'INST']),
         'STAF': set(['APPR', 'INST', 'TA']),
         'STUD': set(['APPR', 'INST', 'TA', 'STUD']),
+        'LOG':  set(['APPR', 'INST', 'TA', 'STUD', 'DROP']),
         'ALL':  set(['APPR', 'INST', 'TA', 'STUD', 'DROP']),
         }
 ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to access?
-        'APPR': set(['INST', 'STAF', 'STUD', 'ALL']),
-        'INST': set(['INST', 'STAF', 'STUD', 'ALL']),
-        'TA': set(['STAF', 'STUD', 'ALL']),
-        'STUD': set(['STUD', 'ALL']),
-        'DROP': set(['ALL']),
+        'APPR': set(['INST', 'STAF', 'STUD', 'LOG', 'ALL']),
+        'INST': set(['INST', 'STAF', 'STUD', 'LOG', 'ALL']),
+        'TA': set(['STAF', 'STUD', 'LOG', 'ALL']),
+        'STUD': set(['STUD', 'LOG', 'ALL']),
+        'DROP': set(['LOG', 'ALL']),
         }
 
 MACRO_LABEL = 'MACROS' # special page that contain macro expansions for other pages
