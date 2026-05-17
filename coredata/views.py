@@ -1562,6 +1562,7 @@ def _has_homepages(unit_id, semester_id):
     offerings = [o for o in offerings if 'url' in o.config]
     return bool(offerings)
 
+@login_required
 def course_home_pages(request):
     semester = Semester.current()
     units = Unit.objects.all().order_by('label')
@@ -1572,6 +1573,7 @@ def course_home_pages(request):
     }
     return render(request, "coredata/course_home_pages.html", context)
 
+@login_required
 def course_home_pages_unit(request, unit_slug, semester=None):
     if semester:
         semester = get_object_or_404(Semester, name=semester)
