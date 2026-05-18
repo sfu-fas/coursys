@@ -2,7 +2,7 @@ FROM python:3.13
 
 RUN apt-get update \
   && apt-get install -y locales-all npm libfreetype-dev default-mysql-client \
-  && apt-get install -y locales-all npm unixodbc-dev krb5-user tdsodbc \
+  && apt-get install -y unixodbc-dev krb5-user tdsodbc \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -23,5 +23,8 @@ COPY . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 
+ARG N_WORKERS=2
+ENV N_WORKERS=${N_WORKERS}
+
 USER coursys
-CMD gunicorn --workers=2 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
+CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
