@@ -89,6 +89,11 @@
         </div>
       </div>
     </fieldset>
+    {% if research_assistant %}
+    <div class="important_info helptext">
+      <span style="color:red;"><b>Important Information from Labour Relations and Human Resources:</b></span> Appointment letters are required to be issued prior to the commencement of all appointments and where possible, at least one (1) week in advance. Employment offers should never be retroactive. RA’s are expected to sign their appointment letter prior to commencing their appointment. Payroll Appointment Forms (PAFs) are required to be sent to HR’s Research People Team who will process the paperwork to generate appointment letters and set up payroll. The HR submission cut-off schedule is posted <a href="https://www.sfu.ca/human-resources/forms-resources/payroll-schedule.html">here</a>.
+    </div>
+    {% endif %}
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>

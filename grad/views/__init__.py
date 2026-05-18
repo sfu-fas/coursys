@@ -1,5 +1,5 @@
 from .config import reports, config
-from .active_students import active_students
+from .active_students import active_students, download_active_students
 from .quick_search import quick_search
 from .not_found import not_found
 from .supervisor_index import supervisor_index, download_my_grads_csv

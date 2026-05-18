@@ -1,7 +1,7 @@
 var noIdFields = ['intro-first_name', 'intro-last_name', 'intro-email_address']
 var idFields = ['intro-person']
 
-var studentFields = ['intro-coop', 'intro-thesis', 'intro-research']
+var studentFields = ['intro-coop', 'intro-thesis', 'intro-research', 'intro-usra']
 
 var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
@@ -66,20 +66,33 @@ function idFieldsUpdate () {
 function studentFieldsUpdate () {
     var student_checked = $('input[name=intro-student]').is(':checked')
     var student = $('input[name=intro-student]:checked')
+    var usra = $('input[name=intro-usra]:checked')
     if (student.val() != 'N' && student_checked === true) {
         show(['intro-coop'])
-        show(['intro-research'])
+        if (student.val() === 'U') {
+            show(['intro-usra'])
+            if (usra.val() === 'False') {
+                show(['intro-research'])
+            } else {
+                hide(['intro-research', 'intro-thesis'])
+                setToNone(['intro-research', 'intro-thesis'])
+            }
+        } else if (student.val() === 'M' || student.val() === 'P') {
+            show(['intro-research'])
+            hide(['intro-usra'])
+            setToNone(['intro-usra'])
+        }
         var research = $('input[name=intro-research]:checked')
-        if (research.val() === 'True') {
+        if (research.val() === 'True' && student.val() !== 'U') {
             show(['intro-thesis'])
         } else {
             hide(['intro-thesis'])
             setToNone(['intro-thesis'])
         }
-    } else if (student.val() == 'N' && student_checked == true) {
+    } else if (student.val() === 'N' && student_checked === true) {
         show(['intro-research'])
-        hide(['intro-coop', 'intro-thesis'])
-        setToNone(['intro-coop', 'intro-thesis'])
+        hide(['intro-coop', 'intro-thesis', 'intro-usra'])
+        setToNone(['intro-coop', 'intro-thesis', 'intro-usra'])
     } else {
         hide(studentFields)
         setToNone(studentFields)
@@ -87,11 +100,18 @@ function studentFieldsUpdate () {
 }
 
 function researchAssistant () {
+    var usra =  $('input[name=intro-usra]:checked')
     $('#id_intro-hiring_category').val('RA')
     $('.need_more_info').hide()
     $('.gras_info').hide()
     $('.nc_info').hide()
-    $('.ra_info').show()
+    if (usra.val() === 'True') {
+        $('.usra_info').show() 
+        $('.ra_info').hide()  
+    } else {
+        $('.usra_info').hide()
+        $('.ra_info').show()
+    }
 }
 
 function graduateResearchAssistant () {
@@ -101,6 +121,7 @@ function graduateResearchAssistant () {
     $('.gras_info').show()
     $('.ra_info').hide()
     $('.nc_info').hide()
+    $('.usra_info').hide()
 }
 
 function nonContinuing () {
@@ -110,22 +131,28 @@ function nonContinuing () {
     $('.nc_info').show()
     $('.ra_info').hide()
     $('.gras_info').hide()
+    $('.usra_info').hide()
 }
 
 function hiringCategoryRec () {
     var student = $('input[name=intro-student]:checked')
     var thesis = $('input[name=intro-thesis]:checked')
     var research =  $('input[name=intro-research]:checked')
+    var usra =  $('input[name=intro-usra]:checked')
     
-    if (student.val() === 'N' & research.val() === 'True') {   
+    if (student.val() === 'N' && research.val() === 'True') {   
         researchAssistant()
-    } else if (student.val() === 'N' & research.val() === 'False') {
+    } else if (student.val() === 'N' && research.val() === 'False') {
         nonContinuing()
+    } else if (usra.val() === 'True' && student.val() === 'U') {
+        researchAssistant()
+    } else if (research.val() === 'True' && student.val() === 'U') {
+        researchAssistant()
     } else if (research.val() === 'False') {
         nonContinuing()
-    } else if (thesis.val() == 'True') {
+    } else if (thesis.val() === 'True') {
         graduateResearchAssistant()
-    } else if (thesis.val() == 'False') {
+    } else if (thesis.val() === 'False') {
         researchAssistant()
     } else {
         $('#id_intro-hiring_category').val('None')
@@ -133,6 +160,7 @@ function hiringCategoryRec () {
         $('.ra_info').hide()
         $('.nc_info').hide()
         $('.gras_info').hide()
+        $('.usra_info').hide()
     }
 }
 
@@ -334,7 +362,6 @@ function grasLS () {
 }
 
 function raBW () {
-    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     totalPay = $('#id_research_assistant-total_gross').val()
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     weeksVacation = $('#id_research_assistant-weeks_vacation').val()
@@ -351,16 +378,8 @@ function raBW () {
     }
     vacationHours = payPeriods * (weeksVacation / 52.14) * biweeklyHours
 
-    if (raBenefits.val() === 'Y') {
-        grantCo = 1.17
-        grantCost = totalPay * grantCo
-    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
-        grantCo = 1.11
-        grantCost = totalPay * grantCo
-    } else {
-        grantCo = ''
-        grantCost = totalPay
-    }
+    grantCo = 1.17
+    grantCost = totalPay * grantCo
 
     vacationHours = vacationHours.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
@@ -390,23 +409,17 @@ function raBW () {
 }
 
 function raH () {
-    var raBenefits = $('input[name=research_assistant-ra_benefits]:checked')
     biweeklyHours = $('#id_research_assistant-biweekly_hours').val()
     hourlyRate = $('#id_research_assistant-gross_hourly').val()
     vacationPay = $('#id_research_assistant-vacation_pay').val()
     payPeriods = $('#id_research_assistant-pay_periods').val()
     totalGross = (payPeriods * biweeklyHours * hourlyRate)
     totalPay = totalGross * (1 + (vacationPay/100))
-    if (raBenefits.val() === 'Y') {
-        grantCo = 1.21
-        grantCost = totalGross * grantCo
-    } else if (raBenefits.val() === 'N' || raBenefits.val() === 'NE') {
-        grantCo = 1.15
-        grantCost = totalGross * grantCo
-    } else {
-        grantCo = ''
-        grantCost = totalPay
-    }
+
+    grantCo = 1.17
+    grantCo = grantCo + (vacationPay/100)
+    grantCost = totalGross * grantCo
+    
     totalGross = totalGross.toFixed(2)
     totalPay = totalPay.toFixed(2)
     grantCost = grantCost.toFixed(2)
@@ -633,11 +646,13 @@ $(document).ready(function() {
     
     // is the appointee a student?
     $('#id_intro-student').change(studentFieldsUpdate)
+    $('#id_intro-usra').change(studentFieldsUpdate)
     $('#id_intro-research').change(studentFieldsUpdate)
 
     $('#id_intro-student').change(hiringCategoryRec)
     $('#id_intro-research').change(hiringCategoryRec)
     $('#id_intro-thesis').change(hiringCategoryRec)
+    $('#id_intro-usra').change(hiringCategoryRec)
 
     // funding information
     $('#id_funding_sources-fs2_option').change(fs2ChoiceUpdate)

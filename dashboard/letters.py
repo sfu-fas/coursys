@@ -918,6 +918,9 @@ class RARequestForm(SFUMediaMixin):
         else:
             init_comment = ""
         
+        if research_assistant and self.ra.usra:
+            init_comment += "All USRA appointment funding cost (salary plus mandatory benefits) is derived by: $6000 award + faculty supplement. "
+
         post_comment = ""
         if non_continuing:
             post_comment += "Supervisor: " + str(self.ra.supervisor.name()) + " / Grant signing authority:" 
@@ -1376,7 +1379,7 @@ class RARequestForm(SFUMediaMixin):
             else:
                 f.addFromList(duties, self.c)
 
-        elif graduate_research_assistant and self.ra.get_scholarship_confirmation_complete():
+        elif graduate_research_assistant and self.ra.get_scholarship_confirmation_complete() and self.ra.get_complete():
         # PAGE TWO
             self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
             self.c.setFillColor(self.sfu_red)

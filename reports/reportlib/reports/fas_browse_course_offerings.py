@@ -13,13 +13,15 @@ class FASBrowseCourseOfferingsReport(Report):
         results.append_column('Semester')
         results.append_column('Course')
         results.append_column('Title')
-        results.append_column('Enroll')
+        results.append_column('Enroll (Tot)')
+        results.append_column('Enroll (Cap)')
         results.append_column('Instructor(s)')
         results.append_column('Campus')
         results.append_column('Course URL') 
 
         start_semester = Semester.current().offset(-30) # 10 years ago
-        units = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC', 'SEE'])
+        fas = Unit.objects.get(label='APSC')
+        units = Unit.sub_units([fas])
         course_offerings = CourseOffering.objects.filter(owner__in=units, semester__gte=start_semester)
         # no locally-merged courses
         course_offerings = course_offerings.exclude(flags=CourseOffering.flags.combined)
@@ -30,12 +32,12 @@ class FASBrowseCourseOfferingsReport(Report):
             semester = c.semester.label()
             course = '%s\u00a0%s\u00a0%s' % (c.subject, c.number, c.section)
             title = c.title
-            enroll = '%i/%i' % (c.enrl_tot, c.enrl_cap)
+            enroll_tot = str(c.enrl_tot)
+            enroll_cap = str(c.enrl_cap)
             instructors = c.instructors_printing_str()
             campus = CAMPUSES_SHORT[c.campus]
             course_url = settings.BASE_ABS_URL + reverse('browse:browse_courses_info', kwargs={'course_slug': c.slug})
-
-            results.append_row([semester, course, title, enroll, instructors, campus, course_url])
+            results.append_row([semester, course, title, enroll_tot, enroll_cap, instructors, campus, course_url])
             
         self.artifacts.append(results)
 

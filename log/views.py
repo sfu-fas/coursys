@@ -7,7 +7,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
 from log.forms import RequestLogForm, EVENT_FORM_TYPES
-from log.models import LogEntry, EVENT_LOG_TYPES, RequestLog, CeleryTaskLog
+from log.models import LogEntry, EVENT_LOG_TYPES, MonitoringDataLog, RequestLog, CeleryTaskLog
 from courselib.auth import requires_global_role
 from courselib.search import get_query
 
@@ -100,6 +100,17 @@ class RequestLogDataJson(BaseDatatableView):
                 d = datetime.timedelta(seconds=secs)
                 qs = qs.filter(duration__gte=d)
 
+        age = GET.get('age[]', 7*24)
+        if age:
+            try:
+                # clamping <= 7 days because the queries are too big in prod
+                hours = min(int(age), 7*24)
+            except ValueError:
+                pass
+            else:
+                cutoff = datetime.datetime.now() - datetime.timedelta(hours=hours)
+                qs = qs.filter(time__gte=cutoff)
+
         method = GET.get('method[]', None)
         if method:
             qs = qs.filter(method=method)
@@ -179,6 +190,22 @@ class CeleryTaskDataJson(BaseDatatableView):
         return qs
 
 
+class MonitoringDataJson(BaseDatatableView):
+    model = MonitoringDataLog
+    max_display_length = 500
+    columns = MonitoringDataLog.display_columns
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        GET = self.request.GET
+        metric = GET.get('metric[]', None)
+
+        if metric:
+            qs = qs.filter(metric__contains=metric)
+        
+        return qs
+
+
 def _log_data(log_type, request):
     return EVENT_DATA_VIEWS[log_type].as_view()(request)
 
@@ -186,6 +213,7 @@ def _log_data(log_type, request):
 EVENT_DATA_VIEWS = {
     'request': RequestLogDataJson,
     'task': CeleryTaskDataJson,
+    'monitoring': MonitoringDataJson,
 }
 
 

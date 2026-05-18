@@ -153,7 +153,6 @@ def create_test_offering():
         other_offering.save()
 
     test_offering.set_labtut(True)
-    test_offering.set_discussion(True)
     test_offering.set_url("http://www.cs.sfu.ca/")
     test_offering.set_taemail("contact-list@example.com")
     test_offering.save()

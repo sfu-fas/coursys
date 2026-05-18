@@ -489,6 +489,7 @@ def sign_contract(request, unit_slug, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
+@transaction.atomic
 def cancel_contract(request, unit_slug, semester, contract_slug):
     if request.method == "POST":
         hiring_semester = get_object_or_404(HiringSemester, 
@@ -500,25 +501,21 @@ def cancel_contract(request, unit_slug, semester, contract_slug):
                                      slug=contract_slug,
                                      category__account__unit__in=request.units)
         if contract.status == "NEW":
-            contract.cancel()
-            messages.add_message(request, 
-                                 messages.SUCCESS, 
-                                 'Contract Deleted!')
             l = LogEntry(userid=request.user.username,
                          description="Deleted contract %s." % str(contract),
                          related_object=contract)
             l.save()
+            contract.cancel()
+            messages.add_message(request, messages.SUCCESS, 'Contract Deleted!')
             return _contracts_redirect(unit_slug, semester)
 
         else:
-            contract.cancel()
-            messages.add_message(request, 
-                                 messages.SUCCESS,
-                                 'Contract Cancelled!')
             l = LogEntry(userid=request.user.username,
                          description="Cancelled contract %s." % str(contract),
                          related_object=contract)
             l.save()
+            contract.cancel()
+            messages.add_message(request, messages.SUCCESS, 'Contract Cancelled!')
             return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -689,6 +686,7 @@ def edit_course(request, unit_slug, semester, contract_slug, course_slug):
                                                             'form': form})
 
 @requires_role(["TAAD", "GRAD"])
+@transaction.atomic
 def delete_course(request, unit_slug, semester, contract_slug, course_slug):
     if request.method == 'POST':
         hiring_semester = get_object_or_404(HiringSemester, 
@@ -702,12 +700,12 @@ def delete_course(request, unit_slug, semester, contract_slug, course_slug):
         course = get_object_or_404(TACourse,
                                      contract=contract,
                                      slug=course_slug)
-        course.delete()
-        messages.add_message(request, messages.SUCCESS, 'Course deleted.')
         l = LogEntry(userid=request.user.username,
                      description="Deleted course %s." % str(course),
                      related_object=course)
         l.save()
+        course.delete()
+        messages.add_message(request, messages.SUCCESS, 'Course deleted.')
         return _contract_redirect(unit_slug, semester, contract_slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)

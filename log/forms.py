@@ -25,6 +25,7 @@ class EventLogFilterForm(forms.Form):
 
 class RequestLogForm(EventLogFilterForm):
     method = forms.ChoiceField(choices=METHOD_CHOICES)
+    age = forms.IntegerField(label='Age (h) ≤ ', initial=2, max_value=7*24)
     username = forms.CharField()
     path = forms.CharField(label='Path contains')
     ip = forms.CharField(label='IP address')
@@ -32,6 +33,7 @@ class RequestLogForm(EventLogFilterForm):
     status_code = forms.IntegerField()
     view_name = forms.CharField(label='View name contains')
 
+    age.widget.attrs.update(size="4")
     username.widget.attrs.update(size="8")
     path.widget.attrs.update(size="20")
     ip.widget.attrs.update(size="15")
@@ -46,8 +48,15 @@ class CeleryTaskForm(EventLogFilterForm):
 
     task.widget.attrs.update(size="15")
 
+
+class MonitoringDataForm(EventLogFilterForm):
+    duration = None
+    metric = forms.CharField(label='Metric')
+
+
 # dict of forms for discovery in log exploration UI
 EVENT_FORM_TYPES = {
     'request': RequestLogForm,
     'task': CeleryTaskForm,
+    'monitoring': MonitoringDataForm,
 }
