@@ -109,18 +109,13 @@ services:
       - elasticsearch
       - memcached
       - mysql
-    healthcheck:
-      test: curl --fail http://localhost:8000/browse/?healthcheck || exit 1
-      timeout: 5s
-      interval: 60s
-      start_period: 5s
     volumes:
       - static:/static:rw
     networks:
       - internal
     deploy:
-      replicas: 2
-
+      replicas: 1
+  
   celerybeat:
     extends: app
     healthcheck:

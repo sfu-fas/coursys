@@ -9,7 +9,8 @@
 
 For mostly-production-like like deployment:
 ```sh
-docker compose -f docker-compose-demo.yml build
+docker compose -f docker-compose-demo.yml pull
+docker compose -f docker-compose-demo.yml build --pull
 docker compose -f docker-compose-demo.yml up -d
 docker compose -f docker-compose-demo.yml run app ./manage.py migrate
 docker compose -f docker-compose-demo.yml run app ./manage.py collectstatic --no-input

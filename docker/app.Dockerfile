@@ -19,6 +19,9 @@ RUN pip install --upgrade pip
 COPY requirements.txt /requirements.txt
 RUN python3 -m pip install -r /requirements.txt
 
+HEALTHCHECK --interval=60s --timeout=5s --start-period=5s \
+  CMD curl --fail http://localhost:8000/browse/?healthcheck || exit 1
+
 COPY . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
