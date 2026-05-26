@@ -262,10 +262,18 @@ if deploy_mode != 'devel'
     command ". /etc/profile.d/coursys-environment.sh; python /coursys/manage.py ping_celery"
   end
   cron "celery restart" do
+    # occasionally restart celery, in case of a lost worker, etc
     user 'root'
     minute '0'
     hour '5,11,17,23'
-    command "systemctl restart celery celerybeat"
+    command "systemctl restart celery"
+  end
+  cron "celerybeat restart" do
+    # celerybeat seems to occasionally hang: restarting fixes it and seems harmless otherwise
+    user 'root'
+    minute '55'
+    hour '*'
+    command "systemctl restart celerybeat"
   end
 
   # nginx setup
