@@ -30,7 +30,7 @@ def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> tu
     Returns: bool if they can/can't have access, and if they can access because of course membership, that Member.
     """
     if userid == NOT_LOGGED_IN:
-        if acl_value in 'ALL':
+        if acl_value == 'ALL':
             return True, None
         else:
             return False, None
@@ -58,7 +58,7 @@ def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -
     Returns: bool if they can/can't have access, and if they can access because of granted permission, that PagePermission.
     """
     if userid == NOT_LOGGED_IN:
-        if acl_value in 'ALL':
+        if acl_value == 'ALL':
             return True, None
         else:
             return False, None
