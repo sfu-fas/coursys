@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
@@ -23,7 +23,7 @@ import json
 NOT_LOGGED_IN = '!'
 
 
-def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> tuple[bool, Optional[Member]]:
+def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> Tuple[bool, Optional[Member]]:
     """
     Is a person with this userid allowed to access a page because they are a Member?
 
@@ -51,7 +51,7 @@ def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> tu
     return False, None
 
 
-def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -> tuple[bool, Optional[PagePermission]]:
+def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -> Tuple[bool, Optional[PagePermission]]:
     """
     Is a person with this userid allowed to access a page because they have a PagePermission?
 
@@ -77,7 +77,7 @@ def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -
     return False, None
 
 
-def _check_allowed(request, offering, acl_value, date=None) -> tuple[bool, Union[None, Member, PagePermission]]:
+def _check_allowed(request, offering, acl_value, date=None) -> Tuple[bool, Union[None, Member, PagePermission]]:
     """
     Check to see if the person is allowed to do this Page action.
 

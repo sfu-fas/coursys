@@ -203,11 +203,15 @@ First, find the desired git commit. That could be done in the github, or in the 
 git log
 ```
 
-That should reveal a commit that you'd like to target, identified by a long hex string.
+That should reveal a commit that you'd like to target, identified by a long hex string. Then you can check out that moment and get things started again.
 ```shell
 sudo -u coursys git checkout 1234567890123456789abcdefabcdef
 make new-code-lite
 ```
 
+Investigate. Fix master.
 
-
+```shell
+sudo -u coursys git checkout master
+make new-code-lite
+```
