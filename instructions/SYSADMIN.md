@@ -194,6 +194,7 @@ sudo -E -u coursys HOME=/home/coursys python3 manage.py runserver
 sudo -E -u coursys HOME=/home/coursys python3 /usr/local/bin/celery -A courses worker -l INFO
 ```
 
+
 ## An Emergency Revert
 
 In the case that something has somehow been merged and deployed, but is failing, it may be necessary to do a quick revert to the previously-good code state.
@@ -210,8 +211,8 @@ make new-code-lite
 ```
 
 Investigate. Fix master.
-
 ```shell
 sudo -u coursys git checkout master
+make pull
 make new-code-lite
 ```
