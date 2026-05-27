@@ -194,6 +194,20 @@ sudo -E -u coursys HOME=/home/coursys python3 manage.py runserver
 sudo -E -u coursys HOME=/home/coursys python3 /usr/local/bin/celery -A courses worker -l INFO
 ```
 
+## An Emergency Revert
+
+In the case that something has somehow been merged and deployed, but is failing, it may be necessary to do a quick revert to the previously-good code state.
+
+First, find the desired git commit. That could be done in the github, or in the local git log:
+```shell
+git log
+```
+
+That should reveal a commit that you'd like to target, identified by a long hex string.
+```shell
+sudo -u coursys git checkout 1234567890123456789abcdefabcdef
+make new-code-lite
+```
 
 
 
