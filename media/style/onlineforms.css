@@ -23,6 +23,11 @@ p.incomplete-warning {
   font-weight: bold;
   color: #f00;
 }
+
+.sheetsub, .sub-summary-text, .assign-comment {
+  overflow-wrap: anywhere;
+}
+
 .assign-comment {
   font-style: italic;
 }
