@@ -1,3 +1,5 @@
+from typing import Optional, Tuple, Union
+
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect
@@ -18,45 +20,64 @@ from urllib.parse import urljoin
 import json
 
 
-def _allowed_member(userid, offering, acl_value):
+NOT_LOGGED_IN = '!'
+
+
+def _allowed_member(userid: str, offering: CourseOffering, acl_value: str) -> Tuple[bool, Optional[Member]]:
     """
     Is a person with this userid allowed to access a page because they are a Member?
+
+    Returns: bool if they can/can't have access, and if they can access because of course membership, that Member.
     """
+    if userid == NOT_LOGGED_IN:
+        if acl_value == 'ALL':
+            return True, None
+        else:
+            return False, None
+
     members = Member.objects.filter(person__userid=userid, offering=offering).exclude(role='DROP')
     if not members:
-        if acl_value == 'ALL':
-            return True
+        if acl_value in ['LOG', 'ALL']:
+            return True, None
         else:
-            return None
+            return False, None
 
     m = members[0]
-    if acl_value == 'ALL':
-        return m
+    if acl_value in ['LOG', 'ALL']:
+        return True, m
     elif m.role in MEMBER_ROLES[acl_value]:
-        return m
+        return True, m
 
-    return None
+    return False, None
 
 
-def _allowed_permission(userid, offering, acl_value):
+def _allowed_permission(userid: str, offering: CourseOffering, acl_value: str) -> Tuple[bool, Optional[PagePermission]]:
     """
     Is a person with this userid allowed to access a page because they have a PagePermission?
+
+    Returns: bool if they can/can't have access, and if they can access because of granted permission, that PagePermission.
     """
+    if userid == NOT_LOGGED_IN:
+        if acl_value == 'ALL':
+            return True, None
+        else:
+            return False, None
+
     pps = PagePermission.objects.filter(person__userid=userid, offering=offering)
     if not pps:
-        if acl_value == 'ALL':
-            return True
+        if acl_value in ['LOG', 'ALL']:
+            return True, None
         else:
-            return None
+            return False, None
 
     p = pps[0]
     if p.role in MEMBER_ROLES[acl_value]:
-        return p
+        return True, p
 
-    return None
+    return False, None
 
 
-def _check_allowed(request, offering, acl_value, date=None):
+def _check_allowed(request, offering, acl_value, date=None) -> Tuple[bool, Union[None, Member, PagePermission]]:
     """
     Check to see if the person is allowed to do this Page action.
 
@@ -65,20 +86,16 @@ def _check_allowed(request, offering, acl_value, date=None):
     If a release date is given and is in the future, acl_value is tightened accordingly.
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
-
-    if request.user.is_authenticated:
-        userid = request.user.username
-    else:
-        userid = '!'
+    userid = request.user.username if request.user.is_authenticated else NOT_LOGGED_IN
 
     # first option: can access because of Membership.
-    m = _allowed_member(userid, offering, acl_value)
-    if m and isinstance(m, Member):
-        return m
+    allowed, member = _allowed_member(userid, offering, acl_value)
+    if allowed:
+        return allowed, member
 
     # next option: can access because of a PagePermission
-    p = _allowed_permission(userid, offering, acl_value)
-    return p
+    allowed, perm = _allowed_permission(userid, offering, acl_value)
+    return allowed, perm
 
 
 def _forbidden_response(request, visible_to):
@@ -97,20 +114,24 @@ def _forbidden_response(request, visible_to):
 
 def index_page(request, course_slug):
     """ 
-    Index page for a course's site: 'slug/' === 'slug/Index'
+    Index page for a course's site: 'slug/pages/' === 'slug/pages/Index'
     """
     return view_page(request, course_slug, 'Index')
+
 
 def all_pages(request, course_slug):
     """
     List of all pages (that this user can view) for this offering
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    member = _check_allowed(request, offering, 'ALL')
+    allowed, member = _check_allowed(request, offering, 'ALL')
     
-    if member and member!=True:
+    if allowed and member:
         pages = Page.objects.filter(offering=offering, can_read__in=ACL_ROLES[member.role])
         can_create = member.role in MEMBER_ROLES[offering.page_creators()]
+    elif allowed and request.user.is_authenticated:
+        pages = Page.objects.filter(offering=offering, can_read='LOG')
+        can_create = False
     else:
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
@@ -120,24 +141,24 @@ def all_pages(request, course_slug):
     context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
 
+
 def view_page(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
         # missing page: do something more clever than the standard 404
-        member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
-        can_create = bool(member)
+        can_create, member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context, status=404)
-    else:
-        page = pages[0]
 
+    page = pages[0]
     version = page.current_version()
     
-    member = _check_allowed(request, offering, page.can_read, page.releasedate())
+    allowed, member = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
-    if not member:
-        if _check_allowed(request, offering, page.can_read, None):
+    if not allowed:
+        allowed_later, _ = _check_allowed(request, offering, page.can_read, None)
+        if allowed_later:
             # would be allowed without the date restriction: report that nicely
             context = {'offering': offering, 'page_label': page_label, 'releasedate': page.releasedate(),
                        'page_label': page.label}
@@ -146,8 +167,7 @@ def view_page(request, course_slug, page_label):
         return _forbidden_response(request, page.get_can_read_display())
 
     if request.user.is_authenticated:
-        editor = _check_allowed(request, offering, page.can_write, page.editdate())
-        can_edit = bool(editor)
+        can_edit, _ = _check_allowed(request, offering, page.can_write, page.editdate())
     else:
         can_edit = False
 
@@ -159,8 +179,7 @@ def view_page(request, course_slug, page_label):
         slug, label = page.config['migrated_to']
         url = reverse('offering:pages:view_page', kwargs={'course_slug': slug, 'page_label': label})
 
-        member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
-        can_create = bool(member)
+        can_create, _ = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         if can_create:
             # show these users a message so they can see what's happening
             redirect_url = url
@@ -171,8 +190,7 @@ def view_page(request, course_slug, page_label):
     if version.redirect:
         # this is a redirection stub: honour it.
         url = urljoin(page.get_absolute_url(), version.redirect)
-        member = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
-        can_create = bool(member)
+        can_create, _ = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
         if can_create:
             # show these users a message so they can see what's happening
             redirect_url = url
@@ -194,10 +212,14 @@ def view_page(request, course_slug, page_label):
                'can_edit': can_edit, 'is_index': is_index, 'redirect_url': redirect_url}
     return render(request, 'pages/view_page.html', context)
 
+
 def view_file(request, course_slug, page_label):
     return _get_file(request, course_slug, page_label, 'inline')
+
+
 def download_file(request, course_slug, page_label):
     return _get_file(request, course_slug, page_label, 'attachment')
+
 
 def _get_file(request, course_slug, page_label, disposition):
     """
@@ -210,9 +232,9 @@ def _get_file(request, course_slug, page_label, disposition):
     if not version.is_filepage():
         return NotFoundResponse(request)
     
-    member = _check_allowed(request, offering, page.can_read, page.releasedate())
+    allowed, _ = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
-    if not member:
+    if not allowed:
         return _forbidden_response(request, page.get_can_read_display())
     
     resp = HttpResponse(version.file_attachment.chunks(), content_type=version.file_mediatype)
@@ -225,9 +247,9 @@ def _get_file(request, course_slug, page_label, disposition):
 def page_history(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
-    member = _check_allowed(request, offering, page.can_write, page.editdate())
+    allowed, _ = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
-    if not member:
+    if not allowed:
         return _forbidden_response(request, page.get_can_write_display())
     
     versions = PageVersion.objects.filter(page=page).order_by('-created_at')
@@ -239,9 +261,9 @@ def page_history(request, course_slug, page_label):
 def page_version(request, course_slug, page_label, version_id):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
-    member = _check_allowed(request, offering, page.can_write, page.editdate())
+    allowed, _ = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
-    if not member:
+    if not allowed:
         return _forbidden_response(request, page.get_can_write_display())
     
     version = get_object_or_404(PageVersion, page=page, id=version_id)
@@ -257,9 +279,11 @@ def page_version(request, course_slug, page_label, version_id):
 def new_page(request, course_slug):
     return _edit_pagefile(request, course_slug, page_label=None, kind="page")
 
+
 @login_required
 def new_file(request, course_slug):
     return _edit_pagefile(request, course_slug, page_label=None, kind="file")
+
 
 @login_required
 def edit_page(request, course_slug, page_label):
@@ -272,17 +296,18 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     if request.method == 'POST' and 'delete' in request.POST and request.POST['delete'] == 'yes':
         return _delete_pagefile(request, course_slug, page_label, kind)
+
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         if page_label:
             page = get_object_or_404(Page, offering=offering, label=page_label)
             version = page.current_version()
-            member = _check_allowed(request, offering, page.can_write, page.editdate())
+            allowed, member = _check_allowed(request, offering, page.can_write, page.editdate())
             old_label = page.label
         else:
             page = None
             version = None
-            member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
+            allowed, member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
             old_label = None
 
         if isinstance(member, PagePermission):
@@ -299,7 +324,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             Form = EditFileForm
         
         # check that we have an allowed member of the course (and can continue)
-        if not member:
+        if not allowed:
             return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
         restricted = False
         if member.role == 'STUD':
@@ -397,9 +422,12 @@ def _delete_pagefile(request, course_slug, page_label, kind):
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         page = get_object_or_404(Page, offering=offering, label=page_label)
         version = page.current_version()
-        member = _check_allowed(request, offering, page.can_write, page.editdate())
-        if not member:
+        allowed, member = _check_allowed(request, offering, page.can_write, page.editdate())
+        if not allowed:
             return ForbiddenResponse(request, 'Not allowed to edit this '+kind+'.')
+        if isinstance(member, PagePermission):
+            return ForbiddenResponse(request, 'Editing of pages by additional-permission holders is not implemented. Sorry')
+        
         can_create = member.role in MEMBER_ROLES[offering.page_creators()]
         if not can_create:
             return ForbiddenResponse(request, 'Not allowed to delete pages in for this offering (must have page-creator permission).')
@@ -494,10 +522,10 @@ def _pages_from_json(request, offering, data):
             fake_request.user.username = user.userid
 
             if old_ver:
-                m = _check_allowed(fake_request, offering, page.can_write, page.editdate())
+                allowed, m = _check_allowed(fake_request, offering, page.can_write, page.editdate())
             else:
-                m = _check_allowed(fake_request, offering, offering.page_creators())
-            if not m:
+                allowed, m = _check_allowed(fake_request, offering, offering.page_creators())
+            if not allowed:
                 raise ValidationError('You can\'t edit page #%i.' % (i))
             
             # handle Page attributes
