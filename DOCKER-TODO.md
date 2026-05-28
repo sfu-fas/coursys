@@ -11,12 +11,22 @@ For mostly-production-like like deployment:
 ```sh
 docker compose -f docker-compose-demo.yml pull
 docker compose -f docker-compose-demo.yml build --pull
-docker compose -f docker-compose-demo.yml up -d
+docker compose -f docker-compose-demo.yml up -d mysql elasticsearch
 docker compose -f docker-compose-demo.yml run app ./manage.py migrate
 docker compose -f docker-compose-demo.yml run app ./manage.py collectstatic --no-input
 docker compose -f docker-compose-demo.yml run app ./manage.py loaddata fixtures/*
 docker compose -f docker-compose-demo.yml run app ./manage.py update_index
 docker compose -f docker-compose-demo.yml up --remove-orphans -d
+```
+
+To update:
+```sh
+docker compose -f docker-compose-demo.yml build
+docker compose -f docker-compose-demo.yml up -d app celery
+# or with https://github.com/wowu/docker-rollout
+docker compose -f docker-compose-demo.yml build
+docker rollout -f docker-compose-demo.yml --wait-after-healthy 5 app
+docker rollout -f docker-compose-demo.yml --wait-after-healthy 5 celery
 ```
 
 To destroy:

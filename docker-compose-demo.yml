@@ -114,7 +114,7 @@ services:
     networks:
       - internal
     deploy:
-      replicas: 1
+      replicas: 2
   
   celerybeat:
     extends: app
