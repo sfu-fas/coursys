@@ -1,0 +1,6 @@
+services:
+
+  csrpt-test:
+    build:
+        context: .
+        dockerfile: docker/csrpt-test.Dockerfile
