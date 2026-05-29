@@ -59,3 +59,23 @@ docker exec $(docker ps -q -f name=coursys_app | head -n1) ./manage.py update_in
 ```sh
 docker service ls
 ```
+
+
+## CSRPT Authentication
+
+Things I have learned...
+
+* In `coredata/queries.py`, we use `pyodbc.connect` to connect to CSRPT.
+* `pyodbc` uses the FreeTDS driver, which knows how to connect to SQL Server in general.
+    * Connection string is essentially: `"DRIVER={FreeTDS};SERVER=[redacted].dc.sfu.ca';PORT=1433;DATABASE=CSRPT;Trusted_Connection=Yes"`
+* In the pyodbc connection string, "`Trusted_Connection=Yes`" indicates that it should use current "user account", which I believe is where Kerberos comes into the picture.
+* Our `kinit.sh` that does the Kerberos auth...
+    * Runs several commands in `ktutil`. That creates `~/kerberos/adsfu.keytab`.
+    * Runs `kinit ${USERNAME}@AD.SFU.CA -k -t ~/kerberos/adsfu.keytab` to get a ticket that (seems to be what) is actually used to authenticate.
+    * Running `kinit` creates a file `/tmp/krb5cc_${UID}`.
+* That `kinit` command is run in `kinit.sh` and in a cron job to refresh the ticket, updating the file in `/tmp` but **not** the `adsfu.keytab`.
+* I infer that FreeTDS must read that file from `/tmp` to authenticate.
+* Possibly we can copy/mount the `~/kerberos` contents into the container, and run the `kinit` as part of the container startup?
+* `/etc/krb5.conf` has something to do with all of this, probably.
+* Possibly helpful:
+    * https://stackoverflow.com/questions/56382414/unable-to-connect-to-microsoft-sql-server-inside-docker-container-using-freetds

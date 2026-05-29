@@ -29,5 +29,9 @@ COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 ARG N_WORKERS=2
 ENV N_WORKERS=${N_WORKERS}
 
+COPY docker/files/odbc.ini /etc/odbc.ini
+COPY docker/files/krb5.conf /etc/krb5.conf
+COPY docker/files/odbcinst.ini /etc/odbcinst.ini
+
 USER coursys
 CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
