@@ -1,21 +1,24 @@
-FROM python:3.13
+FROM ubuntu:26.04
+
+RUN sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu/http:\/\/mirror.rcg.sfu.ca\/mirror\/ubuntu/' /etc/apt/sources.list.d/ubuntu.sources
+RUN sed -i -e 's/http:\/\/security.ubuntu.com\/ubuntu/http:\/\/mirror.rcg.sfu.ca\/mirror\/ubuntu/' /etc/apt/sources.list.d/ubuntu.sources
 
 RUN apt-get update \
+  && apt-get install -y python3-pip python3 \
   && apt-get install -y unixodbc-dev krb5-user tdsodbc freetds-bin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -s /bin/bash coursys
+RUN useradd --uid 12345 -s /bin/bash coursys
 
-RUN pip install --upgrade pip
+#RUN pip install --upgrade pip
 COPY requirements.txt /requirements.txt
-RUN python3 -m pip install -r /requirements.txt
+#RUN python3 -m pip install -r /requirements.txt
 
 COPY docker/files/odbc.ini /etc/odbc.ini
 COPY docker/files/krb5.conf /etc/krb5.conf
 COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 
 USER coursys
-
 CMD tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
 
