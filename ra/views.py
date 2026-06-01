@@ -232,6 +232,10 @@ class RANewRequestWizard(SessionWizardView):
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
             context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
+        if self.steps.current == 'research_assistant':
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
+            usra = cleaned_data_intro.get('usra', False)
+            context.update({'usra': usra})
         if reappoint:
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
@@ -478,6 +482,10 @@ class RAEditRequestWizard(SessionWizardView):
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
             context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
+        if self.steps.current == 'research_assistant':
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
+            usra = cleaned_data_intro.get('usra', False)
+            context.update({'usra': usra})
         ra_slug = self.kwargs['ra_slug']
         req = _edit_req(self.request, ra_slug)
         context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'get_hiring_category_title': req.get_hiring_category_title(), 'admin': _has_admin_role(self.request), 'status': req.status()})
