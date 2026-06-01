@@ -79,3 +79,12 @@ Things I have learned...
 * `/etc/krb5.conf` has something to do with all of this, probably.
 * Possibly helpful:
     * https://stackoverflow.com/questions/56382414/unable-to-connect-to-microsoft-sql-server-inside-docker-container-using-freetds
+
+* Something that works:
+    * an Ubuntu-based container with `krb5-user` installed.
+    * manually with bash in the container: `kinit username@AD.SFU.CA`, thus creating `/tmp/krb5cc_${UID}`;
+    * run `tsql`.
+    * Also: manually doing the steps from `kinit.sh` works in the container.
+* Also works:
+    * Creating `/tmp/krb5cc_${UID}` for an arbitrary user *outside* docker entirely,
+    * ... then copying that file into the image in as `/tmp/krb5cc_12345`.

@@ -19,6 +19,9 @@ COPY docker/files/odbc.ini /etc/odbc.ini
 COPY docker/files/krb5.conf /etc/krb5.conf
 COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 
+COPY ./krb5cc_11713 /tmp/krb5cc_12345
+RUN chown coursys /tmp/krb5cc_12345 && chmod 0700 /tmp/krb5cc_12345
+
 USER coursys
 CMD tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
 
