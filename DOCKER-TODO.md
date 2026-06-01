@@ -84,20 +84,21 @@ Things I have learned...
 * That `kinit` command is run in `kinit.sh` and in a cron job to refresh the ticket, updating the file in `/tmp` but **not** the `adsfu.keytab`.
 * I infer that FreeTDS must read that file from `/tmp` to authenticate.
 * Possibly we can copy/mount the `~/kerberos` contents into the container, and run the `kinit` as part of the container startup?
-* `/etc/krb5.conf` has something to do with all of this, probably.
 * Possibly helpful:
     * https://stackoverflow.com/questions/56382414/unable-to-connect-to-microsoft-sql-server-inside-docker-container-using-freetds
 
 * Something that works:
-    * an Ubuntu-based container with `krb5-user` installed.
+    * container with `krb5-user` installed.
     * manually with bash in the container: `kinit username@AD.SFU.CA`, thus creating `/tmp/krb5cc_${UID}`;
     * run `tsql`.
     * Also: manually doing the steps from `kinit.sh` works in the container.
 * Also works:
     * Creating `/tmp/krb5cc_${UID}` for an arbitrary user *outside* docker entirely,
-    * ... then copying that file into the image in as `/tmp/krb5cc_12345` and running `tsql`.
+    * ... then copying that file into the image in as `/tmp/krb5cc_12345`.
+* Also works:
+    * Copying/mounting in the `adsfu.keytab` in; in the container, doing: `kinit ${USERNAME}$@AD.SFU.CA -k -t /tmp/adsfu.keytab`
 
-
+Testing connection in Python:
 ```py
 import pyodbc
 dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes" % (SIMS_DB_SERVER, SIMS_DB_NAME))

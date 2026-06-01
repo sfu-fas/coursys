@@ -2,5 +2,7 @@ services:
 
   csrpt-test:
     build:
-        context: .
-        dockerfile: docker/csrpt-test.Dockerfile
+      context: .
+      dockerfile: docker/csrpt-test.Dockerfile
+    volumes:
+      - /tmp/krb5cc_11713:/tmp/krb5cc_1234:ro
