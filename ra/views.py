@@ -1434,7 +1434,7 @@ def download_admin(request):
 # altered RADataJson, to make a very similar browse page, but for RARequests
 class RARequestDataJson(BaseDatatableView):
     model = RARequest
-    columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay']
+    columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay', 'hiring_category']
     order_columns = [
         ['person__last_name', 'person__first_name'],
         ['supervisor__last_name', 'supervisor__first_name'],
@@ -1444,6 +1444,7 @@ class RARequestDataJson(BaseDatatableView):
         'start_date',
         'end_date',
         'total_pay',
+        'hiring_category',
     ]
     max_display_length = 500
 
@@ -1506,6 +1507,11 @@ class RARequestDataJson(BaseDatatableView):
             return ra.get_funds()
         elif column == 'project':
             return ra.get_projects()
+        elif column == 'hiring_category':
+            hiring_category = ra.hiring_category
+            if ra.usra:
+                hiring_category += " (USRA)"
+            return hiring_category
 
         return str(getattr(ra, column))
 
