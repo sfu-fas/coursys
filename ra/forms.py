@@ -90,7 +90,7 @@ MIN_BIWEEKLY_HOURS = 4
 CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
 ENSC_CONTACT = "ensc-finance@sfu.ca"
-SEE_CONTACT = "fas_admin_manager@sfu.ca"
+SEE_CONTACT = "fas_sry_admin@sfu.ca"
 DEANS_CONTACT = "fas_budget_manager@sfu.ca"
 # intro contacts
 URA_CONTACT = "fas_academic_relations@sfu.ca"

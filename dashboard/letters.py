@@ -1198,6 +1198,7 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(10.6*mm, -8*mm, "Contact Email:")
 
         email = None
+        name = None
         unit = self.ra.unit.label
         if graduate_research_assistant:
             if unit == "CMPT":
@@ -1208,6 +1209,7 @@ class RARequestForm(SFUMediaMixin):
                 email = ENSC_CONTACT
             elif unit == "SEE":
                 email = SEE_CONTACT
+                name = "Manager, Operations & Administrative Services"
             elif unit == "APSC":
                 email = FAS_CONTACT
         elif research_assistant or non_continuing:
@@ -1216,7 +1218,10 @@ class RARequestForm(SFUMediaMixin):
         self._box_entry(32*mm, 22*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 14*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 6*mm, 40*mm, 6*mm, content='')
-        self._box_entry(32*mm, -2*mm, 60*mm, 6*mm, content=email)
+        if name:
+            self._box_entry(32*mm, -2*mm, 75*mm, 6*mm, content=name)
+        else:
+            self._box_entry(32*mm, -2*mm, 60*mm, 6*mm, content=email)
         self._box_entry(32*mm, -10*mm, 60*mm, 6*mm, content=email)
 
         self.c.setFont("Helvetica", 8)
