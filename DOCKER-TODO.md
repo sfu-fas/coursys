@@ -1,8 +1,16 @@
+# TODO
+
 * kinit auth piped in somehow
 * submission dir
 * DB backup dir
 * maintenance mode/503 handling
 * logrotate
+
+# Notes
+
+## Build Network Access
+
+We have an HTTP proxy for outside works access (git clones, etc). See: https://docs.docker.com/engine/cli/proxy/#configure-the-docker-client
 
 
 ## Compose Notes
@@ -88,3 +96,11 @@ Things I have learned...
 * Also works:
     * Creating `/tmp/krb5cc_${UID}` for an arbitrary user *outside* docker entirely,
     * ... then copying that file into the image in as `/tmp/krb5cc_12345` and running `tsql`.
+
+
+```py
+import pyodbc
+dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes" % (SIMS_DB_SERVER, SIMS_DB_NAME))
+c = dbconn.execute("SELECT * FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'", ())
+list(c)
+```

@@ -12,6 +12,11 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update \
+  && apt-get install -y libmariadb-dev pkg-config \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN useradd --uid 12345 -s /bin/bash coursys
 
 #RUN pip install --upgrade pip
@@ -25,6 +30,6 @@ COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 COPY ./krb5cc_11713 /tmp/krb5cc_12345
 RUN chown coursys /tmp/krb5cc_12345 && chmod 0700 /tmp/krb5cc_12345
 
-USER coursys
-CMD tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
 
+USER coursys
+#CMD tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
