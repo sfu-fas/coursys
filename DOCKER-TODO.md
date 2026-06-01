@@ -87,4 +87,4 @@ Things I have learned...
     * Also: manually doing the steps from `kinit.sh` works in the container.
 * Also works:
     * Creating `/tmp/krb5cc_${UID}` for an arbitrary user *outside* docker entirely,
-    * ... then copying that file into the image in as `/tmp/krb5cc_12345`.
+    * ... then copying that file into the image in as `/tmp/krb5cc_12345` and running `tsql`.
