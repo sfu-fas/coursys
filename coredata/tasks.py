@@ -84,7 +84,7 @@ def regular_backup():
     backup_database.si().apply_async()
 
 
-@task()
+@task(queue='batch')
 def backup_database():
     call_command('backup_db', clean_old=True)
 

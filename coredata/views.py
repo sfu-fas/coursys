@@ -470,7 +470,7 @@ def admin_panel(request):
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
         elif request.GET['content'] == 'environ':
-            environ = [(k,v) for k,v in os.environ.items()]
+            environ = [(k,v) for k,v in os.environ.items() if 'PASS' not in k]
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
         elif request.GET['content'] == 'throw':

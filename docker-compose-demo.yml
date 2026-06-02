@@ -6,9 +6,9 @@ services:
     volumes:
       - mysql:/var/lib/mysql:rw
     environment:
-      - MYSQL_USER=coursysuser
-      - MYSQL_PASSWORD=coursyspassword
-      - MYSQL_DATABASE=coursys
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
     healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
@@ -34,11 +34,11 @@ services:
   rabbitmq:
     image: 'rabbitmq:3'
     volumes:
-      - rabbitmq:/var/lib/rabbitmq:rw
+      - /data/rabbitmq:/var/lib/rabbitmq:rw,Z
     environment:
-      - RABBITMQ_DEFAULT_USER=coursys
-      - RABBITMQ_DEFAULT_PASS=rabbitmq_password
-      - RABBITMQ_DEFAULT_VHOST=myvhost
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       timeout: 30s
@@ -49,11 +49,11 @@ services:
 
   elasticsearch:
     image: 'elasticsearch:5.6.16'
-    ports:
-      - "9200"
-      - "9300"
+    # ports:
+    #   - "9200"
+    #   - "9300"
     volumes:
-      - elasticsearch:/usr/share/elasticsearch/data:rw
+      - elasticsearch:/usr/share/elasticsearch/data:rw,Z
     environment:
       - discovery.type=single-node
       - allocation.disk.threshold_enabled=false
@@ -92,7 +92,8 @@ services:
       start_period: 5s
     volumes:
       - static:/static:ro
-      - ./nginx-logs:/nginx-logs
+      - /data/nginx_logs:/nginx-logs:rw,Z
+      - /data/nginx-config:/nginx-config:ro,z
     networks:
       - internal
       - external
@@ -102,7 +103,9 @@ services:
       context: .
       dockerfile: docker/app.Dockerfile
       args:
-        - DEPLOY_MODE=demo
+        - UID=888
+        - DEPLOY_MODE=${DEPLOY_MODE}
+        - N_WORKERS=5
     init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     depends_on:
       - rabbitmq
@@ -111,31 +114,55 @@ services:
       - mysql
     volumes:
       - static:/static:rw
+      - /data/submitted_files:/submitted_files:rw,z
     networks:
       - internal
+    environment:
+      - DB_HOST
+      - DB_USER
+      - DB_PASSWORD
+      - DB_NAME
+      - RABBITMQ_USER
+      - RABBITMQ_PASSWORD
+      - RABBITMQ_VHOST
     deploy:
-      replicas: 2
+      replicas: 1
   
-  celerybeat:
+  celery-fast:
     extends: app
+    healthcheck:
+      test: curl --fail http://localhost:9000/ || exit 1
+    deploy:
+      replicas: 1
+    command: ./docker/celery-worker.sh fast 2
+
+  celery-batch:
+    extends: celery-fast
+    command: ./docker/celery-worker.sh batch 2
+    volumes:
+      - /data/db_backups:/db_backups:rw,Z
+      
+  celery-email:
+    extends: celery-fast
+    command: ./docker/celery-worker.sh email 2
+  celery-photo:
+    extends: celery-fast
+    command: ./docker/celery-worker.sh photo 5
+  celery-sims:
+    extends: celery-fast
+    command: ./docker/celery-worker.sh sims 2
+
+  celerybeat:
+    extends: celery-fast
     healthcheck:
       test: echo  # I see no meaningful check, except existing
     deploy:
       replicas: 1
     command: celery -A courses beat --loglevel INFO
 
-  celery:
-    extends: app
-    healthcheck:
-      test: curl --fail http://localhost:9000/ || exit 1
-    deploy:
-      replicas: 2
-    command: celery -A courses worker --loglevel INFO --concurrency 1
-
 volumes:
-  static:
   mysql:
-  rabbitmq:
+  static:
   elasticsearch:
 
 networks:

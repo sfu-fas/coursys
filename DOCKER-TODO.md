@@ -3,6 +3,9 @@
 * kinit auth piped in somehow
 * submission dir
 * DB backup dir
+* log files. Proposal:
+    * nginx https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
+    * everything else to syslog
 * maintenance mode/503 handling
 * logrotate
 
@@ -12,36 +15,44 @@
 
 We have an HTTP proxy for outside works access (git clones, etc). See: https://docs.docker.com/engine/cli/proxy/#configure-the-docker-client
 
-
 ## Compose Notes
 
 For mostly-production-like like deployment:
 ```sh
-docker compose -f docker-compose-demo.yml pull
-docker compose -f docker-compose-demo.yml build --pull
-docker compose -f docker-compose-demo.yml up -d mysql elasticsearch
-docker compose -f docker-compose-demo.yml run app ./manage.py migrate
-docker compose -f docker-compose-demo.yml run app ./manage.py collectstatic --no-input
-docker compose -f docker-compose-demo.yml run app ./manage.py loaddata fixtures/*
-docker compose -f docker-compose-demo.yml run app ./manage.py update_index
-docker compose -f docker-compose-demo.yml up --remove-orphans -d
+PREFIX=/data/
+sudo install -o 888 -d ${PREFIX}submitted_files ${PREFIX}db_backups ${PREFIX}dynamic-config
+sudo install -o root -d ${PREFIX}rabbitmq
+sudo install -o 101 -g 101 -d ${PREFIX}nginx_logs ${PREFIX}elasticsearch
+sudo chcon -R -t httpd_log_t ${PREFIX}nginx_logs
+sudo restorecon -Rv ${PREFIX}nginx_logs
+DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.yml"
+DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
+${DOCKERCOMPOSE} pull
+${DOCKERCOMPOSE} build
+${DOCKERCOMPOSE} up -d mysql elasticsearch
+${DOCKERCOMPOSE} run app ./manage.py migrate
+${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
+${DOCKERCOMPOSE} run app ./manage.py loaddata fixtures/*
+${DOCKERCOMPOSE} run app ./manage.py update_index
+${DOCKERCOMPOSE} up --remove-orphans -d
 ```
 
 To update:
 ```sh
-docker compose -f docker-compose-demo.yml build
-docker compose -f docker-compose-demo.yml up -d app celery
+${DOCKERCOMPOSE} build --pull
+${DOCKERCOMPOSE} up -d app celery
 # or with https://github.com/wowu/docker-rollout
-docker compose -f docker-compose-demo.yml build
-docker rollout -f docker-compose-demo.yml --wait-after-healthy 5 app
-docker rollout -f docker-compose-demo.yml --wait-after-healthy 5 celery
+${DOCKERCOMPOSE} build --pull
+${DOCKERROLLOUT} --wait-after-healthy 5 app
+${DOCKERCOMPOSE} up -d "celery*"
 ```
 
 To destroy:
 ```sh
-docker compose -f docker-compose-demo.yml stop
-docker compose -f docker-compose-demo.yml rm
+${DOCKERCOMPOSE} stop
+${DOCKERCOMPOSE} rm
 docker system prune
+#docker volume prune -a
 ```
 
 
