@@ -7,6 +7,7 @@ USER_HOME=/home/${USERNAME}
 
 #yum -q upgrade -y
 
+timedatectl set-timezone America/Vancouver
 [ -f /usr/bin/pip3 ] || yum install -y python3-pip
 [ -f /usr/bin/git ] || yum install -y git
 [ -f /usr/bin/docker ] || yum install -y docker docker-compose docker-buildx

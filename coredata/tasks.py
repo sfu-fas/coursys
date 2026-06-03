@@ -89,6 +89,12 @@ def backup_database():
     call_command('backup_db', clean_old=True)
 
 
+@task(queue='batch')
+def check_db_backup_create(backup_dir):
+    from coredata.panel import check_file_create
+    return check_file_create(backup_dir)
+
+
 @task()
 def check_sims_connection():
     if settings.DISABLE_REPORTING_DB:

@@ -40,7 +40,6 @@ sys.path.append( os.path.join(BASE_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
     ('Renee Chong', 'renee_chong@sfu.ca'),
 )
@@ -325,7 +324,7 @@ if USE_CELERY:
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
     CELERY_ENABLE_UTC = False
-    CELERY_TIMEZONE = 'UTC'
+    CELERY_TIMEZONE = TIME_ZONE
     CELERY_TASK_ALWAYS_EAGER = False
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'

@@ -28,7 +28,7 @@ django-compressor==4.5.1
 django-npm==1.0.1
 #django-cache-utils==0.7.2
 git+https://github.com/gregbaker/django-cache-utils@e6a04c4
-celery==5.5.3
+celery==5.6.3
 kombu  # let celery choose the version
 django-celery-email==3.0.0
 django_celery_beat==2.8.1

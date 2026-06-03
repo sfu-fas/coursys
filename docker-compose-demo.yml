@@ -10,6 +10,7 @@ services:
       - MYSQL_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    restart: unless-stopped
     healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       timeout: 5s
@@ -22,6 +23,7 @@ services:
     image: 'rnwood/smtp4dev'
     ports:
       - "8025:80"
+    restart: unless-stopped
     healthcheck:
       test: curl --fail http://localhost:80/ || exit 1
       timeout: 5s
@@ -34,11 +36,12 @@ services:
   rabbitmq:
     image: 'rabbitmq:3'
     volumes:
-      - /data/rabbitmq:/var/lib/rabbitmq:rw,Z
+      - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
       - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
+    restart: unless-stopped
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       timeout: 30s
@@ -53,12 +56,13 @@ services:
     #   - "9200"
     #   - "9300"
     volumes:
-      - elasticsearch:/usr/share/elasticsearch/data:rw,Z
+      - elasticsearch5:/usr/share/elasticsearch/data:rw
     environment:
       - discovery.type=single-node
       - allocation.disk.threshold_enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+    restart: unless-stopped
     healthcheck:
       test: curl -s http://localhost:9200 >/dev/null || exit 1
       timeout: 30s
@@ -69,6 +73,7 @@ services:
 
   memcached:
     image: 'memcached:1-alpine'
+    restart: unless-stopped
     healthcheck:
       test: echo "version" | nc -vn -w 1 127.0.0.1 11211
       timeout: 5s
@@ -85,6 +90,7 @@ services:
       - "80:80"
     depends_on:
       - app
+    restart: unless-stopped
     healthcheck:
       test: curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
       timeout: 5s
@@ -105,7 +111,7 @@ services:
       args:
         - UID=888
         - DEPLOY_MODE=${DEPLOY_MODE}
-        - N_WORKERS=5
+        - N_WORKERS=3
     init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     depends_on:
       - rabbitmq
@@ -115,6 +121,7 @@ services:
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
+    restart: unless-stopped
     networks:
       - internal
     environment:
@@ -163,7 +170,7 @@ services:
 volumes:
   mysql:
   static:
-  elasticsearch:
+  elasticsearch5:
 
 networks:
   internal:

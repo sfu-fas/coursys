@@ -39,7 +39,7 @@ def _certificate_expiry(domain: str) -> datetime.datetime:
     return parsedate_to_datetime(cert['notAfter'])
 
 
-def _check_file_create(directory):
+def check_file_create(directory):
     """
     Check that files can be created in the given directory.
 
@@ -123,6 +123,7 @@ def deploy_checks(request=None):
 
         CORRECT_CHARSET = 'utf8mb4'
         CORRECT_COLLATION = 'utf8mb4_unicode_ci'
+        JSONFIELD__COLLATION = 'utf8mb4_bin'
         db_name = settings.DATABASES['default']['NAME']
 
         with connection.cursor() as cursor:
@@ -150,13 +151,13 @@ def deploy_checks(request=None):
                                    'table %s has incorrect CHARACTER SET and COLLATION: consider "ALTER TABLE %s CHARACTER SET=%s COLLATE=%s;"'
                                    % (table, table, CORRECT_CHARSET, CORRECT_COLLATION)))
 
-            cursor.execute('''SELECT table_name, column_name, character_set_name, collation_name
+            cursor.execute('''SELECT table_name, character_set_name, collation_name
                 FROM information_schema.`COLUMNS`
                 WHERE table_schema=%s
                     AND (character_set_name IS NOT NULL OR collation_name IS NOT NULL)
-                    AND (character_set_name!=%s OR collation_name!=%s);
-                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION))
-            for table, column, charset, collation in cursor.fetchall():
+                    AND (character_set_name!=%s OR (collation_name!=%s AND collation_name!=%s));
+                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION, JSONFIELD__COLLATION))
+            for table, charset, collation in cursor.fetchall():
                 failed.append(('MySQL database charset',
                                'table %s has incorrect CHARACTER SET and COLLATION on a column (%s and %s): consider "ALTER TABLE %s CONVERT TO CHARACTER SET %s COLLATE %s;"'
                                % (table, charset, collation, table, CORRECT_CHARSET, CORRECT_COLLATION)))
@@ -326,16 +327,29 @@ def deploy_checks(request=None):
 
     # file creation in the necessary places
     dirs_to_check = [
-        (settings.DB_BACKUP_DIR, 'DB backup dir'),
         (settings.SUBMISSION_PATH, 'submitted files path'),
         (os.path.join(settings.COMPRESS_ROOT, 'CACHE'), 'compressed media root'),
     ]
     for directory, label in dirs_to_check:
-        res = _check_file_create(directory)
+        res = check_file_create(directory)
         if res is None:
             passed.append(('File creation in ' + label, 'okay'))
         else:
             failed.append(('File creation in ' + label, res))
+    
+    # DB backup directory may only be accessible from that celery worker: that's okay.
+    if settings.USE_CELERY:
+        from coredata.tasks import check_db_backup_create
+        task = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
+        res = task.get()
+    else:
+        res = check_file_create(settings.DB_BACKUP_DIR)
+    label = 'DB backup dir'
+    if res is None:
+        passed.append(('File creation in ' + label, 'okay'))
+    else:
+        failed.append(('File creation in ' + label, res))
+
 
     # space in /tmp
     tmp_free = psutil.disk_usage('/tmp').free/1024/1024/1024

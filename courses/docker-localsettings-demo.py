@@ -18,5 +18,6 @@ EMAIL_HOST = 'smtp4dev'
 MOSS_DISTRIBUTION_PATH = './moss'
 
 SUBMISSION_PATH = '/submitted_files'
+DB_BACKUP_DIR = '/db_backups'
 MORE_ALLOWED_HOSTS = ['localhost:8080']
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
