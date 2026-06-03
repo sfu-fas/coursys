@@ -5,12 +5,19 @@ USERNAME=coursys
 USER_UID=888
 USER_HOME=/home/${USERNAME}
 
-#yum -q upgrade -y
+# In a Vagrant VM, consider:
+# sudo parted /dev/sda "resizepart 3 100%"
+# sudo btrfs filesystem resize max /
+
+yum -q upgrade -y
+
+#dnf install -y dnf-plugins-core
+(dnf repolist | grep -q "^docker-ce-stable ") || dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 
 timedatectl set-timezone America/Vancouver
-[ -f /usr/bin/pip3 ] || yum install -y python3-pip
-[ -f /usr/bin/git ] || yum install -y git
-[ -f /usr/bin/docker ] || yum install -y docker docker-compose docker-buildx
+#[ -f /usr/bin/pip3 ] || yum install -y python3-pip
+[ -f /usr/bin/git ] || dnf install -y git
+[ -f /usr/bin/docker ] || dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 #[ -f /usr/bin/mariadb ] || yum install -y mariadb-client-utils
 #[ -f /usr/bin/nginx ] || yum install -y nginx
 

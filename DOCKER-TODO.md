@@ -20,8 +20,8 @@ We have an HTTP proxy for outside works access (git clones, etc). See: https://d
 For mostly-production-like deployment:
 ```sh
 PREFIX=/data/
-sudo install -o 888 -d ${PREFIX}submitted_files ${PREFIX}db_backups ${PREFIX}dynamic-config
 sudo install -o root -d ${PREFIX}rabbitmq3
+sudo install -o 888 -d ${PREFIX}submitted_files ${PREFIX}db_backups ${PREFIX}dynamic-config
 sudo install -o 101 -g 101 -d ${PREFIX}nginx_logs # ${PREFIX}elasticsearch
 DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.yml"
 DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
