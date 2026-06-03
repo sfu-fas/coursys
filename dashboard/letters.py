@@ -920,7 +920,9 @@ class RARequestForm(SFUMediaMixin):
         elif gras_bw:
             init_comment = "Total funding amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         elif ra_hourly_usra:
-            init_comment = "For total pay $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods (hourly $" + str(self.ra.gross_hourly) + " for " + str(self.ra.biweekly_hours) + " hours bi-weekly, salary total  $" + f"{self.ra.get_base_pay():.2f}" + " plus " + str(self.ra.vacation_pay) + "% vacation pay). Timesheet is not required. "
+            init_comment = ("For total pay $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods (hourly $" + str(self.ra.gross_hourly) 
+                            + " for " + str(self.ra.biweekly_hours) + " hours bi-weekly, salary total $" + f"{self.ra.get_base_pay():.2f}" 
+                            + " plus " + str(self.ra.vacation_pay) + "% vacation pay). Timesheet is not required. ")
         elif ra_hourly or nc_hourly:
             init_comment = "Expected " + str(self.ra.biweekly_hours) + " hours bi-weekly over " + str(self.ra.pay_periods) + " pay periods plus " + str(self.ra.vacation_pay) + "% vacation pay, total pay $" + str(self.ra.total_pay) + ". "
         elif ra_bw or nc_bw:

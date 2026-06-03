@@ -797,9 +797,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             'total_pay': forms.HiddenInput() 
         }
 
-    def __init__(self, usra=False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        usra = kwargs.pop('usra', False)
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
-        
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
                 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']

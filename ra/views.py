@@ -1522,7 +1522,7 @@ class RARequestDataJson(BaseDatatableView):
             return ra.get_projects()
         elif column == 'hiring_category':
             hiring_category = ra.hiring_category
-            if ra.usra:
+            if ra.hiring_category == 'RA' and ra.usra:
                 hiring_category += " (USRA)"
             return hiring_category
 
