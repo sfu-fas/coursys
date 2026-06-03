@@ -774,6 +774,7 @@ class RARequestForm(SFUMediaMixin):
         gras_ls = graduate_research_assistant and (self.ra.gras_payment_method=="LE" or self.ra.gras_payment_method=="LS")
         gras_bw = graduate_research_assistant and self.ra.gras_payment_method=="BW"
         ra_hourly = research_assistant and self.ra.ra_payment_method=="H"
+        ra_hourly_usra = research_assistant and self.ra.ra_payment_method=="H" and self.ra.usra
         ra_bw = research_assistant and self.ra.ra_payment_method=="BW"
         ra_ls = research_assistant and self.ra.ra_payment_method=="LS"
         nc_hourly = non_continuing and self.ra.nc_payment_method=="H"
@@ -793,6 +794,13 @@ class RARequestForm(SFUMediaMixin):
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
             biweekhours_hourly = ''
             biweekhours_bw = ''
+            lumpsum = ''
+            lumphours = ''
+        elif ra_hourly_usra:
+            hourly = ''
+            biweekly = "%.2f" % self.ra.get_biweekly_salary()
+            biweekhours_hourly = ''
+            biweekhours_bw = "%.2f" % self.ra.biweekly_hours
             lumpsum = ''
             lumphours = ''
         elif ra_hourly:
@@ -911,6 +919,8 @@ class RARequestForm(SFUMediaMixin):
             init_comment = "Lump sum funding amount $" + str(self.ra.total_pay) + ". "
         elif gras_bw:
             init_comment = "Total funding amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        elif ra_hourly_usra:
+            init_comment = "For total pay $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods (hourly $" + str(self.ra.gross_hourly) + " for " + str(self.ra.biweekly_hours) + " hours bi-weekly, salary total  $" + f"{self.ra.get_base_pay():.2f}" + " plus " + str(self.ra.vacation_pay) + "% vacation pay). Timesheet is not required. "
         elif ra_hourly or nc_hourly:
             init_comment = "Expected " + str(self.ra.biweekly_hours) + " hours bi-weekly over " + str(self.ra.pay_periods) + " pay periods plus " + str(self.ra.vacation_pay) + "% vacation pay, total pay $" + str(self.ra.total_pay) + ". "
         elif ra_bw or nc_bw:
