@@ -3,7 +3,7 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
@@ -797,7 +797,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             'total_pay': forms.HiddenInput() 
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, usra=False, *args, **kwargs):
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
@@ -807,6 +807,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
         
+        if usra:
+            self.fields['ra_payment_method'].choices = RA_PAYMENT_METHOD_CHOICES_USRA
 
     def clean(self):
         cleaned_data = super().clean()

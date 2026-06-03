@@ -248,7 +248,9 @@ class RANewRequestWizard(SessionWizardView):
     def get_form_kwargs(self, step):
         step = step or self.steps.current
         kwargs = super(RANewRequestWizard, self).get_form_kwargs(step)
-
+        if step=='research_assistant':
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
+            kwargs['usra'] = cleaned_data_intro.get('usra', False)
         return kwargs
 
     def get_form_initial(self, step):
@@ -502,6 +504,9 @@ class RAEditRequestWizard(SessionWizardView):
         if step=='graduate_research_assistant':
             if req.complete:
                 kwargs['complete'] = True
+        if step=='research_assistant':
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
+            kwargs['usra'] = cleaned_data_intro.get('usra', False)
         return kwargs
 
     def get_form_initial(self, step):
