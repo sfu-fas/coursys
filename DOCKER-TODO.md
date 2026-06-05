@@ -1,13 +1,12 @@
 # TODO
 
 * kinit auth piped in somehow
-* submission dir
-* DB backup dir
 * log files. Proposal:
     * nginx https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
     * everything else to syslog
 * maintenance mode/503 handling
 * logrotate
+* MOSS
 
 # Notes
 
@@ -108,10 +107,56 @@ Things I have learned...
 * Also works:
     * Copying/mounting in the `adsfu.keytab` in; in the container, doing: `kinit ${USERNAME}$@AD.SFU.CA -k -t /tmp/adsfu.keytab`
 
+Testing in the shell:
+```
+docker compose -f docker-compose-csrpt-test.yml build
+docker compose -f docker-compose-csrpt-test.yml run csrpt-test bash
+tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
+SELECT * FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'
+go
+```
+
 Testing connection in Python:
+```
+docker compose -f docker-compose-csrpt-test.yml build
+docker compose -f docker-compose-csrpt-test.yml run csrpt-test python3
+```
 ```py
 import pyodbc
+(SIMS_DB_SERVER, SIMS_DB_NAME) = ('ss-csrpt-db1.dc.sfu.ca', 'CSRPT')
 dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes" % (SIMS_DB_SERVER, SIMS_DB_NAME))
 c = dbconn.execute("SELECT * FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'", ())
 list(c)
 ```
+
+
+## Data Center Notes
+
+```bash
+http_proxy="http://bby-vcontrol-proxy.its.sfu.ca:8080"
+https_proxy="http://bby-vcontrol-proxy.its.sfu.ca:8080"
+```
+
+Maybe `/etc/docker/daemon.json`:
+```json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "syslog",
+  "storage-driver": "overlay2",
+  "bip": "10.131.0.1/16",
+  "fixed-cidr": "10.131.0.0/17",
+  "iptables": true,
+  "default-address-pools":[
+      {"base":"10.132.0.0/16","size":24}
+  ],
+  "proxies": {
+   "default": {
+     "httpProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080",
+     "httpsProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080",
+     "noProxy": "cas.sfu.ca,.sfu.ca,localhost"
+   }
+ }
+}
+```
+
+

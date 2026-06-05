@@ -2,7 +2,7 @@ FROM python:3.13
 
 RUN apt-get update \
   && apt-get install -y locales-all npm libfreetype-dev default-mysql-client \
-  && apt-get install -y unixodbc-dev krb5-user tdsodbc \
+    unixodbc-dev krb5-user tdsodbc \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -42,4 +42,5 @@ ARG N_WORKERS=2
 ENV N_WORKERS=${N_WORKERS}
 
 USER coursys
+RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
 CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application

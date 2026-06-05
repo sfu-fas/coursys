@@ -4,8 +4,8 @@
 USERNAME = 'vagrant'
 
 Vagrant.configure("2") do |config|
-  # wget https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-VirtualBox-44-1.7.x86_64.vagrant.virtualbox.box
-  # vagrant box add Fedora-Cloud-Base-Vagrant-VirtualBox-44-1.7.x86_64.vagrant.virtualbox.box --name rhel
+  # wget https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-VirtualBox-44-1.7.x86_64.vagrant.virtualbox.box -O /tmp/fedora.box
+  # vagrant box add /tmp/fedora.box --name rhel
   config.vm.box = 'rhel'
 
   config.vm.synced_folder "../", '/coursys/', owner: USERNAME
@@ -19,6 +19,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 2
-    vb.memory = 6*1024
+    vb.memory = 4*1024
   end
 end
