@@ -22,7 +22,7 @@ DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.
 DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
-${DOCKERCOMPOSE} up -d mysql elasticsearch
+${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq
 ${DOCKERCOMPOSE} run app ./manage.py migrate
 ${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
 ${DOCKERCOMPOSE} run app ./manage.py loaddata fixtures/*

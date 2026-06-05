@@ -32,9 +32,11 @@ COPY requirements.txt /coursys/requirements.txt
 RUN python3 -m pip install -r /coursys/requirements.txt
 
 HEALTHCHECK --interval=60s --timeout=5s --start-period=5s \
-  CMD curl --fail http://localhost:8000/browse/?healthcheck || exit 1
+  CMD curl --fail http://localhost:8000/healthcheck || exit 1
 
-COPY --exclude=node_modules --exclude=docker --exclude=instructions --exclude=deploy --exclude=rhel . /coursys
+COPY --exclude=.git --exclude=node_modules --exclude=docker --exclude=instructions \
+  --exclude=fixtures --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
+  . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 
