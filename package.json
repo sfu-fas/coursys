@@ -14,7 +14,7 @@
     "mathjax": "^4.0.0",
     "moment": "^2.29.4",
     "styled-notifications": "^1.0.3",
-    "tinymce": "^8.0.2"
+    "tinymce": "^8.5.1"
   },
   "devDependencies": {},
   "scripts": {
