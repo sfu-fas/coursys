@@ -34,7 +34,7 @@ services:
       - external
 
   rabbitmq:
-    image: 'rabbitmq:3'
+    image: 'rabbitmq:3-alpine'
     volumes:
       - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
     environment:
@@ -98,8 +98,8 @@ services:
       start_period: 5s
     volumes:
       - static:/static:ro
-      - /data/nginx_logs:/nginx-logs:rw,Z
-      - /data/nginx-config:/nginx-config:ro,z
+      - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/dynamic_config:/dynamic_config:ro,z
     networks:
       - internal
       - external

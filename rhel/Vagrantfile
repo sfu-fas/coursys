@@ -8,6 +8,10 @@ Vagrant.configure("2") do |config|
   # vagrant box add /tmp/fedora.box --name rhel
   config.vm.box = 'rhel'
 
+  # With that image, it's necessary to resize root:
+  # sudo parted /dev/sda "resizepart 3 100%"
+  # sudo btrfs filesystem resize max /
+
   config.vm.synced_folder "../", '/coursys/', owner: USERNAME
   config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 8025, host: 8025, host_ip: "127.0.0.1"

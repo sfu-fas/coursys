@@ -34,7 +34,7 @@ RUN python3 -m pip install -r /coursys/requirements.txt
 HEALTHCHECK --interval=60s --timeout=5s --start-period=5s \
   CMD curl --fail http://localhost:8000/browse/?healthcheck || exit 1
 
-COPY --exclude=node_modules . /coursys
+COPY --exclude=node_modules --exclude=docker --exclude=instructions --exclude=deploy --exclude=rhel . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 
@@ -42,5 +42,5 @@ ARG N_WORKERS=2
 ENV N_WORKERS=${N_WORKERS}
 
 USER coursys
-RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
+#RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
 CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application

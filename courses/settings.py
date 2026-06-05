@@ -38,6 +38,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
 sys.path.append( os.path.join(BASE_DIR, 'external') )
 
+if os.path.exists(os.path.join(BASE_DIR, 'this_is_production.txt')) and DEPLOY_MODE != 'production':
+    # we take the existence of the file this_is_production.txt to indicate we have access to production data, so must be in production mode
+    raise ValueError('Refusing to start in non-production mode')
+
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
