@@ -7,6 +7,7 @@
 * maintenance mode/503 handling
 * logrotate
 * MOSS
+* replace management Makefile helpers
 
 # Notes
 
@@ -24,7 +25,7 @@ DOCKERCOMPOSE="docker compose -f docker-compose-demo.yml"
 DOCKERROLLOUT="docker rollout -f docker-compose-demo.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
-${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq
+${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq memcached
 ${DOCKERCOMPOSE} run app ./manage.py migrate
 ${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
 ${DOCKERCOMPOSE} run app ./manage.py loaddata fixtures/*
@@ -35,9 +36,11 @@ ${DOCKERCOMPOSE} up --remove-orphans -d
 To update:
 ```sh
 ${DOCKERCOMPOSE} build --pull
+${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
 ${DOCKERCOMPOSE} up -d
 # or with https://github.com/wowu/docker-rollout
 ${DOCKERCOMPOSE} build --pull
+${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
 ${DOCKERROLLOUT} --wait-after-healthy 5 app
 ${DOCKERCOMPOSE} up --remove-orphans -d "celery*"
 docker system prune
