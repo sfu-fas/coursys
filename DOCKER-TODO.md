@@ -20,6 +20,8 @@ For mostly-production-like deployment:
 ```sh
 DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.yml"
 DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
+DOCKERCOMPOSE="docker compose -f docker-compose-demo.yml"
+DOCKERROLLOUT="docker rollout -f docker-compose-demo.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
 ${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq

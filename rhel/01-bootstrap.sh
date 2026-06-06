@@ -8,7 +8,7 @@ echo "HTTPS_PROXY=http://bby-vcontrol-proxy.its.sfu.ca:8080"  >> ~/.bashrc
 echo "NO_PROXY=localhost,.sfu.ca,*.sfu.ca" >> ~/.bashrc
 . ~/.bashrc
 
-[ -f /usr/bin/git ] || dnf install -y git
+dnf install -y git
 git clone https://github.com/sfu-fas/coursys.git
 cd coursys
 git checkout -b master

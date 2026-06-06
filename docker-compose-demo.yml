@@ -6,9 +6,9 @@ services:
     volumes:
       - mysql:/var/lib/mysql:rw
     environment:
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=dbpass
+      - MYSQL_DATABASE=dbname
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
     restart: unless-stopped
     healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
@@ -38,9 +38,9 @@ services:
     volumes:
       - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
+      - RABBITMQ_DEFAULT_USER=rmquser
+      - RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_VHOST=rmqvhost
     restart: unless-stopped
     healthcheck:
       test: rabbitmq-diagnostics -q ping
@@ -52,9 +52,6 @@ services:
 
   elasticsearch:
     image: 'elasticsearch:5.6.16'
-    # ports:
-    #   - "9200"
-    #   - "9300"
     volumes:
       - elasticsearch5:/usr/share/elasticsearch/data:rw
     environment:
@@ -110,7 +107,7 @@ services:
       dockerfile: docker/app.Dockerfile
       args:
         - UID=888
-        - DEPLOY_MODE=${DEPLOY_MODE}
+        - DEPLOY_MODE=demo
         - N_WORKERS=3
     init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     depends_on:
@@ -125,13 +122,13 @@ services:
     networks:
       - internal
     environment:
-      - DB_HOST
-      - DB_USER
-      - DB_PASSWORD
-      - DB_NAME
-      - RABBITMQ_USER
-      - RABBITMQ_PASSWORD
-      - RABBITMQ_VHOST
+      - DB_HOST=mysql
+      - DB_USER=dbuser
+      - DB_PASSWORD=dbpass
+      - DB_NAME=dbname
+      - RABBITMQ_USER=rmquser
+      - RABBITMQ_PASSWORD=rmqpass
+      - RABBITMQ_VHOST=rmqvhost
     deploy:
       replicas: 1
   
@@ -141,23 +138,23 @@ services:
       test: curl --fail http://localhost:9000/ || exit 1
     deploy:
       replicas: 1
-    command: ./docker/celery-worker.sh fast 2
+    command: /celery-worker.sh fast 2
 
   celery-batch:
     extends: celery-fast
-    command: ./docker/celery-worker.sh batch 2
+    command: /celery-worker.sh batch 2
     volumes:
       - /data/db_backups:/db_backups:rw,Z
       
   celery-email:
     extends: celery-fast
-    command: ./docker/celery-worker.sh email 2
+    command: /celery-worker.sh email 2
   celery-photo:
     extends: celery-fast
-    command: ./docker/celery-worker.sh photo 5
+    command: /celery-worker.sh photo 5
   celery-sims:
     extends: celery-fast
-    command: ./docker/celery-worker.sh sims 2
+    command: /celery-worker.sh sims 2
 
   celerybeat:
     extends: celery-fast
