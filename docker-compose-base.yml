@@ -1,0 +1,96 @@
+services:
+  rabbitmq:
+    image: 'rabbitmq:3-alpine'
+    volumes:
+      - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmquser
+      - RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_VHOST=rmqvhost
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+      interval: 30s
+      start_period: 10s
+    networks:
+      - internal
+
+  elasticsearch:
+    image: 'elasticsearch:5.6.16'
+    volumes:
+      - elasticsearch5:/usr/share/elasticsearch/data:rw
+    environment:
+      - discovery.type=single-node
+      - allocation.disk.threshold_enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+    restart: unless-stopped
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null || exit 1
+      timeout: 30s
+      interval: 60s
+      start_period: 15s
+    networks:
+      - internal
+
+  memcached:
+    image: 'memcached:1-alpine'
+    restart: unless-stopped
+    healthcheck:
+      test: echo "version" | nc -vn -w 1 127.0.0.1 11211
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    networks:
+      - internal
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    volumes:
+      - static:/static:ro
+      - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/dynamic_config:/dynamic_config:ro,z
+    networks:
+      - internal
+      - external
+  
+  base:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: base
+      args:
+        - UID=888
+        - DEPLOY_MODE=demo
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - memcached
+      - mysql
+    volumes:
+      - static:/static:rw
+      - /data/submitted_files:/submitted_files:rw,z
+    restart: no
+    networks:
+      - internal
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=dbuser
+      - DB_PASSWORD=dbpass
+      - DB_NAME=dbname
+      - RABBITMQ_USER=rmquser
+      - RABBITMQ_PASSWORD=rmqpass
+      - RABBITMQ_VHOST=rmqvhost

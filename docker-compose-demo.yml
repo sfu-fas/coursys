@@ -34,140 +34,85 @@ services:
       - external
 
   rabbitmq:
-    image: 'rabbitmq:3-alpine'
-    volumes:
-      - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
-    environment:
-      - RABBITMQ_DEFAULT_USER=rmquser
-      - RABBITMQ_DEFAULT_PASS=rmqpass
-      - RABBITMQ_DEFAULT_VHOST=rmqvhost
-    restart: unless-stopped
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      timeout: 30s
-      interval: 30s
-      start_period: 10s
-    networks:
-      - internal
+    extends:
+      file: docker-compose-base.yml
+      service: rabbitmq
 
   elasticsearch:
-    image: 'elasticsearch:5.6.16'
-    volumes:
-      - elasticsearch5:/usr/share/elasticsearch/data:rw
-    environment:
-      - discovery.type=single-node
-      - allocation.disk.threshold_enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-    restart: unless-stopped
-    healthcheck:
-      test: curl -s http://localhost:9200 >/dev/null || exit 1
-      timeout: 30s
-      interval: 60s
-      start_period: 15s
-    networks:
-      - internal
+    extends:
+      file: docker-compose-base.yml
+      service: elasticsearch
 
   memcached:
-    image: 'memcached:1-alpine'
-    restart: unless-stopped
-    healthcheck:
-      test: echo "version" | nc -vn -w 1 127.0.0.1 11211
-      timeout: 5s
-      interval: 60s
-      start_period: 5s
-    networks:
-      - internal
+    extends:
+      file: docker-compose-base.yml
+      service: memcached
 
   nginx:
-    build:
-      context: .
-      dockerfile: docker/nginx.Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - app
-    restart: unless-stopped
-    healthcheck:
-      test: curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
-      timeout: 5s
-      interval: 60s
-      start_period: 5s
-    volumes:
-      - static:/static:ro
-      - /data/nginx_logs:/nginx_logs:rw,Z
-      - /data/dynamic_config:/dynamic_config:ro,z
-    networks:
-      - internal
-      - external
+    extends:
+      file: docker-compose-base.yml
+      service: nginx
 
   app:
+    extends:
+      file: docker-compose-base.yml
+      service: base
     build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      args:
-        - UID=888
-        - DEPLOY_MODE=demo
-        - N_WORKERS=3
+      target: app
     init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
-    depends_on:
-      - rabbitmq
-      - elasticsearch
-      - memcached
-      - mysql
-    volumes:
-      - static:/static:rw
-      - /data/submitted_files:/submitted_files:rw,z
     restart: unless-stopped
-    networks:
-      - internal
-    environment:
-      - DB_HOST=mysql
-      - DB_USER=dbuser
-      - DB_PASSWORD=dbpass
-      - DB_NAME=dbname
-      - RABBITMQ_USER=rmquser
-      - RABBITMQ_PASSWORD=rmqpass
-      - RABBITMQ_VHOST=rmqvhost
     deploy:
-      replicas: 1
+      replicas: 1  # could be >1 if desired
   
   celery-fast:
-    extends: app
-    healthcheck:
-      test: curl --fail http://localhost:9000/ || exit 1
-    deploy:
-      replicas: 1
-    command: /celery-worker.sh fast 2
+    extends:
+      file: docker-compose-base.yml
+      service: base
+    build:
+      target: celery
+    restart: unless-stopped
+    environment:
+      - QUEUE=fast
+      - CONCURRENCY=2
 
   celery-batch:
     extends: celery-fast
-    command: /celery-worker.sh batch 2
     volumes:
       - /data/db_backups:/db_backups:rw,Z
+    environment:
+      - QUEUE=batch
+      - CONCURRENCY=2
       
   celery-email:
     extends: celery-fast
-    command: /celery-worker.sh email 2
+    environment:
+      - QUEUE=email
+      - CONCURRENCY=2
   celery-photo:
     extends: celery-fast
-    command: /celery-worker.sh photo 5
+    environment:
+      - QUEUE=photo
+      - CONCURRENCY=5
   celery-sims:
     extends: celery-fast
-    command: /celery-worker.sh sims 2
+    environment:
+      - QUEUE=sims
+      - CONCURRENCY=2
 
   celerybeat:
-    extends: celery-fast
-    healthcheck:
-      test: echo  # I see no meaningful check, except existing
-    deploy:
-      replicas: 1
-    command: celery -A courses beat --loglevel INFO
+    extends:
+      file: docker-compose-base.yml
+      service: base
+    build:
+      target: beat
+    restart: unless-stopped
+
 
 volumes:
   mysql:
   static:
   elasticsearch5:
+
 
 networks:
   internal:

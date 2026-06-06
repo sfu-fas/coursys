@@ -1,4 +1,6 @@
-FROM python:3.13
+# base image: common config to both the web app and celery workers (i.e. most congig)
+
+FROM python:3.13 AS base
 
 RUN apt-get update \
   && apt-get install -y locales-all npm libfreetype-dev default-mysql-client \
@@ -19,6 +21,7 @@ WORKDIR /coursys
 ARG UID=888
 RUN useradd -s /bin/bash --uid ${UID} coursys
 RUN mkdir /static && chown coursys /static
+RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID} # not all images have /csrpt_auth mounted, but ones that do will have the auth token in place
 
 RUN mkdir -p /coursys
 WORKDIR /coursys
@@ -31,9 +34,6 @@ RUN pip install --upgrade pip
 COPY requirements.txt /coursys/requirements.txt
 RUN python3 -m pip install -r /coursys/requirements.txt
 
-HEALTHCHECK --interval=60s --timeout=5s --start-period=5s \
-  CMD curl --fail http://localhost:8000/healthcheck || exit 1
-
 COPY --exclude=.git --exclude=node_modules --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
@@ -41,9 +41,41 @@ COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettin
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 COPY docker/celery-worker.sh /celery-worker.sh
 
-ARG N_WORKERS=2
+USER coursys
+
+#RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
+
+CMD echo
+
+
+
+# app image: config for actually handline web requests
+
+FROM base AS app
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+  CMD curl --fail http://localhost:8000/healthcheck || exit 1
+
+ARG N_WORKERS=5
 ENV N_WORKERS=${N_WORKERS}
 
-USER coursys
-#RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
 CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
+
+
+
+# celery image: config for celery workers
+
+FROM base AS celery
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+  CMD curl --fail http://localhost:9000/ || exit 1
+ENV QUEUE=${QUEUE}
+ENV CONCURRENCY=${CONCURRENCY}
+CMD /celery-worker.sh
+
+
+
+# celery beat image
+
+FROM base AS beat
+CMD celery -A courses beat --loglevel INFO
