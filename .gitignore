@@ -62,3 +62,4 @@ offering_map_cache.json
 schema.txt
 *.swp
 .env
+docker-compose.yml

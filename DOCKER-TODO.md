@@ -5,10 +5,8 @@
     * nginx https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
     * everything else to syslog?
     * or limit log sizes in daemon.json as described: https://signoz.io/blog/docker-log-rotation/
-* maintenance mode/503 handling
 * logrotate
 * MOSS
-* replace management Makefile helpers
 
 # Notes
 
@@ -22,8 +20,8 @@ For mostly-production-like deployment:
 ```sh
 #DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.yml"
 #DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
-DOCKERCOMPOSE="docker compose -f docker-compose-demo.yml"
-DOCKERROLLOUT="docker rollout -f docker-compose-demo.yml"
+DOCKERCOMPOSE="docker compose -f /coursys/docker-compose.yml"
+DOCKERROLLOUT="docker rollout -f /coursys/docker-compose.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
 ${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq memcached

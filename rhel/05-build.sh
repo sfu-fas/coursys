@@ -8,5 +8,6 @@ install -o coursys -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${D
 install -o 101 -g 101 -d ${DATA_PREFIX}nginx_logs ${DATA_PREFIX}elasticsearch5
 
 cd ${SOURCE_LOCATION}
-docker compose ${DOCKER_ARGS} pull
-docker compose ${DOCKER_ARGS} build
+ln -sf ${DOCKER_COMPOSE_FILE} docker-compose.yml
+docker compose pull
+docker compose build --pull

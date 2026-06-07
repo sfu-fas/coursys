@@ -1,116 +1,50 @@
-SYSTEMCTL=sudo systemctl
+COURSYS_USER=coursys
+COURSYS_USER_HOME=/home/${COURSYS_USER}
+
 SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
-DOCKERCOMPOSE=${SUCOURSYS} docker compose
-
-# use the environment $PYTHON for Python executable if set (which it is in proddev and production environments).
-ifndef PYTHON
-PYTHON=python3
-endif
-
-# For local development
-
-devel-runserver:
-	${PYTHON} manage.py runserver 0:8000
-devel-celery:
-	celery -A courses -l INFO worker -B
-
-# For production-like development (possibly in a VM)
-
-proddev-start:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml up -d
-proddev-restart:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml restart
-proddev-stop:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml stop
-proddev-rm-all:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml rm
-
-# Production server tasks
+#DOCKERCOMPOSE=${SUCOURSYS} docker compose
+DOCKERCOMPOSE=docker compose -f /coursys/docker-compose.yml
+DOCKERROLLOUT=docker rollout -f /coursys/docker-compose.yml
 
 start-all:
-	${SYSTEMCTL} start nginx
 	${DOCKERCOMPOSE} up -d
-	${SYSTEMCTL} start gunicorn
-	${SYSTEMCTL} start celery
-	${SYSTEMCTL} start celerybeat
-restart-all:
-	${DOCKERCOMPOSE} restart
-	${SYSTEMCTL} restart gunicorn
-	${SYSTEMCTL} restart celery
-	${SYSTEMCTL} restart celerybeat
-	${SYSTEMCTL} restart nginx
 
-pull:
+pull-rebuild:
 	${SUCOURSYS} git pull
-
-# New code/configuration tasks
-
-new-code-lite:
-	${SYSTEMCTL} reload gunicorn
-	${SYSTEMCTL} restart celery
-	${SYSTEMCTL} restart celerybeat
-
-new-code:
-	${SUCOURSYS} npm install
-	${SUCOURSYS} ${PYTHON} manage.py collectstatic --no-input
-	make new-code-lite
-
-clear-cache:
-	${DOCKERCOMPOSE} restart memcached
-
-migrate-safe:
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
-	${SUCOURSYS} ${PYTHON} manage.py migrate
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
-
-503:
-	${SUCOURSYS} touch ${COURSYS_DIR}/503
-	${SYSTEMCTL} stop celery
-	${SYSTEMCTL} stop celerybeat
-rm503:
-	${SUCOURSYS} rm ${COURSYS_DIR}/503
-	${SYSTEMCTL} start celery
-	${SYSTEMCTL} start celerybeat
+	${DOCKERCOMPOSE} pull
+	${DOCKERCOMPOSE} build --pull
 
 rebuild:
-	sudo apt update && sudo apt upgrade
-	sudo ${PYTHON} -m pip install -r ${COURSYS_DIR}/requirements.txt
-	${DOCKERCOMPOSE} build --pull
+	${DOCKERCOMPOSE} build
+
+redeploy:
+	${DOCKERCOMPOSE} run manage collectstatic --no-input
+	${DOCKERROLLOUT} --wait-after-healthy 5 app  # zero-downtime rolling restart of app service
+	${DOCKERCOMPOSE} up --remove-orphans -d      # restart celery and anything else changed
+	docker system prune -f
+
+new-code: rebuild redeploy
+
+migrate-safe:
+	${DOCKERCOMPOSE} run manage backup_db_task
+	${DOCKERCOMPOSE} run manage migrate
+	${DOCKERCOMPOSE} run manage backup_db_task
+
+purge-cache:
+	${DOCKERCOMPOSE} run manage purge_cache
+
+503:
+	sudo touch /data/dynamic_config/503
+	${DOCKERCOMPOSE} down `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+
+rm503:
+	sudo rm /data/dynamic_config/503
 	${DOCKERCOMPOSE} up -d
-	make new-code
 
-rebuild-hardcore:
-	#make chef
-	${SYSTEMCTL} daemon-reload # catches any changed service definitions
-	make ntpdate
-	${DOCKERCOMPOSE} pull
-	make 503
-	${DOCKERCOMPOSE} restart
-	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static # to clear out any orphaned static files and freshen: must purge memcached around the same time so compressor knows to look for changes
-	make rebuild
-	make rm503
-	${SUCOURSYS} docker system prune -f # clear any orphaned docker images/containers
 
-ntpdate:
-	${SYSTEMCTL} stop ntp && (sudo ntpdate ns2.sfu.ca || sudo ntpdate pool.ntp.org) && ${SYSTEMCTL} start ntp
+# management helpers
 
-chef:
-	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
-
-# Utility helpers
-
-kinit:
-	${SUCOURSYS} ./kinit.sh
-
-manage: # used like: "make manage ARGS=shell"
-	${SUCOURSYS} ${PYTHON} manage.py $(ARGS)
 shell:
-	${SUCOURSYS} ${PYTHON} manage.py shell
+	${DOCKERCOMPOSE} run manage shell
 dbshell:
-	${SUCOURSYS} ${PYTHON} manage.py dbshell
-backup_db:
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
+	${DOCKERCOMPOSE} run manage dbshell
