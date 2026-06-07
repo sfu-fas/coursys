@@ -64,6 +64,16 @@ services:
     deploy:
       replicas: 1  # could be >1 if desired
   
+  manage:
+    extends:
+      file: docker-compose-base.yml
+      service: base
+    build:
+      target: manage
+    restart: no
+    deploy:
+      replicas: 0
+
   celery-fast:
     extends:
       file: docker-compose-base.yml

@@ -3,7 +3,8 @@
 * kinit auth piped in somehow
 * log files. Proposal:
     * nginx https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
-    * everything else to syslog
+    * everything else to syslog?
+    * or limit log sizes in daemon.json as described: https://signoz.io/blog/docker-log-rotation/
 * maintenance mode/503 handling
 * logrotate
 * MOSS
@@ -26,10 +27,10 @@ DOCKERROLLOUT="docker rollout -f docker-compose-demo.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
 ${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq memcached
-${DOCKERCOMPOSE} run app ./manage.py migrate
-${DOCKERCOMPOSE} run app ./manage.py collectstatic --no-input
-${DOCKERCOMPOSE} run app ./manage.py loaddata fixtures/*
-${DOCKERCOMPOSE} run app ./manage.py update_index
+${DOCKERCOMPOSE} run manage migrate
+${DOCKERCOMPOSE} run manage collectstatic --no-input
+${DOCKERCOMPOSE} run manage loaddata "fixtures/*"
+${DOCKERCOMPOSE} run manage update_index
 ${DOCKERCOMPOSE} up --remove-orphans -d
 ```
 

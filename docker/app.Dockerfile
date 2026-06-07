@@ -79,3 +79,11 @@ CMD /celery-worker.sh
 
 FROM base AS beat
 CMD celery -A courses beat --loglevel INFO
+
+
+
+# management helper
+
+FROM base AS manage
+ENTRYPOINT ["python", "/coursys/manage.py"]
+CMD ["shell"]

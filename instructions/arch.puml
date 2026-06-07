@@ -27,7 +27,7 @@ users <-> lb : HTTPS
 control "manage.py\ncollectstatic" as collectstatic
 
 
-package "Docker Containers" {    
+package "Docker" {    
     folder "static" as static
     control "Daily Import\nTask" as import
     
@@ -41,7 +41,7 @@ package "Docker Containers" {
     database "<$elasticsearch>\nElasticsearch" as elasticsearch
 
     static <-- collectstatic : "writes"
-    'static <- gunicorn : "compressed"
+    gunicorn -> static : "compressor"
     nginx <-- static : static files
     nginx <--> gunicorn : dynamic pages
 
@@ -51,12 +51,11 @@ package "Docker Containers" {
     'celery .> import : task
     'django <.. import : runs
     
-    gunicorn <..> rabbitmq : tasks
-    celery <..> rabbitmq : tasks
+    gunicorn ..> rabbitmq : tasks
+    celery <.. rabbitmq : tasks
     gunicorn <--> memcached : cache
     gunicorn <--> elasticsearch : search
-    'celerybeat ..> rabbitmq : periodic\ntasks
-    rabbitmq <-- celerybeat : periodic\ntasks
+    rabbitmq <.. celerybeat : periodic\ntasks
 }
 
 package "Onara" {
