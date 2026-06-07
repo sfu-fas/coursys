@@ -19,9 +19,8 @@ rebuild:
 
 redeploy:
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERROLLOUT} --wait-after-healthy 5 app  # zero-downtime rolling restart of app service
+	${DOCKERROLLOUT} --wait-after-healthy 5 app  # zero-downtime rollout of app service
 	${DOCKERCOMPOSE} up --remove-orphans -d      # restart celery and anything else changed
-	docker system prune -f
 
 new-code: rebuild redeploy
 
@@ -30,8 +29,15 @@ migrate-safe:
 	${DOCKERCOMPOSE} run manage migrate
 	${DOCKERCOMPOSE} run manage backup_db_task
 
-purge-cache:
+purge-cache:  # if we have changed something in a way that breaks cached data: shouldn't happen
 	${DOCKERCOMPOSE} run manage purge_cache
+
+purge-static:  # shouldn't be necessary in general, but just in case we want to tidy the static volume
+	sudo touch /data/dynamic_config/503
+	${DOCKERCOMPOSE} run app rm -r /static/static
+	${DOCKERCOMPOSE} run manage collectstatic --no-input
+	make purge-cache  # django-compressor caches what has already been built
+	sudo rm /data/dynamic_config/503
 
 503:
 	sudo touch /data/dynamic_config/503
