@@ -27,7 +27,7 @@ ${DOCKERCOMPOSE} build
 ${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq memcached
 ${DOCKERCOMPOSE} run manage migrate
 ${DOCKERCOMPOSE} run manage collectstatic --no-input
-${DOCKERCOMPOSE} run manage loaddata "fixtures/*"
+${DOCKERCOMPOSE} run manage loaddata fixtures/*
 ${DOCKERCOMPOSE} run manage update_index
 ${DOCKERCOMPOSE} up --remove-orphans -d
 ```
@@ -61,9 +61,10 @@ I'm probably going to leave well enough alone and just use compose, but for the 
 ```sh
 docker swarm init --advertise-addr 10.0.0.2
 docker stack deploy -c docker-compose-registry.yml registry
-docker compose -f docker-compose-demo.yml build
-docker compose -f docker-compose-demo.yml push
-docker stack deploy -c docker-compose-demo.yml coursys
+docker compose config > dc.yml
+docker compose -f dc.yml build
+docker compose -f dc.yml push
+docker stack deploy -c dc.yml coursys
 ```
 
 ```sh

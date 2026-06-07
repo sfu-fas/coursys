@@ -37,6 +37,8 @@ services:
     extends:
       file: docker-compose-base.yml
       service: rabbitmq
+    volumes:
+      - ./data/rabbitmq3:/var/lib/rabbitmq:rw
 
   elasticsearch:
     extends:
@@ -52,11 +54,17 @@ services:
     extends:
       file: docker-compose-base.yml
       service: nginx
-
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/nginx_logs:/nginx_logs:rw
+      - ./dynamic_config:/dynamic_config:ro
   base:
     extends:
       file: docker-compose-base.yml
       service: base
+    volumes:
+      - ./data/submitted_files:/submitted_files:rw
 
   app:
     extends:
@@ -90,7 +98,7 @@ services:
   celery-batch:
     extends: celery-fast
     volumes:
-      - /data/db_backups:/db_backups:rw,Z
+      - ./data/db_backups:/db_backups:rw
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -124,6 +132,9 @@ volumes:
   mysql:
   static:
   elasticsearch5:
+  submitted_files:
+  nginx_logs:
+  rabbitmq3:
 
 
 networks:

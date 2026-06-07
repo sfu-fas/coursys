@@ -32,6 +32,11 @@ setup_user_docker() {
 setup_user_docker ${COURSYS_USERNAME} ${COURSYS_HOME}
 setup_user_docker ${USERNAME} ${USER_HOME}
 
+[ -f /usr/bin/semanage ] || dnf install -y policycoreutils-python-utils
+semanage fcontext -a -t var_log_t "${DATA_PREFIX}/nginx_logs"
+restorecon -R ${DATA_PREFIX}/nginx_logs
+
+# nginx log rotation based on: https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
 cat <<EOF > /etc/logrotate.d/nginx-coursys
 ${DATA_PREFIX}/nginx_logs/*.log {
   daily
@@ -43,7 +48,7 @@ ${DATA_PREFIX}/nginx_logs/*.log {
   notifempty
   sharedscripts
   postrotate
-    cd ${SOURCE_LOCATION} && docker kill -s USR1 coursys-nginx-1
+    cd ${SOURCE_LOCATION} && docker compose kill -s USR1 nginx
   endscript
 }
 EOF

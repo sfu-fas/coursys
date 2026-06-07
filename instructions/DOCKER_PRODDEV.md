@@ -1,60 +1,36 @@
 # An Almost-Production Configuration with Docker
 
-In `courses/localsettings.py`
-
-```py
-DEPLOY_MODE = 'proddev'
-# mail to a smtp4dev server: mail viewable at http://localhost:8025
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 2525
-EMAIL_USE_SSL = False
-```
-
-In `courses/secrets.py`:
-```py
-RABBITMQ_PASSWORD = 'rabbitmq_password'
-```
-
-
-Get the Docker-based things up and running:
+Set up a proddev docker world:
 ```sh
-export RABBITMQ_PASSWORD=rabbitmq_password
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml pull
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml build --pull
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
+ln -s docker-compose-proddev.yml docker-compose.yml
+sudo install -o 888 -d data/submitted_files data/db_backups
 ```
 
-Basic setup as necessary: activate a virtualenv and,
+Get things started:
 ```sh
-pip install -r requirements.txt
-npm install
-python3 manage.py migrate
-python3 manage.py loaddata fixtures/*.json
-python3 manage.py update_index
-sudo mkdir -p /data/submitted_files
-sudo chown $USER /data/submitted_files
+docker compose pull
+docker compose build
+docker compose up -d mysql elasticsearch rabbitmq memcached
+docker compose run manage collectstatic --no-input
+docker compose run manage migrate
+docker compose run manage loaddata fixtures/*
+docker compose run manage update_index
+docker compose up --remove-orphans -d
 ```
 
-In one terminal, start Celery:
+The system should be available in a few seconds at http://localhost:8080/
+
+To update:
 ```sh
-../bin/celery -A courses worker -l INFO -B
+docker compose build
+docker compose run manage collectstatic --no-input
+docker compose up -d
 ```
 
-In another, start a Django dev server:
+To destroy:
 ```sh
-python3 manage.py runserver
-```
-
-Or if you want to be even more production-like (but without static files):
-```sh
-gunicorn --workers=5 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 127.0.0.1:8000 courses.wsgi:application
-```
-
-## Shutting Down
-
-```shell
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml stop
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml rm
-# sudo rm -rf /data/*
+docker compose stop
+docker compose rm
+docker system prune --volumes
+#docker volume prune -a
 ```
