@@ -31,3 +31,21 @@ setup_user_docker() {
 
 setup_user_docker ${COURSYS_USERNAME} ${COURSYS_HOME}
 setup_user_docker ${USERNAME} ${USER_HOME}
+
+cat <<EOF > /etc/logrotate.d/nginx-coursys
+${DATA_PREFIX}/nginx_logs/*.log {
+  daily
+  missingok
+  rotate 31
+  dateext
+  compress
+  delaycompress
+  notifempty
+  sharedscripts
+  postrotate
+    cd ${SOURCE_LOCATION} && docker kill -s USR1 coursys-nginx-1
+  endscript
+}
+EOF
+
+systemctl restart logrotate
