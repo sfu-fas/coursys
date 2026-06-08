@@ -57,6 +57,9 @@ services:
     extends:
       file: docker-compose-base.yml
       service: base
+    build:
+      args:
+        - DEPLOY_MODE=demo
 
   app:
     extends:
@@ -113,7 +116,6 @@ services:
 
   celerybeat:
     extends:
-      file: docker-compose-base.yml
       service: base
     build:
       target: beat

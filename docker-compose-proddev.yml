@@ -58,11 +58,14 @@ services:
       - "8080:80"
     volumes:
       - ./data/nginx_logs:/nginx_logs:rw
-      - ./dynamic_config:/dynamic_config:ro
+      - ./data/dynamic_config:/dynamic_config:ro
   base:
     extends:
       file: docker-compose-base.yml
       service: base
+    build:
+      args:
+        - DEPLOY_MODE=proddev
     volumes:
       - ./data/submitted_files:/submitted_files:rw
 
@@ -121,7 +124,6 @@ services:
 
   celerybeat:
     extends:
-      file: docker-compose-base.yml
       service: base
     build:
       target: beat
@@ -132,9 +134,6 @@ volumes:
   mysql:
   static:
   elasticsearch5:
-  submitted_files:
-  nginx_logs:
-  rabbitmq3:
 
 
 networks:

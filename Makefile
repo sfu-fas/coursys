@@ -3,8 +3,8 @@ COURSYS_USER_HOME=/home/${COURSYS_USER}
 
 SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
 #DOCKERCOMPOSE=${SUCOURSYS} docker compose
-DOCKERCOMPOSE=docker compose -f /coursys/docker-compose.yml
-DOCKERROLLOUT=docker rollout -f /coursys/docker-compose.yml
+DOCKERCOMPOSE=docker compose
+DOCKERROLLOUT=docker rollout
 
 start-all:
 	${DOCKERCOMPOSE} up -d
@@ -54,3 +54,7 @@ shell:
 	${DOCKERCOMPOSE} run manage shell
 dbshell:
 	${DOCKERCOMPOSE} run manage dbshell
+get-docker-rollout:
+	mkdir -p ~/.docker/cli-plugins
+	wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O ~/.docker/cli-plugins/docker-rollout
+	chmod +x ~/.docker/cli-plugins/docker-rollout
