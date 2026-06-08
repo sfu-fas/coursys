@@ -7,8 +7,6 @@
     * or limit log sizes in daemon.json as described: https://signoz.io/blog/docker-log-rotation/
 * logrotate
 * MOSS
-* update demo server instructions
-* hostnames in docker-localsettings-*.py
 * secrets
 
 # Notes

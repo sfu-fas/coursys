@@ -1,15 +1,5 @@
 services:
 
-  mysql:
-    extends:
-      file: compose-dev-services.yml
-      service: mysql
-
-  smtp4dev:
-    extends:
-      file: compose-dev-services.yml
-      service: smtp4dev
-
   rabbitmq:
     extends:
       file: compose-base.yml
@@ -30,10 +20,6 @@ services:
     extends:
       file: compose-base.yml
       service: nginx
-    # build:
-    #   args:
-    #     - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
-    #     - FORWARD_HOSTS=
 
   base:
     extends:
@@ -44,8 +30,8 @@ services:
         - DEPLOY_MODE=demo
     restart: no
     # environment:
-    #   - MORE_ALLOWED_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
-    #   - CSRF_TRUSTED_ORIGINS=http://coursys-demo.selfip.net http://coursys-test.selfip.net
+    #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
+    #   - CSRF_TRUSTED_ORIGINS=https://alternate-hostname.sfu.ca
     deploy:
       replicas: 0
 
@@ -54,10 +40,9 @@ services:
       service: base
     build:
       target: app
-    init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     restart: unless-stopped
     deploy:
-      replicas: 1
+      replicas: 2
   
   manage:
     extends:

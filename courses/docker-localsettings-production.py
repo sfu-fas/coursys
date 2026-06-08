@@ -1,5 +1,5 @@
 import os
-DEPLOY_MODE = 'proddev'
+DEPLOY_MODE = 'production'
 
 DB_CONNECTION = {
     'HOST': os.environ['DB_HOST'],
@@ -19,8 +19,6 @@ MOSS_DISTRIBUTION_PATH = './moss'
 
 SUBMISSION_PATH = '/submitted_files'
 DB_BACKUP_DIR = '/db_backups'
-MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'localhost:8080').strip().split()
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').strip().split()
 
 # from django.utils.safestring import mark_safe
 # SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i> Info on the index page.</p>''')

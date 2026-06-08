@@ -39,7 +39,6 @@ COPY --exclude=.git --exclude=node_modules --exclude=docker --exclude=*.yml --ex
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
-COPY docker/celery-worker.sh /celery-worker.sh
 
 USER coursys
 
@@ -67,6 +66,7 @@ CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max
 
 FROM base AS celery
 
+COPY docker/celery-worker.sh /celery-worker.sh
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl --fail http://localhost:9000/ || exit 1
 ENV QUEUE=${QUEUE}

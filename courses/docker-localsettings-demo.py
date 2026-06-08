@@ -19,5 +19,15 @@ MOSS_DISTRIBUTION_PATH = './moss'
 
 SUBMISSION_PATH = '/submitted_files'
 DB_BACKUP_DIR = '/db_backups'
-MORE_ALLOWED_HOSTS = ['localhost:8080']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
+MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'coursys-demo.selfip.net coursys-test.selfip.net localhost:8080').strip().split()
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://coursys-demo.selfip.net http://coursys-test.selfip.net http://localhost:8080').strip().split()
+
+from django.utils.safestring import mark_safe
+SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i>
+    Welcome to the CourSys demo server. You can experiment here consequence-free. You can fake-authenticate as other
+    users as needed to explore the system. No emails will be sent by anything here.</p>
+''') # , but they will be <a href="http://localhost:8025">visible publicly here</a> if you'd like to inspect them.
+SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclamation-triangle"></i>
+    This demo server is publicly available and unauthenticated: no confidential or personally-identifying information
+    should be entered anywhere here.
+</p>''')
