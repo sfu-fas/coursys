@@ -63,4 +63,4 @@ schema.txt
 *.swp
 .env
 data
-docker-compose.yml
+compose.yml

@@ -2,7 +2,7 @@
 
 Set up a proddev docker world:
 ```sh
-ln -s docker-compose-proddev.yml docker-compose.yml
+ln -s compose-proddev.yml compose.yml
 sudo install -o 888 -d data/submitted_files data/db_backups
 ```
 

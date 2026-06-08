@@ -1,65 +1,46 @@
 services:
 
   mysql:
-    image: 'mariadb:11.8'
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - mysql:/var/lib/mysql:rw
-    environment:
-      - MYSQL_USER=dbuser
-      - MYSQL_PASSWORD=dbpass
-      - MYSQL_DATABASE=dbname
-      - MYSQL_RANDOM_ROOT_PASSWORD=yes
-    restart: unless-stopped
-    healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      timeout: 5s
-      interval: 10s
-      start_period: 5s
-    networks:
-      - internal
+    extends:
+      file: compose-dev-services.yml
+      service: mysql
 
   smtp4dev:
-    image: 'rnwood/smtp4dev'
-    ports:
-      - "8025:80"
-    restart: unless-stopped
-    healthcheck:
-      test: curl --fail http://localhost:80/ || exit 1
-      timeout: 5s
-      interval: 60s
-      start_period: 10s
-    networks:
-      - internal
-      - external
+    extends:
+      file: compose-dev-services.yml
+      service: smtp4dev
 
   rabbitmq:
     extends:
-      file: docker-compose-base.yml
+      file: compose-base.yml
       service: rabbitmq
+    volumes:
 
   elasticsearch:
     extends:
-      file: docker-compose-base.yml
+      file: compose-base.yml
       service: elasticsearch
 
   memcached:
     extends:
-      file: docker-compose-base.yml
+      file: compose-base.yml
       service: memcached
 
   nginx:
     extends:
-      file: docker-compose-base.yml
+      file: compose-base.yml
       service: nginx
 
   base:
     extends:
-      file: docker-compose-base.yml
+      file: compose-base.yml
       service: base
     build:
       args:
         - DEPLOY_MODE=demo
+    restart: no
+    deploy:
+      replicas: 0
 
   app:
     extends:
@@ -86,10 +67,11 @@ services:
     build:
       target: celery
     restart: unless-stopped
+    deploy:
+      replicas: 1
     environment:
       - QUEUE=fast
       - CONCURRENCY=2
-
   celery-batch:
     extends: celery-fast
     volumes:
@@ -97,7 +79,6 @@ services:
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
-      
   celery-email:
     extends: celery-fast
     environment:
@@ -125,7 +106,6 @@ services:
 volumes:
   mysql:
   static:
-  elasticsearch5:
 
 
 networks:

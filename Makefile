@@ -2,12 +2,14 @@ COURSYS_USER=coursys
 COURSYS_USER_HOME=/home/${COURSYS_USER}
 
 SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
-#DOCKERCOMPOSE=${SUCOURSYS} docker compose
 DOCKERCOMPOSE=docker compose
 DOCKERROLLOUT=docker rollout
 
 start-all:
 	${DOCKERCOMPOSE} up -d
+
+pull:
+	${SUCOURSYS} git pull
 
 pull-rebuild:
 	${SUCOURSYS} git pull
@@ -29,7 +31,7 @@ migrate-safe:
 	${DOCKERCOMPOSE} run manage migrate
 	${DOCKERCOMPOSE} run manage backup_db_task
 
-purge-cache:  # if we have changed something in a way that breaks cached data: shouldn't happen
+purge-cache:  # if we have changed something in a way that breaks cached data: shouldn't happen, but just in case
 	${DOCKERCOMPOSE} run manage purge_cache
 
 purge-static:  # shouldn't be necessary in general, but just in case we want to tidy the static volume

@@ -19,7 +19,7 @@ services:
   elasticsearch:
     image: 'elasticsearch:5.6.16'
     volumes:
-      - elasticsearch5:/usr/share/elasticsearch/data:rw
+      - /data/elasticsearch5:/usr/share/elasticsearch/data:rw,z
     environment:
       - discovery.type=single-node
       - allocation.disk.threshold_enabled=false

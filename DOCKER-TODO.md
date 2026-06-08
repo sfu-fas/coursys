@@ -18,10 +18,10 @@ We have an HTTP proxy for outside works access (git clones, etc). See: https://d
 
 For mostly-production-like deployment:
 ```sh
-#DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f docker-compose-demo.yml"
-#DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f docker-compose-demo.yml"
-DOCKERCOMPOSE="docker compose -f /coursys/docker-compose.yml"
-DOCKERROLLOUT="docker rollout -f /coursys/docker-compose.yml"
+#DOCKERCOMPOSE="docker compose --env-file docker/demo.env -f compose-demo.yml"
+#DOCKERROLLOUT="docker rollout --env-file docker/demo.env -f compose-demo.yml"
+DOCKERCOMPOSE="docker compose -f /coursys/compose.yml"
+DOCKERROLLOUT="docker rollout -f /coursys/compose.yml"
 ${DOCKERCOMPOSE} pull
 ${DOCKERCOMPOSE} build
 ${DOCKERCOMPOSE} up -d mysql elasticsearch rabbitmq memcached

@@ -12,4 +12,4 @@ SOURCE_LOCATION=/coursys
 BRANCH=master
 DATA_PREFIX=/data/
 
-DOCKER_COMPOSE_FILE='docker-compose-demo.yml'
+DOCKER_COMPOSE_FILE='compose-demo.yml'
