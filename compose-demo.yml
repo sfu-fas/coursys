@@ -30,7 +30,10 @@ services:
     extends:
       file: compose-base.yml
       service: nginx
-
+    build:
+      args:
+        - SERVE_HOSTS=localhost
+        - FORWARD_HOSTS=
   base:
     extends:
       file: compose-base.yml
@@ -100,6 +103,8 @@ services:
       service: base
     build:
       target: beat
+    deploy:
+      replicas: 1
     restart: unless-stopped
 
 

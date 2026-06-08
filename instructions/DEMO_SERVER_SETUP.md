@@ -1,5 +1,36 @@
 # Demo Server Setup
 
+Create a VM, with likely specs 2 cores, 8GB memory, 30GB disk.
+
+```shell
+COURSYS_USERNAME=coursys
+COURSYS_UID=888
+COURSYS_HOME=/home/${COURSYS_USERNAME}
+SOURCE_LOCATION=/coursys
+BRANCH=master
+DATA_PREFIX=/data/
+DOCKER_COMPOSE_FILE='compose-demo.yml'
+
+sudo useradd --uid ${COURSYS_UID} --home-dir ${COURSYS_HOME} ${COURSYS_USERNAME}
+sudo mkdir ${SOURCE_LOCATION}
+sudo git clone https://github.com/sfu-fas/coursys.git -b ${BRANCH} ${SOURCE_LOCATION}
+sudo chown -R ${COURSYS_USERNAME} ${SOURCE_LOCATION}
+sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
+
+sudo apt-get install -y docker-compose-v2 docker-buildx
+sudo gpasswd -a ${COURSYS_USERNAME} docker
+sudo gpasswd -a `whoami` docker
+```
+
+Log out and back in so the group membership takes effect and as yourself...
+```shell
+cd /coursys
+
+
+```
+
+
+
 ## Server Configuration
 
 Create a VM, with likely specs 2 cores, 8GB memory, 30GB disk.

@@ -1,4 +1,3 @@
-
 # user who will be the effective operator (may repeat for others)
 USERNAME=vagrant
 USER_HOME=/home/${USERNAME}

@@ -13,7 +13,6 @@ docker compose pull
 docker compose build --pull
 
 
-
 # NGINX log rotation
 
 # selinux permission for logrotate to touch that directory
