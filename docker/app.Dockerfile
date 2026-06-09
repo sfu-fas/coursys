@@ -1,9 +1,32 @@
-# base image: common config to both the web app and celery workers (i.e. most congig)
+# builder that can collect the python and node dependencies
 
-FROM python:3.13 AS base
+FROM python:3.13-slim AS builder
 
 RUN apt-get update \
-  && apt-get install -y locales-all npm libfreetype-dev default-mysql-client \
+  && apt-get install -y locales-all npm libfreetype-dev \
+    pkg-config default-libmysqlclient-dev build-essential \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /coursys
+WORKDIR /coursys
+
+COPY package.json /coursys/package.json
+COPY package-lock.json /coursys/package-lock.json
+RUN npm install
+
+RUN pip install --no-cache-dir --upgrade pip
+COPY requirements.txt /coursys/requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /coursys/requirements.txt
+
+
+
+# base image: common config to both the web app and celery workers (i.e. most congig)
+
+FROM python:3.13-slim AS base
+
+RUN apt-get update \
+  && apt-get install -y locales-all default-mysql-client \
     unixodbc-dev krb5-user tdsodbc \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -16,47 +39,41 @@ ARG DEPLOY_MODE
 ENV DEPLOY_MODE=${DEPLOY_MODE}
 ENV LANG=en_CA.UTF-8
 ENV IN_DOCKER=yes
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN mkdir -p /coursys
 WORKDIR /coursys
 
 ARG UID=888
 RUN useradd -s /bin/bash --uid ${UID} -d /home/coursys coursys
 RUN mkdir /static && chown coursys /static
 
-RUN mkdir -p /coursys
-WORKDIR /coursys
-
-COPY package.json /coursys/package.json
-COPY package-lock.json /coursys/package-lock.json
-RUN npm install
-
-RUN pip install --upgrade pip
-COPY requirements.txt /coursys/requirements.txt
-RUN python3 -m pip install -r /coursys/requirements.txt
-
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 
+COPY --from=builder /coursys/node_modules /coursys/node_modules
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
 USER coursys
 RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}  # do this with coursys user ownership
 RUN test -r ./manage.py  # check that file permissions are sane in the container: if this fails, check file permissions in the source directory
-
-CMD echo
-
+RUN echo "" | python -m unidecode  # make sure our modules are there: failure points to a problem in the COPY site-packages
 
 
-# app image: config for actually handline web requests
+
+# app image: process for actually handling web requests
 
 FROM base AS app
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl --fail http://localhost:8000/healthcheck || exit 1
 
-ARG N_WORKERS=5
-ENV N_WORKERS=${N_WORKERS}
-
-CMD gunicorn --workers=${N_WORKERS} --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 0.0.0.0:8000 courses.wsgi:application
+# 5 workers per container: may be replicated as needed
+CMD ["gunicorn", "--workers=5", "--worker-class=sync", "--max-requests=100", "--max-requests-jitter=10", "--bind=0.0.0.0:8000", "courses.wsgi:application"]
 
 
 
@@ -67,16 +84,18 @@ FROM base AS celery
 COPY docker/celery-worker.sh /celery-worker.sh
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl --fail http://localhost:9000/ || exit 1
+ARG QUEUE
+ARG CONCURRENCY
 ENV QUEUE=${QUEUE}
 ENV CONCURRENCY=${CONCURRENCY}
-CMD /celery-worker.sh
+CMD ["/celery-worker.sh"]
 
 
 
 # celery beat image
 
 FROM base AS beat
-CMD celery -A courses beat --loglevel INFO
+CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO"]
 
 
 

@@ -139,6 +139,21 @@ And regular refresh. Could this be done in a periodic task?
 docker compose run celery-sims /coursys/kinit-refresh.sh
 ```
 
+
+## Auth Details
+
+Authenticating to CSRPT as we do in production is a two-step process. We are using Kerberos to authenticate to the MSSQL Server.
+
+Step 0: `/etc/krb5.conf` is put in place by our Docker recipe, indicating how Kerberos authentication is to be done.
+
+To start, `kinit.sh` needs to be run by a human: it needs a username and password. It uses them to contact the Active Directory server and retrieves a Kerberos keytab. That is stored (inside the container) as `/csrpt_auth/adsfu.keytab`. The `kinit.sh` script also executes step 2...
+
+Next, `kinit-refresh.sh` uses that keytab to request a ticket. The ticket has a modest lifespan, so this must be periodicly refreshed, but it can be done hand-free. This creates a `/tmp/krb4cc_${UID}` file, which we symlink from `/csrpt_auth`.
+
+The `/csrpt_auth` directory is mounted on all containers that need CSRPT auth. When we use pyodbc to actually connect to CSRPT, it reads `/tmp/krb4cc_${UID}`.
+
+
+
 ## Data Center Notes
 
 ```bash

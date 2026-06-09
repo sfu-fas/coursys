@@ -63,7 +63,6 @@ services:
       service: base
     build:
       target: app
-    init: true  # init sends appropriate TERM signals to gunicorn to restart cleanly
     restart: unless-stopped
     deploy:
       replicas: 1
