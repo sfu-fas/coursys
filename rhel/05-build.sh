@@ -18,7 +18,7 @@ ln -sf ${DOCKER_COMPOSE_FILE} compose.yml
 
 # actually build
 docker compose pull
-docker compose build --pull
+docker compose build
 
 
 # NGINX log rotation

@@ -9,6 +9,8 @@ echo "NO_PROXY=localhost,.sfu.ca,*.sfu.ca" >> ~/.bashrc
 . ~/.bashrc
 
 dnf install -y git
-git clone https://github.com/sfu-fas/coursys.git
-cd coursys
-git checkout -b master
+git clone https://github.com/sfu-fas/coursys.git /tmp/ -b master
+sudo mv /tmp/coursys /coursys
+cd /coursys/rhel
+
+# have a look at config.sh; edit as needed

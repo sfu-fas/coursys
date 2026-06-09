@@ -1,13 +1,12 @@
 # TODO
 
-* kinit auth piped in somehow
+* kinit auth creation/refreshing logic (kinit*.sh actually hooked up somewhere)
 * log files. Proposal:
     * nginx https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
     * everything else to syslog?
     * or limit log sizes in daemon.json as described: https://signoz.io/blog/docker-log-rotation/
-* logrotate
 * MOSS
-* secrets
+* rabbitmq prod user,pass,vhost
 
 # Notes
 

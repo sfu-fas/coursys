@@ -21,7 +21,6 @@ WORKDIR /coursys
 ARG UID=888
 RUN useradd -s /bin/bash --uid ${UID} -d /home/coursys coursys
 RUN mkdir /static && chown coursys /static
-RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID} # not all images have /csrpt_auth mounted, but ones that do will have the auth token in place
 
 RUN mkdir -p /coursys
 WORKDIR /coursys
@@ -39,13 +38,9 @@ COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 
-#RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID} && chown ${UID} /tmp/krb5cc_${UID} # not all images have /csrpt_auth mounted, but ones that do will have the auth token in place
-
-
 USER coursys
-RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}
-
-#RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
+RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}  # do this with coursys user ownership
+RUN test -r ./manage.py  # check that file permissions are sane in the container: if this fails, check file permissions in the source directory
 
 CMD echo
 
