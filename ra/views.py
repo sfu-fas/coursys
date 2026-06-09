@@ -140,7 +140,7 @@ def _edit_req(request, ra_slug):
     if has_role('FDMA', request):
         req = get_object_or_404(RARequest, Q(draft=False) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
     elif has_role('FUND', request):
-        req = get_object_or_404(RARequest, Q(draft=False, hiring_category__in=["NC", "GRAS"]) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
+        req = get_object_or_404(RARequest, Q(draft=False, hiring_category__in=["GRAS"]) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
     elif has_role('FDRE', request):
         req = get_object_or_404(RARequest, author__userid=request.user.username, slug=ra_slug, deleted=False, draft=True)
     return req
@@ -821,7 +821,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     is_processor = (user == req.processor)
 
     manager = has_role('FDMA', request)
-    can_edit = ((graduate_research_assistant or non_cont) and admin) or (research_assistant and manager)
+    can_edit = (graduate_research_assistant and admin) or ((research_assistant or non_cont) and manager)
     adminform = RARequestAdminForm(instance=req)
     ishfform = RARequestISHFForm(instance=req)
     ishf_fee = ISHF_FEE
