@@ -50,6 +50,8 @@ services:
     build:
       args:
         - DEPLOY_MODE=proddev
+    depends_on:
+      - mysql
     volumes:
       - ./data/submitted_files:/submitted_files:rw
     restart: no

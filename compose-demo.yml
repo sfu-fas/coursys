@@ -42,6 +42,8 @@ services:
     build:
       args:
         - DEPLOY_MODE=demo
+    depends_on:
+      - mysql
     restart: no
     # environment:
     #   - MORE_ALLOWED_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net

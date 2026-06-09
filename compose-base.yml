@@ -79,7 +79,6 @@ services:
       - rabbitmq
       - elasticsearch
       - memcached
-      - mysql
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z

@@ -103,7 +103,6 @@ services:
 
 
 volumes:
-  mysql:
   static:
 
 
