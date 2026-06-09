@@ -33,7 +33,7 @@ services:
     # build:
     #   args:
     #     - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
-    #     - FORWARD_HOSTS=
+    #     - FORWARD_HOSTS=olddomain.selfip.net
 
   base:
     extends:
@@ -120,3 +120,8 @@ volumes:
 networks:
   internal:
   external:
+
+
+secrets:
+  app-config:
+    file: ./secrets/app-config.toml

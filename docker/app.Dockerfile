@@ -12,14 +12,14 @@ RUN apt-get update \
 COPY docker/files/krb5.conf /etc/krb5.conf
 #COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 
-ARG DEPLOY_MODE=devel
+ARG DEPLOY_MODE
 ENV DEPLOY_MODE=${DEPLOY_MODE}
 ENV LANG=en_CA.UTF-8
 ENV IN_DOCKER=yes
 WORKDIR /coursys
 
 ARG UID=888
-RUN useradd -s /bin/bash --uid ${UID} coursys
+RUN useradd -s /bin/bash --uid ${UID} -d /home/coursys coursys
 RUN mkdir /static && chown coursys /static
 RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID} # not all images have /csrpt_auth mounted, but ones that do will have the auth token in place
 

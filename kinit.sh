@@ -11,9 +11,7 @@ read PASSWORD
 stty echo
 printf "\n"
 
-mkdir -p ~/kerberos
-chmod 0700 ~/kerberos
-cd ~/kerberos
+cd /csrpt_auth
 
 echo -n ${USERNAME} > username
 
@@ -28,4 +26,4 @@ echo -n ${USERNAME} > username
 } | ktutil
 echo
 
-/usr/bin/kinit `cat ~/kerberos/username`@AD.SFU.CA -k -t ~/kerberos/adsfu.keytab
+/usr/bin/kinit `cat /csrpt_auth/username`@AD.SFU.CA -k -t /csrpt_auth/adsfu.keytab

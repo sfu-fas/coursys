@@ -14,12 +14,18 @@ BRANCH=master
 DATA_PREFIX=/data/
 DOCKER_COMPOSE_FILE='compose-demo.yml'
 
+# set up user and code
 sudo useradd --uid ${COURSYS_UID} --home-dir ${COURSYS_HOME} ${COURSYS_USERNAME}
 sudo mkdir ${SOURCE_LOCATION}
 sudo git clone https://github.com/sfu-fas/coursys.git -b ${BRANCH} ${SOURCE_LOCATION}
 sudo chown -R ${COURSYS_USERNAME} ${SOURCE_LOCATION}
-sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
 
+# basic config choices
+sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
+install -o root -m 0700 -d ${SOURCE_LOCATION}/secrets
+[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/docker/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
+
+# data directories & permissions
 sudo install -o root -d ${DATA_PREFIX}rabbitmq3
 sudo install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
 sudo install -o 101 -g 101 -d ${DATA_PREFIX}nginx_logs ${DATA_PREFIX}elasticsearch5

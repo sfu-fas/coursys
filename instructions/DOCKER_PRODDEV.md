@@ -3,7 +3,7 @@
 Set up a proddev docker world:
 ```sh
 ln -s compose-proddev.yml compose.yml
-sudo install -o 888 -d data/submitted_files data/db_backups
+sudo install -o 888 -d data/submitted_files data/db_backups data/csrpt_auth
 ```
 
 Get things started:

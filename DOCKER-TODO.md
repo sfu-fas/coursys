@@ -131,6 +131,14 @@ c = dbconn.execute("SELECT * FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'", ())
 list(c)
 ```
 
+Possible manual creation of certificate:
+```shell
+docker compose run celery-sims /coursys/kinit.sh
+```
+And regular refresh. Could this be done in a periodic task?
+```shell
+docker compose run celery-sims /coursys/kinit-refresh.sh
+```
 
 ## Data Center Notes
 
