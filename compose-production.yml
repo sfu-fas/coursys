@@ -91,6 +91,8 @@ services:
     environment:
       - QUEUE=sims
       - CONCURRENCY=2
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
 
   celerybeat:
     extends:
@@ -100,6 +102,24 @@ services:
     deploy:
       replicas: 1
     restart: unless-stopped
+
+  csrpt-test:  # temporary container to test csrpt auth without needed anything else started
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: base
+      args:
+        - UID=888
+        - DEPLOY_MODE=production
+    volumes:
+      - ./data/csrpt_auth:/csrpt_auth:rw,Z
+    secrets:
+      - app-config
+    deploy:
+      replicas: 0
+    restart: no
+    networks:
+      - internal
 
 
 volumes:
