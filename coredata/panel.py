@@ -555,11 +555,6 @@ def send_test_email(email):
     except socket.error:
         return False, "socket error: maybe can't communicate with AMPQ for celery sending?"
 
-def git_branch():
-    return subprocess.check_output(['git', 'rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])
-
-def git_revision():
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
 def celery_info():
     from coredata.tasks import app
@@ -583,42 +578,6 @@ def celery_info():
     info.sort()
     return info
 
-def ps_info():
-    import psutil, time
-    CMD_DISP_MAX = 80
-    data = []
-    data.append(('System Load', os.getloadavg()))
-    cpu_total = 0
-    psdata = ['<table id="procs"><thead><tr><th>PID</th><th>Owner</th><th>CPU %</th><th>VM Use (MB)</th><th>Status</th><th>Command</th></tr></thead><tbody>']
-    for proc in psutil.process_iter():
-        # start the clock on CPU usage percents
-        try:
-            proc.cpu_percent()
-        except psutil.NoSuchProcess:
-            pass
-
-    time.sleep(2)
-    for proc in psutil.process_iter():
-        try:
-            perc = proc.cpu_percent()
-            if perc > 0:
-                cpu_total += perc
-                mem = proc.memory_info().vms / 1024.0 / 1024.0
-                cmd = ' '.join(proc.cmdline())
-                if len(cmd) > CMD_DISP_MAX:
-                    cmd = '<span title="%s">%s</span>' % (escape(cmd), escape(cmd[:(CMD_DISP_MAX-5)]) + '&hellip;')
-                else:
-                    cmd = escape(cmd)
-
-                psdata.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
-                    % (proc.pid, proc.username(), perc, mem, escape(str(proc.status())), cmd))
-
-        except psutil.NoSuchProcess:
-            pass
-    psdata.append('</tbody></table>')
-    data.append(('CPU Percent', cpu_total))
-    data.append(('Running Processes', mark_safe(''.join(psdata))))
-    return data
 
 def pip_info():
     pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
@@ -668,6 +627,6 @@ def health_check() -> Dict[str, Any]:
         'units': units,
         'celery_res': celery_res,
         'cache': 'ok',
-        'search_res': search_res,
+        'search_res': search_res > 0,
     }
 
