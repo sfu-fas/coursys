@@ -39,7 +39,11 @@ COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 
+#RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID} && chown ${UID} /tmp/krb5cc_${UID} # not all images have /csrpt_auth mounted, but ones that do will have the auth token in place
+
+
 USER coursys
+RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}
 
 #RUN ./manage.py # check that file permissions are sane in the container: if this fails, check file permission in the source directory
 
