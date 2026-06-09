@@ -127,3 +127,8 @@ volumes:
 networks:
   internal:
   external:
+
+
+secrets:
+  app-config:
+    file: ./secrets/app-config.toml

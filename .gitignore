@@ -63,4 +63,5 @@ schema.txt
 *.swp
 .env
 data
+secrets
 compose.yml

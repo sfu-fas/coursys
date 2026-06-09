@@ -83,14 +83,8 @@ services:
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
+    secrets:
+      - app-config
     restart: no
     networks:
       - internal
-    environment:
-      - DB_HOST=mysql
-      - DB_USER=dbuser
-      - DB_PASSWORD=dbpass
-      - DB_NAME=dbname
-      - RABBITMQ_USER=rmquser
-      - RABBITMQ_PASSWORD=rmqpass
-      - RABBITMQ_VHOST=rmqvhost

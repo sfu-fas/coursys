@@ -208,8 +208,7 @@ else:
 if DEPLOY_MODE == 'production':
     SECRET_KEY = secrets.SECRET_KEY
 else:
-    SECRET_KEY = 'a'*50
-
+    SECRET_KEY = getattr(secrets, 'SECRET_KEY', 'a'*50)
 
 
 # static file settings
@@ -241,11 +240,11 @@ NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': '127.0.0.1:11211',
+        'LOCATION': 'memcached:11211',
     } }
     if getattr(localsettings, 'MEMCACHED_HOST', None):
         CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
-    HAYSTACK_HOST = getattr(localsettings, 'HAYSTACK_HOST', '127.0.0.1')
+    HAYSTACK_HOST = getattr(localsettings, 'HAYSTACK_HOST', 'elasticsearch')
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
@@ -254,7 +253,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'TIMEOUT': 60,
         },
     }
-    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', '/db_backups')
 
 else:
     CACHES = { 'default': {
@@ -282,7 +281,7 @@ if DEPLOY_MODE == 'production':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/filestore/prod/submitted_files')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
 
@@ -291,12 +290,12 @@ elif DEPLOY_MODE == 'proddev':
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
-    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 
 else:
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "./submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 
@@ -306,7 +305,7 @@ USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
     RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
-    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
+    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'rabbitmq:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
@@ -364,7 +363,7 @@ SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
 
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
-MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', './moss')
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 

@@ -2,6 +2,7 @@
 instructions
 deploy
 rhel
+secrets
 
 node_modules
 submitted_files

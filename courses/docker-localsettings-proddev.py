@@ -1,24 +1,20 @@
-import os
 DEPLOY_MODE = 'proddev'
 
+import os
+import tomllib
+config = tomllib.load(open('/run/secrets/app-config', 'rb'))
+
 DB_CONNECTION = {
-    'HOST': os.environ['DB_HOST'],
-    'USER': os.environ['DB_USER'],
-    'NAME': os.environ['DB_NAME'],
+    'HOST': config['database']['hostname'],
+    'USER': config['database']['username'],
+    'NAME': config['database']['name'],
 }
 
-RABBITMQ_HOSTPORT = f'rabbitmq:5672'
-RABBITMQ_USER = os.environ['RABBITMQ_USER']
-RABBITMQ_VHOST = os.environ['RABBITMQ_VHOST']
+RABBITMQ_USER = config['rabbitmq']['username']
+RABBITMQ_VHOST = config['rabbitmq']['vhost']
 
-MEMCACHED_HOST = 'memcached'
-HAYSTACK_HOST = 'elasticsearch'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp4dev'
-MOSS_DISTRIBUTION_PATH = './moss'
 
-SUBMISSION_PATH = '/submitted_files'
-DB_BACKUP_DIR = '/db_backups'
 MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'localhost:8080').strip().split()
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').strip().split()
 

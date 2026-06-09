@@ -1,5 +1,7 @@
-import os
-RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
+import tomllib
+config = tomllib.load(open('/run/secrets/app-config', 'rb'))
+
+RABBITMQ_PASSWORD = config['rabbitmq']['password']
 DB_CONNECTION = {
-    'PASSWORD': os.environ['DB_PASSWORD'],
+    'PASSWORD': config['database']['password'],
 }

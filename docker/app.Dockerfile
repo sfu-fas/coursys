@@ -34,7 +34,7 @@ RUN pip install --upgrade pip
 COPY requirements.txt /coursys/requirements.txt
 RUN python3 -m pip install -r /coursys/requirements.txt
 
-COPY --exclude=.git --exclude=node_modules --exclude=docker --exclude=*.yml --exclude=instructions \
+COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py

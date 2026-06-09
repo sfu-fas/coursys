@@ -1,0 +1,17 @@
+[system]
+django_secret = "abc123"
+
+[database]
+hostname = "mysql"
+username = "dbuser"
+password = "dbpass"
+name = "dbname"
+
+[rabbitmq]
+username = "rmquser"
+password = "rmqpass"
+vhost = "rmqvhost"
+
+[external]
+csrpt_server = "abc.sfu.ca"
+emplid_api_secret = "abc"
