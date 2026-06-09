@@ -1,4 +1,4 @@
-from django.conf import global_settings # Django defaults so we can modify them
+#from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
 import socket, sys, os
 hostname = socket.gethostname()
@@ -9,12 +9,6 @@ try:
 except ImportError:
     # not there? Assume the defaults are okay
     localsettings = None
-
-try:
-    from . import secrets
-except ImportError:
-    # not there? Hope we're not in production and continue
-    secrets = None
 
 # set overall deployment personality
 
@@ -191,7 +185,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
         })
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
-    DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
     if getattr(localsettings, 'MORE_DATABASES', None):
         DATABASES.update(localsettings.MORE_DATABASES)
 
@@ -206,9 +199,9 @@ else:
     }
 
 if DEPLOY_MODE == 'production':
-    SECRET_KEY = secrets.SECRET_KEY
+    SECRET_KEY = localsettings.SECRET_KEY
 else:
-    SECRET_KEY = getattr(secrets, 'SECRET_KEY', 'a'*50)
+    SECRET_KEY = getattr(localsettings, 'SECRET_KEY', 'a'*50)
 
 
 # static file settings
@@ -304,12 +297,12 @@ else:
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
-    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
+    RABBITMQ_PASSWORD = getattr(localsettings, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
     RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'rabbitmq:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
-    CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
+    CELERY_BROKER_URL = getattr(localsettings, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
     CELERY_RESULT_BACKEND = 'rpc://'
     CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
@@ -362,7 +355,7 @@ SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
 
-EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', './moss')
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')

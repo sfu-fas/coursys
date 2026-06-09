@@ -38,7 +38,6 @@ COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
-COPY courses/docker-secrets-${DEPLOY_MODE}.py /coursys/courses/secrets.py
 
 USER coursys
 

@@ -1,4 +1,5 @@
 [system]
+deploy_mode = "proddev"
 django_secret = "abc123"
 
 [database]

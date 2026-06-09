@@ -1,16 +1,18 @@
-DEPLOY_MODE = 'proddev'
-
 import os
 import tomllib
 config = tomllib.load(open('/run/secrets/app-config', 'rb'))
 
+DEPLOY_MODE = config['system']['deploy_mode']
+
 DB_CONNECTION = {
     'HOST': config['database']['hostname'],
     'USER': config['database']['username'],
+    'PASSWORD': config['database']['password'],
     'NAME': config['database']['name'],
 }
 
 RABBITMQ_USER = config['rabbitmq']['username']
+RABBITMQ_PASSWORD = config['rabbitmq']['password']
 RABBITMQ_VHOST = config['rabbitmq']['vhost']
 
 EMAIL_HOST = 'smtp4dev'
