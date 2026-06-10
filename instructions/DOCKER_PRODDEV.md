@@ -7,9 +7,7 @@ sudo apt install docker-compose-v2 docker-buildx
 
 Set up a proddev docker world:
 ```sh
-ln -s compose-proddev.yml compose.yml
-sudo install -o 888 -d data/submitted_files data/db_backups data/csrpt_auth
-sudo install -o 1000 -d data/elasticsearch7
+ln -s compose-proddev.yml compose.yml  # or otherwise copy/link compose-proddev.yml to compose.yml
 cp docker/app-config-template.toml secrets/app-config.toml
 make get-docker-rollout
 ```

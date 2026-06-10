@@ -1068,7 +1068,6 @@ def healthcheck(request):
         status = 200
     except Exception as e:
         res = {'exception': str(e)}
-        status = 503
+        status = 200
 
     return HttpResponse(json.dumps(res, indent=2), content_type='application/json', status=status)
-

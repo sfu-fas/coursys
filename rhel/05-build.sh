@@ -10,7 +10,8 @@ install -o root -m 0700 -d ${SOURCE_LOCATION}/secrets
 # make sure the various data directories exist with the right ownership
 install -o root -d ${DATA_PREFIX}rabbitmq3
 install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
-install -o 101 -g 101 -d ${DATA_PREFIX}nginx_logs ${DATA_PREFIX}elasticsearch7
+install -o 101 -g 101 -d ${DATA_PREFIX}nginx_logs
+install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 # select out compose file as the default
 cd ${SOURCE_LOCATION}

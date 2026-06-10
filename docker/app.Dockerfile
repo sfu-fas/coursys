@@ -47,7 +47,7 @@ WORKDIR /coursys
 
 ARG UID=888
 RUN useradd -s /bin/bash --uid ${UID} -d /home/coursys coursys
-RUN mkdir /static && chown coursys /static
+RUN install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config
 
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \

@@ -15,14 +15,14 @@ services:
       file: compose-base.yml
       service: rabbitmq
     volumes:
-      - ./data/rabbitmq3:/var/lib/rabbitmq:rw
+      - rabbitmq3:/var/lib/rabbitmq:rw
 
   elasticsearch:
     extends:
       file: compose-base.yml
       service: elasticsearch
     volumes:
-      - ./data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
+      - elasticsearch7:/usr/share/elasticsearch/data:rw,z
 
   memcached:
     extends:
@@ -40,8 +40,8 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./data/nginx_logs:/nginx_logs:rw
-      - ./data/dynamic_config:/dynamic_config:ro
+      - nginx_logs:/nginx_logs:rw
+      - dynamic_config:/dynamic_config:ro
 
   base:
     extends:
@@ -53,7 +53,7 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ./data/submitted_files:/submitted_files:rw
+      - submitted_files:/submitted_files:rw
     restart: no
     deploy:
       replicas: 0
@@ -90,7 +90,7 @@ services:
   celery-batch:
     extends: celery-fast
     volumes:
-      - ./data/db_backups:/db_backups:rw
+      - db_backups:/db_backups:rw
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -110,7 +110,7 @@ services:
       - QUEUE=sims
       - CONCURRENCY=2
     volumes:
-      - ./data/csrpt_auth:/csrpt_auth:rw,Z
+      - csrpt_auth:/csrpt_auth:rw,Z
 
   celerybeat:
     extends:
@@ -125,6 +125,13 @@ services:
 volumes:
   mysql:
   static:
+  rabbitmq3:
+  elasticsearch7:
+  nginx_logs:
+  dynamic_config:
+  submitted_files:
+  db_backups:
+  csrpt_auth:
 
 
 networks:
