@@ -30,10 +30,9 @@ DEBUG = DEPLOY_MODE != 'production'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
-sys.path.append( os.path.join(BASE_DIR, 'external') )
 
 if os.path.exists(os.path.join(BASE_DIR, 'this_is_production.txt')) and DEPLOY_MODE != 'production':
-    # we take the existence of the file this_is_production.txt to indicate we have access to production data, so must be in production mode
+    # we take the existence of this file to indicate we have access to production data, so *must* be in production mode
     raise ValueError('Refusing to start in non-production mode')
 
 ADMINS = (
@@ -41,7 +40,7 @@ ADMINS = (
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
     ('Renee Chong', 'renee_chong@sfu.ca'),
 )
-SERVER_EMAIL = 'ggbaker@sfu.ca'
+SERVER_EMAIL = 'noreply@coursys.sfu.ca'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -161,7 +160,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            #'CONN_MAX_AGE': 360,
+            'PORT': 3306,
             'OPTIONS': {
                 "init_command": "SET default_storage_engine=INNODB, character_set_client=utf8mb4, character_set_connection=utf8mb4, character_set_results=utf8mb4, collation_connection=utf8mb4_unicode_ci, collation_server=utf8mb4_unicode_ci;",
                 'charset': 'utf8mb4',
@@ -175,19 +174,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     if gunicorn_process:
         DATABASES['default']['CONN_MAX_AGE'] = 3600
 
-    if DEPLOY_MODE == 'proddev':
-        DATABASES['default'].update({
-            'NAME': 'coursys',
-            'USER': 'coursysuser',
-            'PASSWORD': 'coursyspassword',
-            'HOST': '127.0.0.1',
-            'PORT': 3306,
-        })
-
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
-    if getattr(localsettings, 'MORE_DATABASES', None):
-        DATABASES.update(localsettings.MORE_DATABASES)
-
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
@@ -206,7 +193,7 @@ else:
 
 # static file settings
 STATIC_URL = '/static/'
-if 'COURSYS_STATIC_DIR' in os.environ:
+if 'COURSYS_STATIC_DIR' in os.environ:  # TODO: still needed?
     STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
@@ -235,8 +222,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'memcached:11211',
     } }
-    if getattr(localsettings, 'MEMCACHED_HOST', None):
-        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
+    if getattr(localsettings, 'MEMCACHED_LOCATION', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_LOCATION
     HAYSTACK_HOST = getattr(localsettings, 'HAYSTACK_HOST', 'elasticsearch')
     HAYSTACK_CONNECTIONS = {
         'default': {
@@ -252,11 +239,6 @@ else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
-    if getattr(localsettings, 'FORCE_MEMCACHED', False):
-        CACHES = { 'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-            'LOCATION': '127.0.0.1:11211',
-        } }
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
@@ -284,7 +266,7 @@ elif DEPLOY_MODE == 'proddev':
     CSRF_COOKIE_SECURE = False
     #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
-    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 
 else:
@@ -350,8 +332,7 @@ EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'smtpserver.sfu.ca')
 EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 25)
 EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', False)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
-DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
-SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
+DEFAULT_SENDER_EMAIL = 'coursys-help@sfu.ca'
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
 
