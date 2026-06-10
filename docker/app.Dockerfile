@@ -26,7 +26,7 @@ RUN python3 -m pip install --no-cache-dir -r /coursys/requirements.txt
 FROM python:3.13-slim AS base
 
 RUN apt-get update \
-  && apt-get install -y locales-all default-mysql-client \
+  && apt-get install -y locales-all default-mysql-client curl \
     unixodbc-dev krb5-user tdsodbc \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

@@ -1,10 +1,15 @@
 # An Almost-Production Configuration with Docker
 
+You need Docker and Docker Compose first. On an Ubuntu-ish system, they can be installed like this:
+```sh
+sudo apt install docker-compose-v2 docker-buildx
+```
+
 Set up a proddev docker world:
 ```sh
 ln -s compose-proddev.yml compose.yml
 sudo install -o 888 -d data/submitted_files data/db_backups data/csrpt_auth
-mkdir secrets
+sudo install -o 1000 -d data/elasticsearch7
 cp docker/app-config-template.toml secrets/app-config.toml
 make get-docker-rollout
 ```

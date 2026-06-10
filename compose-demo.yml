@@ -14,7 +14,6 @@ services:
     extends:
       file: compose-base.yml
       service: rabbitmq
-    volumes:
 
   elasticsearch:
     extends:
@@ -34,6 +33,8 @@ services:
     #   args:
     #     - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
     #     - FORWARD_HOSTS=olddomain.selfip.net
+    ports:
+      - "80:80"
 
   base:
     extends:
@@ -44,10 +45,10 @@ services:
         - DEPLOY_MODE=demo
     depends_on:
       - mysql
-    restart: no
     # environment:
     #   - MORE_ALLOWED_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
     #   - CSRF_TRUSTED_ORIGINS=http://coursys-demo.selfip.net http://coursys-test.selfip.net
+    restart: no
     deploy:
       replicas: 0
 
@@ -102,6 +103,8 @@ services:
     environment:
       - QUEUE=sims
       - CONCURRENCY=2
+    volumes:
+      - ./data/csrpt_auth:/csrpt_auth:rw,Z
 
   celerybeat:
     extends:

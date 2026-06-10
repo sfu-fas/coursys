@@ -16,13 +16,13 @@
 {% compress js %}
 <script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
 <script src="{% static 'js/browse.js' %}"></script>
+{% endcompress %}
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   var url = '{% if unit and campus %}{% url "browse:browse_courses" unit_slug=unit.slug campus=campus %}{% elif unit %}{% url "browse:browse_courses" unit_slug=unit.slug %}{% else %}{% url "browse:browse_courses"%}{% endif %}';
   browser_ready(url);
 } );
 </script>
-{% endcompress %}
 {% endblock %}
 
 {% block content %}

@@ -4,7 +4,6 @@ services:
     extends:
       file: compose-base.yml
       service: rabbitmq
-    volumes:
 
   elasticsearch:
     extends:
@@ -32,10 +31,10 @@ services:
     build:
       args:
         - DEPLOY_MODE=demo
-    restart: no
     # environment:
     #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
     #   - CSRF_TRUSTED_ORIGINS=https://alternate-hostname.sfu.ca
+    restart: no
     deploy:
       replicas: 0
 

@@ -17,12 +17,12 @@ services:
       - internal
 
   elasticsearch:
-    image: 'elasticsearch:5.6.16'
+    image: 'elasticsearch:7.17.9'
     volumes:
-      - /data/elasticsearch5:/usr/share/elasticsearch/data:rw,z
+      - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:
       - discovery.type=single-node
-      - allocation.disk.threshold_enabled=false
+      #- allocation.disk.threshold_enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
     restart: unless-stopped

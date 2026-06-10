@@ -49,7 +49,7 @@ django-debug-toolbar
 pymemcache==4.0.0
 #django-dbdump==1.1  # TODO: could probably replace with basic CLI call
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
-elasticsearch>=5.0.0,<6.0.0
+elasticsearch>=7.0.0,<8.0.0
 gunicorn==23.0.0
 mysqlclient==2.2.7
 pyodbc==5.2.0

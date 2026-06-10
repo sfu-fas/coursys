@@ -22,7 +22,7 @@ services:
       file: compose-base.yml
       service: elasticsearch
     volumes:
-      - ./data/elasticsearch5:/usr/share/elasticsearch/data:rw,z
+      - ./data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
 
   memcached:
     extends:
