@@ -227,7 +227,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     HAYSTACK_HOST = getattr(localsettings, 'HAYSTACK_HOST', 'elasticsearch')
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
+            'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
             'URL': f'http://{HAYSTACK_HOST}:9200/',
             'INDEX_NAME': 'haystack',
             'TIMEOUT': 60,
