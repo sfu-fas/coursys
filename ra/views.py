@@ -152,7 +152,7 @@ def _manage_req(request, ra_slug, queryset=None):
     if has_role('FDMA', request):
         req = get_object_or_404(queryset, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     elif has_role('FUND', request):
-        req = get_object_or_404(queryset, slug=ra_slug, deleted=False, draft=False, unit__in=request.units, hiring_category__in=["NC", "GRAS"])
+        req = get_object_or_404(queryset, slug=ra_slug, deleted=False, draft=False, unit__in=request.units, hiring_category__in=["GRAS"])
     return req
 
 def _email_request_notification(req, url):
