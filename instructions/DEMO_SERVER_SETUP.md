@@ -26,9 +26,9 @@ install -o root -m 0700 -d ${SOURCE_LOCATION}/secrets
 [ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/docker/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
 
 # data directories & permissions
-sudo install -o root -d ${DATA_PREFIX}rabbitmq3
+sudo install -o root -d ${DATA_PREFIX}
 sudo install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
-sudo install -o 101 -g 101 -d ${DATA_PREFIX}nginx_logs ${DATA_PREFIX}elasticsearch5
+install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 sudo apt-get install -y make docker-compose-v2 docker-buildx
 sudo gpasswd -a `whoami` docker

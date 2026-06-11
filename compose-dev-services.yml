@@ -17,7 +17,8 @@ services:
       interval: 10s
       start_period: 5s
     networks:
-      - internal
+      - backend
+      - web
 
   smtp4dev:
     image: 'rnwood/smtp4dev'
@@ -30,5 +31,4 @@ services:
       interval: 60s
       start_period: 10s
     networks:
-      - internal
-      - external
+      - backend

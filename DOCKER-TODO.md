@@ -7,7 +7,7 @@
     * or limit log sizes in daemon.json as described: https://signoz.io/blog/docker-log-rotation/
 * MOSS
 * rabbitmq prod user,pass,vhost
-* could fiddle NPM_ROOT_PATH and move node_modules
+* elasticsearch auth
 
 # Notes
 

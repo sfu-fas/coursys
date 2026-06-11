@@ -14,7 +14,8 @@ services:
       interval: 30s
       start_period: 10s
     networks:
-      - internal
+      - backend
+      - web
 
   elasticsearch:
     image: 'elasticsearch:7.17.9'
@@ -22,7 +23,6 @@ services:
       - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:
       - discovery.type=single-node
-      #- allocation.disk.threshold_enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
     restart: unless-stopped
@@ -32,7 +32,8 @@ services:
       interval: 60s
       start_period: 15s
     networks:
-      - internal
+      - backend
+      - web
 
   memcached:
     image: 'memcached:1-alpine'
@@ -43,7 +44,8 @@ services:
       interval: 60s
       start_period: 5s
     networks:
-      - internal
+      - backend
+      - web
 
   nginx:
     build:
@@ -64,9 +66,8 @@ services:
       - /data/nginx_logs:/nginx_logs:rw,Z
       - /data/dynamic_config:/dynamic_config:ro,z
     networks:
-      - internal
-      - external
-  
+      - web
+
   base:
     build:
       context: .
@@ -85,5 +86,3 @@ services:
     secrets:
       - app-config
     restart: no
-    networks:
-      - internal

@@ -22,7 +22,7 @@ services:
       file: compose-base.yml
       service: elasticsearch
     volumes:
-      - elasticsearch7:/usr/share/elasticsearch/data:rw,z
+      - elasticsearch7:/usr/share/elasticsearch/data:rw
 
   memcached:
     extends:
@@ -66,7 +66,9 @@ services:
     restart: unless-stopped
     deploy:
       replicas: 1
-  
+    networks:
+      - web
+
   manage:
     extends:
       service: base
@@ -75,6 +77,9 @@ services:
     restart: no
     deploy:
       replicas: 0
+    networks:
+      - backend
+      - web
 
   celery-fast:
     extends:
@@ -87,6 +92,8 @@ services:
     environment:
       - QUEUE=fast
       - CONCURRENCY=2
+    networks:
+      - backend
   celery-batch:
     extends: celery-fast
     volumes:
@@ -120,6 +127,8 @@ services:
     deploy:
       replicas: 1
     restart: unless-stopped
+    networks:
+      - backend
 
 
 volumes:
@@ -135,8 +144,8 @@ volumes:
 
 
 networks:
-  internal:
-  external:
+  web:
+  backend:
 
 
 secrets:

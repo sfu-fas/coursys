@@ -13,6 +13,7 @@ DB_CONNECTION = {
 RABBITMQ_USER = config['rabbitmq']['username']
 RABBITMQ_PASSWORD = config['rabbitmq']['password']
 RABBITMQ_VHOST = config['rabbitmq']['vhost']
+NPM_ROOT_PATH = '/build'
 
 assert DEPLOY_MODE == 'production'
 SIMS_DB_SERVER = config['external']['csrpt_server']

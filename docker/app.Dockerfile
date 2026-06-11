@@ -1,32 +1,36 @@
+ARG PYTHON_MINOR_VERSION=3.13
+
 # builder that can collect the python and node dependencies
 
-FROM python:3.13-slim AS builder
+FROM python:${PYTHON_MINOR_VERSION}-slim AS builder
 
 RUN apt-get update \
-  && apt-get install -y locales-all npm libfreetype-dev \
+  && apt-get install -y --no-install-recommends \
+    git locales-all npm libfreetype-dev \
     pkg-config default-libmysqlclient-dev build-essential \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /coursys
-WORKDIR /coursys
+RUN mkdir -p /coursys /build
+WORKDIR /build
 
-COPY package.json /coursys/package.json
-COPY package-lock.json /coursys/package-lock.json
+COPY package.json /build/package.json
+COPY package-lock.json /build/package-lock.json
 RUN npm install
 
 RUN pip install --no-cache-dir --upgrade pip
-COPY requirements.txt /coursys/requirements.txt
-RUN python3 -m pip install --no-cache-dir -r /coursys/requirements.txt
+COPY requirements.txt /build/requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 
 
 # base image: common config to both the web app and celery workers (i.e. most congig)
 
-FROM python:3.13-slim AS base
+FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
 RUN apt-get update \
-  && apt-get install -y locales-all default-mysql-client curl \
+  && apt-get install -y --no-install-recommends \
+    locales-all default-mysql-client curl \
     unixodbc-dev krb5-user tdsodbc \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -35,6 +39,7 @@ RUN apt-get update \
 COPY docker/files/krb5.conf /etc/krb5.conf
 #COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 
+ARG PYTHON_MINOR_VERSION
 ARG DEPLOY_MODE
 ENV DEPLOY_MODE=${DEPLOY_MODE}
 ENV LANG=en_CA.UTF-8
@@ -46,16 +51,16 @@ RUN mkdir -p /coursys
 WORKDIR /coursys
 
 ARG UID=888
-RUN useradd -s /bin/bash --uid ${UID} -d /home/coursys coursys
-RUN install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config
+RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
+  && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config
 
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 
-COPY --from=builder /coursys/node_modules /coursys/node_modules
-COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /build/node_modules /build/node_modules
+COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 USER coursys

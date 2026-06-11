@@ -14,11 +14,12 @@ DB_CONNECTION = {
 RABBITMQ_USER = config['rabbitmq']['username']
 RABBITMQ_PASSWORD = config['rabbitmq']['password']
 RABBITMQ_VHOST = config['rabbitmq']['vhost']
+NPM_ROOT_PATH = '/build'
 
 EMAIL_HOST = 'smtp4dev'
 try:
     NTP_REFERENCE = config['system']['ntp_reference']
-except IndexError:
+except KeyError:
     pass
 
 MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'coursys-demo.selfip.net coursys-test.selfip.net localhost:8080').strip().split()
