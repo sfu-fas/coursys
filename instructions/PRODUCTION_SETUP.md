@@ -16,11 +16,11 @@ DOCKER_COMPOSE_FILE='compose-production.yml'
 
 ```shell
 touch ./this_is_production.txt
-cp docker/app-config-template.toml secrets/app-config.toml
-make get-docker-rollout
+cp secrets/app-config-template.toml secrets/app-config.toml
+echo "rmqpass" > ./secrets/rabbitmq-default-password
 ```
 
-Edit `secrets/app-config.toml` to reflect the production setup.
+Edit the secrets to reflect the real production setup.
 
 
 

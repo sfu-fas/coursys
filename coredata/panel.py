@@ -85,13 +85,12 @@ def settings_info():
     return info
 
 
-def deploy_checks(request=None):
+def sanity_checks():
+    """
+    Checks that *must* pass before we even try to start a gunicorn server or celery worker.
+    """
     passed = []
     failed = []
-
-    # cache something now to see if it's still there further down.
-    randval = random.randint(1, 1000000)
-    cache.set('check_things_cache_test', randval, 60)
 
     # Django database
     try:
@@ -116,6 +115,31 @@ def deploy_checks(request=None):
             passed.append(('Unicode handling in database', 'okay'))
         else:
             failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
+
+    # check that celery broker can be contacted (not if celery workers are up)
+    if settings.USE_CELERY:
+        from courses.celery import app
+        try:
+            app.control.inspect().ping()
+            passed.append(('Celery broker accessiblity', 'okay'))
+        except Exception as e:
+            failed.append(('Celery broker accessiblity', f'Failed: {e}'))
+
+    # cache is accessible
+    try:
+        cache.set('check_things_cache_ping', 0, 60)
+    except Exception as e:
+        failed.append(('Cache accessiblity', f'Failed: {e}'))
+
+    return passed, failed
+
+
+def deploy_checks():
+    passed, failed = sanity_checks()
+
+    # cache something now to see if it's still there further down.
+    randval = random.randint(1, 1000000)
+    cache.set('check_things_cache_test', randval, 60)
 
     # check that all database tables are utf8mb4, if mysql
     if settings.DATABASES['default']['ENGINE'].endswith('.mysql'):
@@ -261,7 +285,7 @@ def deploy_checks(request=None):
     except Exception as e:
         failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 
-    if settings.USE_CELERY and sims_task:
+    if settings.USE_CELERY and sims_task and celery_okay:
         # sims_task started above, so we can double-up on any wait
         try:
             res = sims_task.get(timeout=5)
@@ -339,7 +363,7 @@ def deploy_checks(request=None):
             failed.append(('File creation in ' + label, res))
     
     # DB backup directory may only be accessible from that celery worker: that's okay.
-    if settings.USE_CELERY:
+    if settings.USE_CELERY and celery_okay:
         from coredata.tasks import check_db_backup_create
         task = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
         res = task.get()
@@ -464,6 +488,14 @@ def deploy_checks(request=None):
     except ntplib.NTPException as e:
         failed.append(('Server time', 'Unable to query NTP reference: %s' % (e,)))
 
+    # locale is UTF-8 (matters for the SIMS database connection... or is legacy from DB2?)
+    import locale
+    _, encoding = locale.getdefaultlocale()
+    if encoding == 'UTF-8':
+        passed.append(('Locale encoding', 'okay'))
+    else:
+        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
+
     # library sanity
     err = bitfield_check()
     if err:
@@ -478,14 +510,6 @@ def deploy_checks(request=None):
     # MOSS subprocess
     from submission.moss import check_moss_executable
     check_moss_executable(passed, failed)
-
-    # locale is UTF-8 (matters for the SIMS database connection)
-    import locale
-    _, encoding = locale.getdefaultlocale()
-    if encoding == 'UTF-8':
-        passed.append(('Locale encoding', 'okay'))
-    else:
-        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     return passed, failed
 

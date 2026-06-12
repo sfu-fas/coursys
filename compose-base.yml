@@ -1,18 +1,18 @@
 services:
   rabbitmq:
-    image: 'rabbitmq:3-alpine'
+    build:
+      context: .
+      dockerfile: docker/rabbitmq.Dockerfile
     volumes:
       - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
     environment:
       - RABBITMQ_DEFAULT_USER=rmquser
-      - RABBITMQ_DEFAULT_PASS=rmqpass
-      - RABBITMQ_DEFAULT_VHOST=rmqvhost
+      #- RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_PASS_SECRET=/run/secrets/rabbitmq-default-password # the _SECRET wins if both are set
+      - RABBITMQ_DEFAULT_VHOST=vhost
+    secrets:
+      - rabbitmq-default-password
     restart: unless-stopped
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      timeout: 30s
-      interval: 30s
-      start_period: 10s
     networks:
       - backend
       - web
@@ -56,11 +56,6 @@ services:
     depends_on:
       - app
     restart: unless-stopped
-    healthcheck:
-      test: curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
-      timeout: 5s
-      interval: 60s
-      start_period: 5s
     volumes:
       - static:/static:ro
       - /data/nginx_logs:/nginx_logs:rw,Z

@@ -8,6 +8,9 @@ ENV SERVE_HOSTS=${SERVE_HOSTS}
 ENV FORWARD_HOSTS=${FORWARD_HOSTS}
 ENV CANONICAL_NAME=${CANONICAL_NAME}
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
+  CMD curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1
+
 COPY docker/nginx/common.conf /etc/nginx/common.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/serve-host.conf /etc/nginx/

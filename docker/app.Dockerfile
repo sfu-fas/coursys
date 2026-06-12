@@ -74,11 +74,10 @@ RUN echo "" | python -m unidecode  # make sure our modules are there: failure po
 
 FROM base AS app
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+COPY docker/files/gunicorn-worker.sh /gunicorn-worker.sh
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
   CMD curl --fail http://localhost:8000/healthcheck || exit 1
-
-# 5 workers per container: may be replicated as needed
-CMD ["gunicorn", "--workers=5", "--worker-class=sync", "--max-requests=100", "--max-requests-jitter=10", "--bind=0.0.0.0:8000", "courses.wsgi:application"]
+CMD ["/gunicorn-worker.sh"]
 
 
 
@@ -86,7 +85,7 @@ CMD ["gunicorn", "--workers=5", "--worker-class=sync", "--max-requests=100", "--
 
 FROM base AS celery
 
-COPY docker/celery-worker.sh /celery-worker.sh
+COPY docker/files/celery-worker.sh /celery-worker.sh
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl --fail http://localhost:9000/ || exit 1
 ARG QUEUE

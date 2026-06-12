@@ -117,7 +117,7 @@ services:
       - QUEUE=sims
       - CONCURRENCY=2
     volumes:
-      - csrpt_auth:/csrpt_auth:rw,Z
+      - csrpt_auth:/csrpt_auth:rw
 
   celerybeat:
     extends:
@@ -151,3 +151,5 @@ networks:
 secrets:
   app-config:
     file: ./secrets/app-config.toml
+  rabbitmq-default-password:
+    file: ./secrets/rabbitmq-default-password

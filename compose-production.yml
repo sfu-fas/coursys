@@ -4,6 +4,8 @@ services:
     extends:
       file: compose-base.yml
       service: rabbitmq
+    secrets:
+      - rabbitmq-default-password
 
   elasticsearch:
     extends:
@@ -132,3 +134,5 @@ networks:
 secrets:
   app-config:
     file: ./secrets/app-config.toml
+  rabbitmq-default-password:
+    file: ./secrets/rabbitmq-default-password

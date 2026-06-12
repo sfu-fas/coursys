@@ -3,7 +3,7 @@ from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     'coredata.tasks.beat_test': {
         'task': 'coredata.tasks.beat_test',
-        'schedule': crontab(minute='*/5', hour='*'),
+        'schedule': 300,
     },
     'coredata.tasks.regular_backup': {
         'task': 'coredata.tasks.regular_backup',

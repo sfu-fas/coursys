@@ -138,3 +138,6 @@ networks:
 secrets:
   app-config:
     file: ./secrets/app-config.toml
+  rabbitmq-default-password:
+    file: ./secrets/rabbitmq-default-password
+
