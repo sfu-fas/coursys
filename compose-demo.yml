@@ -14,6 +14,8 @@ services:
     extends:
       file: compose-base.yml
       service: rabbitmq
+    secrets:
+      - rabbitmq-default-password
 
   elasticsearch:
     extends:
@@ -33,8 +35,6 @@ services:
     #   args:
     #     - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net
     #     - FORWARD_HOSTS=olddomain.selfip.net
-    ports:
-      - "80:80"
 
   base:
     extends:

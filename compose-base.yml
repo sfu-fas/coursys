@@ -7,18 +7,16 @@ services:
       - /data/rabbitmq3:/var/lib/rabbitmq:rw,Z
     environment:
       - RABBITMQ_DEFAULT_USER=rmquser
-      #- RABBITMQ_DEFAULT_PASS=rmqpass
-      - RABBITMQ_DEFAULT_PASS_SECRET=/run/secrets/rabbitmq-default-password # the _SECRET wins if both are set
+      - RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_PASS_SECRET=/run/secrets/rabbitmq-default-password # the secret wins if both are present
       - RABBITMQ_DEFAULT_VHOST=vhost
-    secrets:
-      - rabbitmq-default-password
     restart: unless-stopped
     networks:
       - backend
       - web
 
   elasticsearch:
-    image: 'elasticsearch:7.17.9'
+    image: 'elasticsearch:7.17.28'
     volumes:
       - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:

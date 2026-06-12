@@ -9,7 +9,6 @@ Set up a proddev docker world:
 ```sh
 ln -s compose-proddev.yml compose.yml  # or otherwise copy/link compose-proddev.yml to compose.yml
 cp docker/app-config-template.toml secrets/app-config.toml
-echo "rmqpass" > secrets/rabbitmq-default-password
 make get-docker-rollout
 ```
 
