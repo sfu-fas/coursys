@@ -1,0 +1,128 @@
+@startuml
+
+package "compose-base.yml" {
+    package "app.Dockerfile" {
+        artifact builder [
+            builder
+            ----
+            collects and builds Python
+            requirements.txt and NPM
+            packages.json
+        ]
+        artifact base [
+            base
+            ----
+            common components for all
+            Django-based tools
+        ]
+        artifact app [
+            app
+            ----
+            web service doing
+            the real Django work,
+            run in Gunicorn
+        ]
+        artifact celery [
+            celery
+            ----
+            base image for Celery
+            workers
+        ]
+        artifact beat [
+            beat
+            ----
+            celery beat that
+            sends periodic tasks
+        ]
+        artifact manage [
+            manage
+            ----
+            helper for admins to run
+            ./manage.py commands
+        ]
+
+        builder --> base : Python and NPM libs copied
+        base ..> app : extended
+        base ..> celery : extended
+        base ..> beat : extended
+        base ..> manage : extended
+    }
+
+    package "nginx.Dockerfile" {
+        artifact nginx [
+            nginx
+            ----
+            frontend web server with
+            our config
+        ]
+    }
+
+    package "rabbitmq.Dockerfile" {
+        artifact rabbitmq [
+            rabbitmq
+            ----
+            message queue for celery,
+            with password injected
+        ]
+    }
+    cloud elasticsearch
+    cloud memcached
+}
+
+package "compose-dev-services.yml" {
+    cloud mysql
+    cloud smtp4dev
+}
+
+package "compose-production.yml" {
+    rectangle app as app_prod
+    collections celery_prod [
+        celery-*
+        ----
+        worker for
+        each queue
+    ]
+    rectangle celerybeat as celerybeat_prod
+    rectangle manage_prod [
+        manage
+        ----
+        started only
+        manually
+    ]
+    rectangle nginx as nginx_prod
+    rectangle rabbitmq as rabbitmq_prod
+    rectangle elasticsearch as elasticsearch_prod
+    rectangle memcached as memcached_prod
+}
+
+app ..> app_prod
+celery ..> celery_prod
+beat ..> celerybeat_prod
+manage ..> manage_prod
+nginx ..> nginx_prod
+rabbitmq ..> rabbitmq_prod
+elasticsearch ..> elasticsearch_prod
+memcached ..> memcached_prod
+
+package "Actual Containers" {
+    component app as app_cont
+    component "celery-*" as celery_cont
+    component celerybeat as celerybeat_cont
+    component nginx as nginx_cont
+    component rabbitmq as rabbitmq_cont
+    component elasticsearch as elasticsearch_cont
+    component memcached as memcached_cont
+}
+
+app_prod ..> app_cont
+celery_prod ..> celery_cont
+celerybeat_prod ..> celerybeat_cont
+nginx_prod ..> nginx_cont
+rabbitmq_prod ..> rabbitmq_cont
+elasticsearch_prod ..> elasticsearch_cont
+memcached_prod ..> memcached_cont
+
+'app_cont <-> nginx_cont
+'app_cont <-> rabbitmq_cont
+
+@enduml
