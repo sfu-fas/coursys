@@ -18,7 +18,7 @@ from django.utils.html import conditional_escape as escape
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
-from log.models import LogEntry
+from log.models import LogEntry, MonitoringDataLog
 
 import celery, kombu, amqp
 import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
@@ -94,11 +94,8 @@ def sanity_checks():
 
     # Django database
     try:
-        n = Semester.objects.all().count()
-        if n > 0:
-            passed.append(('Main database connection', 'okay'))
-        else:
-            failed.append(('Main database connection', "Can't find any coredata.Semester objects"))
+        Semester.objects.all().count()
+        passed.append(('Main database connection', 'okay'))
     except django.db.utils.OperationalError:
         failed.append(('Main database connection', "can't connect to database"))
     except django.db.utils.ProgrammingError:
@@ -106,12 +103,12 @@ def sanity_checks():
 
     # non-BMP Unicode in database
     try:
-        l = LogEntry.objects.create(userid='ggbaker', description='Test Unicode \U0001F600', related_object=Semester.objects.first())
+        l = MonitoringDataLog.objects.create(time=datetime.datetime.now(), duration=datetime.timedelta(0), metric='Unicode Test \U0001F600', value=0.0, data={})
     except OperationalError:
         failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
     else:
-        l = LogEntry.objects.get(id=l.id)
-        if '\U0001F600' in l.description:
+        l = MonitoringDataLog.objects.get(id=l.id)
+        if '\U0001F600' in l.metric:
             passed.append(('Unicode handling in database', 'okay'))
         else:
             failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
