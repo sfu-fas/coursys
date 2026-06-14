@@ -2,7 +2,8 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
-from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
+from coredata.csrpt import initial_csrpt_auth, refresh_csrpt_auth
+from coredata.forms import CSRPTAuthForm, RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
         TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm, \
         OffboardForm, EditPersonForm
@@ -1724,3 +1725,35 @@ def course_enrolment(request, course_slug):
         'enrolment_end': enrolment_end
     }
     return render(request, 'coredata/course_enrolment.html', context)
+
+
+@requires_global_role("SYSA")
+def csrpt_auth(request):
+    """
+    Manage reporting database authentication
+    """
+    if request.method == 'POST':
+        form = CSRPTAuthForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            result = initial_csrpt_auth(username, password, get_cert=True)
+
+            if result is None:
+                messages.success(request, 'CSRPT auth successful')
+                l = LogEntry(userid=request.user.username,
+                      description=f'Did CSRPT auth for {username}', related_object=request.user)
+                l.save()
+                return HttpResponseRedirect(reverse('sysadmin:csrpt_auth', kwargs={}))
+            else:
+                messages.error(request, f'CSRPT auth failed: {result}')
+
+    else:
+        form = CSRPTAuthForm(initial={'username': request.user.username})
+
+    context = {
+        'form': form
+    }
+    return render(request, 'coredata/csrpt_auth.html', context)
+

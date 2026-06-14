@@ -335,6 +335,7 @@ DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'coursys-help@sfu.ca'
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
+CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/csrpt_auth')
 
 EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', './moss')
