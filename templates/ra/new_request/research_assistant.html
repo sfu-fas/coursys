@@ -88,6 +88,9 @@
             {% endfor %}
         {% else %}
             {{ wizard.form|as_dl_excludefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+          <div id="biweekly_warning" class="errorlist">
+             <p>In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours/overtime-pay">BC Employment Standards Act</a>, Employees who work more than eight hours in a day or 40 hours in a week must be paid time-and-a-half or double-time for overtime hours worked.</p>
+          </div>          
           <div class="biweekly_info">
             <p><div class="important_info">
               <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
