@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Health Check: {{status}}{% endblock %}
+{% block h1 %}Health Check: {{status}}{% endblock %}
+
+
+{% block subbreadcrumbs %}<li>Health Check</li>{% endblock %}
+
+
+{% block content %}
+<pre>{{ res|pprint }}</pre>
+{% endblock %}
