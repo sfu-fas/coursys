@@ -56,7 +56,7 @@ shell:
 	${DOCKERCOMPOSE} run manage shell
 dbshell:
 	${DOCKERCOMPOSE} run manage dbshell
-get-docker-rollout:
+get-docker-rollout:  # should be installed globally in prod, but for dev environments, a handy fetcher...
 	mkdir -p ~/.docker/cli-plugins
 	wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O ~/.docker/cli-plugins/docker-rollout
 	chmod +x ~/.docker/cli-plugins/docker-rollout

@@ -15,10 +15,15 @@ else
 fi
 [ -f /etc/yum.repos.d/docker-ce.repo ] || ( ${DNF_ADD} https://download.docker.com/linux/${ID}/docker-ce.repo )
 
+# Get docker-rollout
 [ -f /usr/bin/docker ] || dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+mkdir -p /usr/local/lib/docker/cli-plugins
+wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O /usr/local/lib/docker/cli-plugins/docker-rollout
+chmod +x /usr/local/lib/docker/cli-plugins/docker-rollout
 
 systemctl enable --now docker
 
+# Put users into the docker group
 setup_user_docker() {
   U=$1
   ( grep docker /etc/group | grep -q ${U} ) || gpasswd -a ${U} docker

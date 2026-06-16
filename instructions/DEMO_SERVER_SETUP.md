@@ -22,8 +22,7 @@ sudo chown -R ${COURSYS_USERNAME} ${SOURCE_LOCATION}
 
 # basic config choices
 sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
-install -o root -m 0700 -d ${SOURCE_LOCATION}/secrets
-[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/docker/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
+[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/secrets/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
 [ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" > ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
 [ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass123" > ${SOURCE_LOCATION}/secrets/elastic-initial-password
 
@@ -35,11 +34,11 @@ install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 sudo apt-get install -y make docker-compose-v2 docker-buildx
 sudo gpasswd -a `whoami` docker
 ```
+Log out and back in so the group membership takes effect.
 
 
 ## Starting Docker Containers
 
-Log out and back in so the group membership takes effect and...
 ```shell
 cd /coursys
 make get-docker-rollout

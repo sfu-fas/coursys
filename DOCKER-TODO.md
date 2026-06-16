@@ -2,8 +2,9 @@
 
 * kinit auth creation/refreshing logic (kinit*.sh actually hooked up somewhere)
 * docs for prod setup
-* MOSS (docs)
-* install docker-rollout globally
+* update SYSADMIN.md
+* who is going to own /coursys/*? Makefile implies it's `coursys`, instrutions imply root.
+
 
 # Notes
 
@@ -164,12 +165,14 @@ Maybe `/etc/docker/daemon.json`:
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "syslog",
   "storage-driver": "overlay2",
+  "iptables": true,
+
   "bip": "10.131.0.1/16",
   "fixed-cidr": "10.131.0.0/17",
-  "iptables": true,
   "default-address-pools":[
       {"base":"10.132.0.0/16","size":24}
   ],
+
   "proxies": {
    "default": {
      "httpProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080",

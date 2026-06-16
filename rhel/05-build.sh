@@ -4,7 +4,8 @@ set -e
 source ./config.sh
 
 # get at least a template secrets/app-config.toml in place
-[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/docker/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
+[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/secrets/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
+[ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" > ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
 
 # make sure the various data directories exist with the right ownership
 install -o root -d ${DATA_PREFIX}nginx_logs

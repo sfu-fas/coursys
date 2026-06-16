@@ -1,7 +1,11 @@
 @startuml
 
 package "compose-base.yml" {
+    'card "Common base instructions\nfor any of our\ndeployment scenarios" #aliceblue;line:blue;text:blue
+
     package "app.Dockerfile" {
+        'card "Recipes for images\nthat include our\nDjango code" #aliceblue;line:blue;text:blue
+
         artifact builder [
             builder
             ----
@@ -41,7 +45,7 @@ package "compose-base.yml" {
             ./manage.py commands
         ]
 
-        builder --> base : Python and NPM libs copied
+        builder -[#black,thickness=3]-> base :  Python and NPM libs copied
         base ..> app : extended
         base ..> celery : extended
         base ..> beat : extended
@@ -74,53 +78,71 @@ package "compose-dev-services.yml" {
     cloud smtp4dev
 }
 
-package "compose-production.yml" {
-    rectangle app as app_prod
+package "compose-proddev.yml" {
+    rectangle base as base_prod
+    rectangle app as app_prod 
     collections celery_prod [
         celery-*
         ----
-        worker for
-        each queue
+        one for each queue
     ]
-    rectangle celerybeat as celerybeat_prod
-    rectangle manage_prod [
-        manage
-        ----
-        started only
-        manually
-    ]
+    'rectangle "celery-batch" as celery_batch
+    'rectangle "celery-fast" as celery_fast
+    'rectangle "celery-email" as celery_email
+    'rectangle "celery-photo" as celery_photo
+    'rectangle "celery-sims" as celery_sims
+    rectangle beat as celerybeat_prod
+    rectangle manage as manage_prod 
     rectangle nginx as nginx_prod
     rectangle rabbitmq as rabbitmq_prod
     rectangle elasticsearch as elasticsearch_prod
     rectangle memcached as memcached_prod
+    rectangle smtp4dev as smtp4dev_prod
+    rectangle mysql as mysql_prod
+
+    base_prod ..> app_prod : extended
+    base_prod ..> celery_prod : extended
+    base_prod ..> celerybeat_prod : extended
+    base_prod ..> manage_prod : extended
 }
 
-app ..> app_prod
-celery ..> celery_prod
-beat ..> celerybeat_prod
-manage ..> manage_prod
-nginx ..> nginx_prod
-rabbitmq ..> rabbitmq_prod
-elasticsearch ..> elasticsearch_prod
-memcached ..> memcached_prod
+base ---> base_prod
+app ---> app_prod
+celery ---> celery_prod
+beat ---> celerybeat_prod
+manage ---> manage_prod
+nginx --> nginx_prod
+rabbitmq --> rabbitmq_prod
+elasticsearch ----> elasticsearch_prod
+memcached ----> memcached_prod
+smtp4dev ----> smtp4dev_prod
+mysql ----> mysql_prod
 
 package "Actual Containers" {
     component app as app_cont
-    component "celery-*" as celery_cont
-    component celerybeat as celerybeat_cont
+    component celery_cont [
+        celery-*
+        ----
+        one for each queue
+    ]
+    component beat as celerybeat_cont
     component nginx as nginx_cont
     component rabbitmq as rabbitmq_cont
     component elasticsearch as elasticsearch_cont
     component memcached as memcached_cont
+    component smtp4dev as smtp4dev_cont
+    component mysql as mysql_cont
 }
 
-app_prod ..> app_cont
-celery_prod ..> celery_cont
-celerybeat_prod ..> celerybeat_cont
-nginx_prod ..> nginx_cont
-rabbitmq_prod ..> rabbitmq_cont
-elasticsearch_prod ..> elasticsearch_cont
-memcached_prod ..> memcached_cont
+app_prod --> app_cont
+celery_prod --> celery_cont
+celerybeat_prod --> celerybeat_cont
+nginx_prod --> nginx_cont
+rabbitmq_prod --> rabbitmq_cont
+elasticsearch_prod --> elasticsearch_cont
+memcached_prod --> memcached_cont
+smtp4dev_prod --> smtp4dev_cont
+mysql_prod --> mysql_cont
 
 'app_cont <-> nginx_cont
 'app_cont <-> rabbitmq_cont

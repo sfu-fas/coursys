@@ -313,10 +313,10 @@ def deploy_checks():
         failed.append(('Haystack search', "can't read/write index"))
 
     # photo fetching
-    if cache_okay and celery_okay:
+    if cache_okay:  # and celery_okay:  >> removed check so celery-photos can be tested on a not-yet-fully-deployed server
         try:
-            res = do_photo_fetch(['301222726'])
-            if '301222726' not in res: # I don't know who 301222726 is, but he/she is real.
+            res = do_photo_fetch(['301222726'], timeout=5)
+            if '301222726' not in res: # I don't know who 301222726 is, but they are real.
                 failed.append(('Photo fetching', "didn't find photo we expect to exist"))
             else:
                 passed.append(('Photo fetching', 'okay'))

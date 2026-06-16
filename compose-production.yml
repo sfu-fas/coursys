@@ -35,6 +35,7 @@ services:
     build:
       args:
         - DEPLOY_MODE=demo
+        - UID=6501
     # environment:
     #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
     #   - CSRF_TRUSTED_ORIGINS=https://alternate-hostname.sfu.ca
