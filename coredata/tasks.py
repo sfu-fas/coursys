@@ -194,7 +194,7 @@ def daily_import():
     """
     Start the daily import work.
     """
-    # This is a separate task because periodic tasks run in the worker queue. We want all SIMS access running in the
+    # This is a separate task because periodic tasks run in the batch queue. We want all SIMS access running in the
     # sims queue. This task essentially starts and bounces the work into the other queue.
     if not settings.DO_IMPORTING_HERE:
         return

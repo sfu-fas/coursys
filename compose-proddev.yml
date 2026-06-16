@@ -43,6 +43,13 @@ services:
       - nginx_logs:/nginx_logs:rw
       - dynamic_config:/dynamic_config:ro
 
+  logrotate:
+    extends:
+      file: compose-base.yml
+      service: logrotate
+    volumes:
+      - nginx_logs:/nginx_logs:rw
+ 
   base:
     extends:
       file: compose-base.yml

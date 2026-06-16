@@ -34,7 +34,7 @@ services:
       service: base
     build:
       args:
-        - DEPLOY_MODE=demo
+        - DEPLOY_MODE=production
         - UID=6501
     # environment:
     #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
@@ -121,7 +121,7 @@ services:
       dockerfile: docker/app.Dockerfile
       target: base
       args:
-        - UID=888
+        - UID=6501
         - DEPLOY_MODE=production
     volumes:
       - ./data/csrpt_auth:/csrpt_auth:rw,Z

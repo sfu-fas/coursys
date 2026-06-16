@@ -39,17 +39,12 @@ package "Docker" {
     queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
     database "<$memcached>\nMemcached" as memcached
     database "<$elasticsearch>\nElasticsearch" as elasticsearch
+    agent "Logrotate" as logrotate
 
     static <-- collectstatic : "writes"
     gunicorn -> static : "compressor"
     nginx <-- static : static files
     nginx <--> gunicorn : dynamic pages
-
-    'gunicorn ..> django : runs
-    'django <.. celery : "runs\n~*/tasks.py"
-
-    'celery .> import : task
-    'django <.. import : runs
     
     gunicorn ..> rabbitmq : tasks
     celery <.. rabbitmq : tasks
@@ -65,7 +60,6 @@ package "Onara" {
 nginx <-> lb : HTTP
 gunicorn <-> db
 celery <--> db
-'import --> db
 db <- import
 
 package "External APIs" {
@@ -75,12 +69,14 @@ package "External APIs" {
     database "AMAINT" as amaint
 }
 
-'import <-- csrpt
 csrpt -> import
 celery <-- csrpt
 gunicorn <..> cas : auth
 celery <-- photo
-'import <-- amaint
 amaint -> import
+
+folder "nginx_logs" as nginx_logs
+nginx_logs <.. nginx : writes
+nginx_logs <.. logrotate : rotates
 
 @enduml

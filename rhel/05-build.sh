@@ -24,25 +24,25 @@ docker compose build --pull
 # NGINX log rotation
 
 # selinux permission for logrotate to touch that directory
-[ -f /usr/bin/semanage ] || dnf install -y policycoreutils-python-utils
-semanage fcontext -a -t var_log_t "${DATA_PREFIX}/nginx_logs"
-restorecon -R ${DATA_PREFIX}/nginx_logs
+# [ -f /usr/bin/semanage ] || dnf install -y policycoreutils-python-utils
+# semanage fcontext -a -t var_log_t "${DATA_PREFIX}/nginx_logs"
+# restorecon -R ${DATA_PREFIX}/nginx_logs
 
 # based on: https://alexanderzeitler.com/articles/rotating-nginx-logs-with-docker-compose/
-cat <<EOF > /etc/logrotate.d/nginx-coursys
-${DATA_PREFIX}/nginx_logs/*.log {
-  daily
-  missingok
-  rotate 31
-  dateext
-  compress
-  delaycompress
-  notifempty
-  sharedscripts
-  postrotate
-    cd ${SOURCE_LOCATION} && docker compose kill -s USR1 nginx
-  endscript
-}
-EOF
+# cat <<EOF > /etc/logrotate.d/nginx-coursys
+# ${DATA_PREFIX}/nginx_logs/*.log {
+#   daily
+#   missingok
+#   rotate 31
+#   dateext
+#   compress
+#   delaycompress
+#   notifempty
+#   sharedscripts
+#   postrotate
+#     cd ${SOURCE_LOCATION} && docker compose kill -s USR1 nginx
+#   endscript
+# }
+# EOF
 
-systemctl restart logrotate
+# systemctl restart logrotate

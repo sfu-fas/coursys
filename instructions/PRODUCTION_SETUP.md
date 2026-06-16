@@ -84,6 +84,13 @@ docker compose down celery-email
 
 ### Actually Switching Over
 
+If database access is okay, and Elastic search is up, the indexing can be started ahead of time:
+```shell
+docker compose up -d celery-batch
+docker compose run manage update_index_task --full-rebuild
+```
+
+Actually starting the full system:
 ```shell
 docker compose up -d
 docker compose run manage check_things

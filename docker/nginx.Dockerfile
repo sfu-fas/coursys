@@ -7,6 +7,7 @@ ARG CANONICAL_NAME="coursys.sfu.ca"
 ENV SERVE_HOSTS=${SERVE_HOSTS}
 ENV FORWARD_HOSTS=${FORWARD_HOSTS}
 ENV CANONICAL_NAME=${CANONICAL_NAME}
+ENV TZ=America/Vancouver
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
   CMD curl --fail http://localhost:80/static/icons/favicon.ico?healthcheck || exit 1

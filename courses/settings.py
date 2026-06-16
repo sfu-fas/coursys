@@ -130,7 +130,8 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Disable migrations only when running tests.
-if 'test' in sys.argv[1:]:
+IN_TESTING = 'test' in sys.argv[1:] and DEPLOY_MODE != 'production'
+if IN_TESTING:
     MIGRATION_MODULES = {}
     for m in INSTALLED_APPS:
         MIGRATION_MODULES[m] = None
@@ -176,6 +177,13 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
+
+    if IN_TESTING:
+        DATABASES['default'].update({
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite',
+            'OPTIONS': {},
+        })
 
 else:
     DATABASES = {
@@ -234,6 +242,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'TIMEOUT': 60,
         },
     }
+    if IN_TESTING:
+        HAYSTACK_CONNECTIONS['default']['INDEX_NAME'] = 'haystack-testing'
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', '/db_backups')
 
 else:
@@ -277,7 +287,7 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel') and not IN_TESTING
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
     RABBITMQ_PASSWORD = getattr(localsettings, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')

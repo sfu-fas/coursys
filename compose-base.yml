@@ -60,6 +60,14 @@ services:
     networks:
       - web
 
+  logrotate:
+    build:
+      context: .
+      dockerfile: docker/logrotate.Dockerfile
+    pid: host  # give the container access to signal nginx to re-open log files
+    volumes:
+      - /data/nginx_logs:/nginx_logs:rw,Z
+
   base:
     build:
       context: .
