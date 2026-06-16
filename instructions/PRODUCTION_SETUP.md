@@ -18,6 +18,7 @@ DOCKER_COMPOSE_FILE='compose-production.yml'
 touch ./this_is_production.txt
 cp secrets/app-config-template.toml secrets/app-config.toml
 echo "rmqpass" > ./secrets/rabbitmq-default-password
+echo "espass" > ./secrets/elastic-initial-password
 ```
 
 Edit the secrets to reflect the real production setup.

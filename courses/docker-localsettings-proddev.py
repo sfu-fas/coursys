@@ -14,6 +14,7 @@ DB_CONNECTION = {
 RABBITMQ_USER = config['rabbitmq']['username']
 RABBITMQ_PASSWORD = config['rabbitmq']['password']
 RABBITMQ_VHOST = config['rabbitmq']['vhost']
+ELASTICSEARCH_PASSWORD = config['elasticsearch']['password']
 NPM_ROOT_PATH = '/build'
 
 EMAIL_HOST = 'smtp4dev'

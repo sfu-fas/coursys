@@ -25,6 +25,7 @@ sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose
 install -o root -m 0700 -d ${SOURCE_LOCATION}/secrets
 [ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/docker/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
 [ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" > ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
+[ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass123" > ${SOURCE_LOCATION}/secrets/elastic-initial-password
 
 # data directories & permissions
 sudo install -o root -d ${DATA_PREFIX}

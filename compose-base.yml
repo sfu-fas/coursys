@@ -16,19 +16,18 @@ services:
       - web
 
   elasticsearch:
-    image: 'elasticsearch:7.17.28'
+    build:
+      context: .
+      dockerfile: docker/elasticsearch.Dockerfile
     volumes:
       - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=espass # the secret wins if both are present
+      - ELASTIC_PASSWORD_SECRET=/run/secrets/elastic-initial-password
     restart: unless-stopped
-    healthcheck:
-      test: curl -s http://localhost:9200 >/dev/null || exit 1
-      timeout: 30s
-      interval: 60s
-      start_period: 15s
     networks:
       - backend
       - web

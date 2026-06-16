@@ -21,6 +21,8 @@ services:
     extends:
       file: compose-base.yml
       service: elasticsearch
+    secrets:
+      - elastic-initial-password
 
   memcached:
     extends:
@@ -140,4 +142,6 @@ secrets:
     file: ./secrets/app-config.toml
   rabbitmq-default-password:
     file: ./secrets/rabbitmq-default-password
+  elastic-initial-password:
+    file: ./secrets/elastic-initial-password
 
