@@ -367,7 +367,9 @@ def csrpt_refresh_periodic():
 
 @task(queue='sims')
 def csrpt_refresh():
-    refresh_csrpt_auth()
+    res = refresh_csrpt_auth()
+    if res is not None:
+        raise RuntimeError(res)
 
 
 
