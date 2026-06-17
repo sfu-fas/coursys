@@ -126,7 +126,7 @@ services:
     volumes:
       - /data/csrpt_auth:/csrpt_auth:rw,Z
 
-  celerybeat:
+  beat:
     extends:
       service: base
     build:
