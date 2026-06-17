@@ -23,13 +23,12 @@ The commands in `rhel/01-bootstrap.sh` are intended to be run manually to get th
 After that, the scripts in `rhel/` should be able to set up the basics on the server. Have a look
 at `rhel/config.sh` first, Contents likely something like:
 ```bash
-USERNAME=ggbaker
+USERNAME=ggbaker-pam
 USER_HOME=/home/${USERNAME}
 COURSYS_USERNAME=coursys
 COURSYS_UID=6501
 COURSYS_HOME=/home/${COURSYS_USERNAME}
 SOURCE_LOCATION=/coursys
-BRANCH=master  # docker-deploy? Double-check
 DATA_PREFIX=/data/
 DOCKER_COMPOSE_FILE='compose-production.yml'
 ```
@@ -38,7 +37,8 @@ Consider setting `DO_IMPORTING_HERE = False` in `courses/docker-localsettings-pr
 temporarily while setting up: it's intended to ensure there's no split-brain on any critical data
 updates during a transition like this.
 
-Review and run scripts 02-05. Have a look around and make sure things are as expected.
+Review and run scripts 02-05. Have a look around and make sure things are as expected. You may have
+to log out and back in after 03 to get the docker group membership active.
 
 Get the system firmly into production mode:
 ```shell
@@ -47,7 +47,9 @@ cp secrets/app-config-template.toml secrets/app-config.toml
 echo "rmqpass" > ./secrets/rabbitmq-default-password
 echo "espass" > ./secrets/elastic-initial-password
 ```
-Edit the secrets to reflect the real production setup.
+Edit the secrets to reflect the real production setup. In particular, the SECRET_KEY (in
+app-config.toml as "django_secret") must match the old server. Otherwise all users will be logged
+out during the migration.
 
 Likely copy the contents of the `moss` directory from the old server. The file `moss/moss.pl`
 should exist.
@@ -70,7 +72,7 @@ The check_things should find that Celery isn't running at this point, which is e
 To test the photos API, we would need those celery workers up (but fetching ID photos is the *only* thing they do):
 ```shell
 docker compose up -d celery-photo
-docker compose run manage check_things  # our deeper inspection of the state of the deployment
+docker compose run manage check_things
 docker compose down celery-photo
 ```
 
@@ -80,6 +82,14 @@ docker compose up -d celery-email
 docker compose run manage check_things --email=whoever@sfu.ca
 docker compose down celery-email
 ```
+
+### External Services
+
+* CAS: ???
+* Photos API: seems to just work (given the password that's reguarly rotated and stored in the database).
+* CSRPT: seems to work once the auth stuff is bootstrapped.
+* AMAINT/EMPLID API: needs whitelisting.
+* email sending: historically just works.
 
 
 ### Actually Switching Over

@@ -124,7 +124,7 @@ services:
         - UID=6501
         - DEPLOY_MODE=production
     volumes:
-      - ./data/csrpt_auth:/csrpt_auth:rw,Z
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
     secrets:
       - app-config
     deploy:

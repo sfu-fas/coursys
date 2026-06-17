@@ -325,7 +325,7 @@ def deploy_checks():
         except urllib.error.HTTPError as e:
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
-        failed.append(('Photo fetching', 'not testing since memcached or celery failed'))
+        failed.append(('Photo fetching', 'not testing since memcached'))
 
     # emplid/userid API
     emplid = userid_to_emplid('ggbaker')

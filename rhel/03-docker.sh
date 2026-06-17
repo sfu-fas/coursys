@@ -18,7 +18,7 @@ fi
 # Get docker-rollout
 [ -f /usr/bin/docker ] || dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 mkdir -p /usr/local/lib/docker/cli-plugins
-wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O /usr/local/lib/docker/cli-plugins/docker-rollout
+[ -f /usr/local/lib/docker/cli-plugins/docker-rollout ] || curl -L https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout > /usr/local/lib/docker/cli-plugins/docker-rollout
 chmod +x /usr/local/lib/docker/cli-plugins/docker-rollout
 
 systemctl enable --now docker

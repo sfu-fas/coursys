@@ -53,8 +53,9 @@ EOF
 setup_user_docker_production() {
   U=$1
   H=$2
+  mkdir -p ${H}/.docker
   cp /tmp/config.json ${H}/.docker/config.json
-  chown $U ${H}/.docker/config.json
+  chown -R $U ${H}/.docker
 }
 
 setup_user_docker_production ${COURSYS_USERNAME} ${COURSYS_HOME}

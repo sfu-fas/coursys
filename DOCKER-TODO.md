@@ -5,7 +5,8 @@
 * update SYSADMIN.md
 * who is going to own /coursys/*? Makefile implies it's `coursys`, instrutions imply root.
 * do we need/want to restart celery and/or celerybeat in cron?
-
+* fix the compress test if directory hasn't been created yet
+* check_things test for CSRPT will always fail since /csrpt_auth isn't there
 
 # Notes
 

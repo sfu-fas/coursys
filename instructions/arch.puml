@@ -23,10 +23,6 @@ agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
 
 users <-> lb : HTTPS
 
-'artifact "<$django>\nApplication Code" as django
-control "manage.py\ncollectstatic" as collectstatic
-
-
 package "Docker" {    
     folder "static" as static
     control "Daily Import\nTask" as import
@@ -41,7 +37,6 @@ package "Docker" {
     database "<$elasticsearch>\nElasticsearch" as elasticsearch
     agent "Logrotate" as logrotate
 
-    static <-- collectstatic : "writes"
     gunicorn -> static : "compressor"
     nginx <-- static : static files
     nginx <--> gunicorn : dynamic pages
@@ -67,13 +62,19 @@ package "External APIs" {
     agent "CAS" as cas
     database "Photo API" as photo
     database "AMAINT" as amaint
+    cloud "outgoing\nemail" as email
 }
 
 csrpt -> import
 celery <-- csrpt
 gunicorn <..> cas : auth
 celery <-- photo
+email <-- celery
 amaint -> import
+
+control "manage.py\ncollectstatic" as collectstatic
+'static <- collectstatic : "writes"
+collectstatic --> static : "writes"
 
 folder "nginx_logs" as nginx_logs
 nginx_logs <.. nginx : writes
