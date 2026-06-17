@@ -1,0 +1,47 @@
+@startuml
+
+package "compose-base.yml" {
+    agent rabbitmq as rabbitmq_b
+    agent elasticsearch as elasticsearch_b
+    agent memcached as memcached_b
+    agent nginx as nginx_b
+    agent logrotate as logrotate_b
+
+    artifact base as base_b
+}
+
+package "compose-production.yml" {
+    agent rabbitmq
+    agent elasticsearch
+    agent memcached
+    agent nginx
+    agent logrotate
+    artifact base
+    agent app
+    agent rabbitmq
+    agent celery_fast
+    agent celery_batch
+    agent celery_email
+    agent celery_photos
+    agent celery_sims
+    agent beat
+    artifact manage
+
+    base ..> app
+    base ..> celery_fast
+    base ..> beat
+    base ..> manage
+    celery_fast ..> celery_batch
+    celery_fast ..> celery_email
+    celery_fast ..> celery_photos
+    celery_fast ..> celery_sims
+}
+
+rabbitmq_b --> rabbitmq
+elasticsearch_b --> elasticsearch
+memcached_b --> memcached
+nginx_b --> nginx
+logrotate_b --> logrotate
+base_b --> base
+
+@enduml
