@@ -32,8 +32,6 @@ services:
     extends:
       file: compose-base.yml
       service: logrotate
-    volumes:
-      - nginx_logs:/nginx_logs:rw
  
   base:
     extends:
