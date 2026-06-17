@@ -44,4 +44,20 @@ nginx_b --> nginx
 logrotate_b --> logrotate
 base_b --> base
 
+agent "server\ncontainers" as server
+
+app --> server
+celery_batch --> server
+celery_fast --> server
+celery_email --> server
+celery_photos --> server
+celery_sims --> server
+beat --> server
+nginx ---> server
+logrotate ---> server
+rabbitmq ---> server
+elasticsearch ---> server
+memcached ---> server
+
+
 @enduml
