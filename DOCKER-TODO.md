@@ -5,7 +5,6 @@
 * update SYSADMIN.md
 * who is going to own /coursys/*? Makefile implies it's `coursys`, instrutions imply root. Leaning toward root
 * do we need/want to restart celery and/or celerybeat in cron?
-* fix the compress test if directory hasn't been created yet
 * need some protocol for regular dnf updates and docker pulls
 
 

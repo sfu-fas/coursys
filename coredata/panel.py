@@ -348,6 +348,7 @@ def deploy_checks():
         failed.append(('CAS Connectivity', 'Could not connect to CAS server: %s' % (e,)))
 
     # file creation in the necessary places
+    os.makedirs(os.path.join(settings.COMPRESS_ROOT, 'CACHE'), mode=0o755, exist_ok=True)
     dirs_to_check = [
         (settings.SUBMISSION_PATH, 'submitted files path'),
         (os.path.join(settings.COMPRESS_ROOT, 'CACHE'), 'compressed media root'),
