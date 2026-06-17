@@ -1,6 +1,5 @@
 # TODO
 
-* kinit auth creation/refreshing logic (kinit*.sh actually hooked up somewhere)
 * docs for prod setup
 * update SYSADMIN.md
 * who is going to own /coursys/*? Makefile implies it's `coursys`, instrutions imply root. Leaning toward root

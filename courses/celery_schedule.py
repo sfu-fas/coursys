@@ -9,6 +9,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'coredata.tasks.regular_backup',
         'schedule': crontab(minute=0, hour='*/3'),
     },
+    'coredata.tasks.csrpt_refresh_periodic': {
+        'task': 'coredata.tasks.csrpt_refresh_periodic',
+        'schedule': crontab(minute='0', hour='*/2'),
+    },
     'coredata.tasks.daily_import': {
         'task': 'coredata.tasks.daily_import',
         'schedule': crontab(minute='30', hour='8'),
