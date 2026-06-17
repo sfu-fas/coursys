@@ -42,14 +42,14 @@ package "app.Dockerfile" {
     ]
 
     builder -[#black,thickness=4]-> base :  Python and NPM libs copied
-    base ..> app : extended
-    base ..> celery : extended
-    base ..> beat : extended
-    base .> manage : extended
+    base ..> app
+    base ..> celery
+    base ..> beat
+    base .> manage
 
     cloud python
-    python .> builder : FROM
-    python ..> base : FROM
+    python .> builder
+    python ..> base
 
 }
 
@@ -63,7 +63,7 @@ package "nginx.Dockerfile" {
 }
 
 cloud nginx as nginx_base
-nginx_base ..> nginx : FROM
+nginx_base ..> nginx
 
 package "logrotate.Dockerfile" {
     artifact logrotate [
@@ -74,8 +74,8 @@ package "logrotate.Dockerfile" {
     ]
 }
 
-cloud debian
-debian ..> logrotate : FROM
+cloud alpine
+alpine ..> logrotate
 
 package "rabbitmq.Dockerfile" {
     artifact rabbitmq [
@@ -87,7 +87,7 @@ package "rabbitmq.Dockerfile" {
 }
 
 cloud rabbitmq as rabbitmq_base
-rabbitmq_base ..> rabbitmq : FROM
+rabbitmq_base ..> rabbitmq
 
 package "elasticsearch.Dockerfile" {
     artifact elasticsearch [
@@ -99,7 +99,7 @@ package "elasticsearch.Dockerfile" {
 }
 
 cloud elasticsearch as elasticsearch_base
-elasticsearch_base ..> elasticsearch : FROM
+elasticsearch_base ..> elasticsearch
 
 
 cloud memcached
@@ -115,8 +115,8 @@ celery --> server
 beat --> server
 nginx --> server
 logrotate --> server
-rabbitmq ---> server
-elasticsearch ---> server
-memcached --> server
+rabbitmq ----> server
+elasticsearch ----> server
+memcached ----> server
 
 @enduml

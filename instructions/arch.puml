@@ -37,44 +37,48 @@ package "Docker" {
     database "<$elasticsearch>\nElasticsearch" as elasticsearch
     agent "Logrotate" as logrotate
 
-    gunicorn -> static : "compressor"
+    static <-- gunicorn  : "compressor"
+    'gunicorn --> static : "compressor"
     nginx <-- static : static files
-    nginx <--> gunicorn : dynamic pages
+    nginx <---> gunicorn : dynamic pages
     
     gunicorn ..> rabbitmq : tasks
     celery <.. rabbitmq : tasks
     gunicorn <--> memcached : cache
     gunicorn <--> elasticsearch : search
     rabbitmq <.. celerybeat : periodic\ntasks
+
+    control "manage\ncollectstatic" as collectstatic
+
 }
 
 package "Onara" {
     database "<$mariadb>\nDatabase" as db
 }
 
-nginx <-> lb : HTTP
+lb <--> nginx : HTTP
 gunicorn <-> db
 celery <--> db
 db <- import
 
-package "External APIs" {
+'package "External APIs" {
     database "CSRPT" as csrpt
     agent "CAS" as cas
     database "Photo API" as photo
     database "AMAINT" as amaint
     cloud "outgoing\nemail" as email
-}
+'}
 
-csrpt -> import
-celery <-- csrpt
-gunicorn <..> cas : auth
+csrpt --> import
+'celery <-- csrpt
+csrpt --> celery
+gunicorn <.> cas : auth
 celery <-- photo
 email <-- celery
 amaint -> import
 
-control "manage.py\ncollectstatic" as collectstatic
 'static <- collectstatic : "writes"
-collectstatic --> static : "writes"
+collectstatic -> static : "writes"
 
 folder "nginx_logs" as nginx_logs
 nginx_logs <.. nginx : writes
