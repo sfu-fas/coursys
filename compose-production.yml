@@ -28,6 +28,13 @@ services:
     #     - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
     #     - FORWARD_HOSTS=coursys.cs.sfu.ca courses.cs.sfu.ca
 
+  logrotate:
+    extends:
+      file: compose-base.yml
+      service: logrotate
+    volumes:
+      - nginx_logs:/nginx_logs:rw
+ 
   base:
     extends:
       file: compose-base.yml
@@ -53,6 +60,8 @@ services:
       replicas: 2
     networks:
       - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
 
   manage:
     extends:
@@ -65,6 +74,8 @@ services:
     networks:
       - backend
       - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
 
   celery-fast:
     extends:
@@ -100,7 +111,7 @@ services:
     extends: celery-fast
     environment:
       - QUEUE=sims
-      - CONCURRENCY=2
+      - CONCURRENCY=3
     volumes:
       - /data/csrpt_auth:/csrpt_auth:rw,Z
 
@@ -114,23 +125,6 @@ services:
     restart: unless-stopped
     networks:
       - backend
-
-  csrpt-test:  # temporary container to test csrpt auth without needed anything else started
-    build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      target: base
-      args:
-        - UID=6501
-        - DEPLOY_MODE=production
-    volumes:
-      - /data/csrpt_auth:/csrpt_auth:rw,Z
-    secrets:
-      - app-config
-    deploy:
-      replicas: 0
-    restart: no
-
 
 
 volumes:

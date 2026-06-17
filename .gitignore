@@ -40,6 +40,7 @@ Thumbs.db
 *~
 
 # other generated/private files #
+this_is_production.txt
 tmp-validation.html
 dbpass
 submitted_files

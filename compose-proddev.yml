@@ -37,7 +37,7 @@ services:
       args:
         - SERVE_HOSTS=localhost
         - FORWARD_HOSTS=
-    ports:
+    ports: !override
       - "8080:80"
     volumes:
       - nginx_logs:/nginx_logs:rw
@@ -122,7 +122,7 @@ services:
     extends: celery-fast
     environment:
       - QUEUE=sims
-      - CONCURRENCY=2
+      - CONCURRENCY=3
     volumes:
       - csrpt_auth:/csrpt_auth:rw
 

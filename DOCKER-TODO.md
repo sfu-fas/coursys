@@ -7,6 +7,7 @@
 * do we need/want to restart celery and/or celerybeat in cron?
 * fix the compress test if directory hasn't been created yet
 * check_things test for CSRPT will always fail since /csrpt_auth isn't there
+* volume for logrotate status?
 
 # Notes
 

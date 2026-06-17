@@ -2,12 +2,12 @@ FROM debian:stable-slim
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    logrotate cron procps \
+    logrotate procps \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
 ENV TZ=America/Vancouver
 COPY --chmod=0644 docker/files/logrotate-nginx.conf /etc/logrotate.d/nginx-coursys
+COPY --chmod=0755 docker/files/logrotate.sh /logrotate.sh
 
-# logrotate installs its own crontab, so just let cron fire it off as needed:
-CMD cron -f -L 7
+CMD ["/logrotate.sh"]
