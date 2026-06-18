@@ -40,12 +40,19 @@ package "app.Dockerfile" {
         helper for admins to run
         ./manage.py commands
     ]
+    artifact admin [
+        manage
+        ----
+        helper for admins to get
+        a bash shell
+    ]
 
     builder -[#black,thickness=4]-> base :  Python and NPM libs copied
     base ..> app
     base ..> celery
     base ..> beat
-    base .> manage
+    manage <. base
+    base .> admin
 
     cloud python
     python .> builder
@@ -81,8 +88,7 @@ package "rabbitmq.Dockerfile" {
     artifact rabbitmq [
         rabbitmq
         ----
-        message queue for celery,
-        with password injected
+        message queue for celery
     ]
 }
 
@@ -117,6 +123,6 @@ nginx --> server
 logrotate --> server
 rabbitmq ----> server
 elasticsearch ----> server
-memcached ----> server
+memcached ---> server
 
 @enduml

@@ -83,6 +83,7 @@ services:
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
+      - /data/dynamic_config:/dynamic_config:ro,z
     secrets:
       - app-config
     restart: no

@@ -39,17 +39,17 @@ package "Docker" {
 
     static <-- gunicorn  : "compressor"
     'gunicorn --> static : "compressor"
-    nginx <-- static : static files
-    nginx <---> gunicorn : dynamic pages
+    nginx <-- static : "static\nfiles"
+    nginx <---> gunicorn : "dynamic\npages"
     
     gunicorn ..> rabbitmq : tasks
     celery <.. rabbitmq : tasks
     gunicorn <--> memcached : cache
     gunicorn <--> elasticsearch : search
     rabbitmq <.. celerybeat : periodic\ntasks
+    import <... celery : runs
 
     control "manage\ncollectstatic" as collectstatic
-
 }
 
 package "Onara" {
@@ -57,8 +57,8 @@ package "Onara" {
 }
 
 lb <--> nginx : HTTP
-gunicorn <-> db
-celery <--> db
+db <--> gunicorn
+db <--> celery
 db <- import
 
 'package "External APIs" {
@@ -66,22 +66,22 @@ db <- import
     agent "CAS" as cas
     database "Photo API" as photo
     database "AMAINT" as amaint
-    cloud "outgoing\nemail" as email
+    cloud "smtpserver.sfu.ca" as email
 '}
 
-csrpt --> import
-'celery <-- csrpt
-csrpt --> celery
-gunicorn <.> cas : auth
-celery <-- photo
-email <-- celery
-amaint -> import
+import <-- csrpt
+'csrpt --> celery
+csrpt --> gunicorn
+gunicorn <..> cas : auth
+celery <-- photo : photos
+email <- celery : "outgoing email"
+import <-- amaint
 
 'static <- collectstatic : "writes"
 collectstatic -> static : "writes"
 
 folder "nginx_logs" as nginx_logs
-nginx_logs <.. nginx : writes
+nginx_logs <-- nginx : writes
 nginx_logs <.. logrotate : rotates
 
 @enduml

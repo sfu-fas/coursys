@@ -15,7 +15,6 @@ echo 'Defaults env_keep += "HTTP_PROXY HTTPS_PROXY NO_PROXY"' | sudo tee /etc/su
 sudo dnf install -y git
 git clone https://github.com/sfu-fas/coursys.git /tmp/coursys -b master
 sudo mv /tmp/coursys /coursys
-sudo chown -R root /coursys
 cd /coursys/rhel
 
 # have a look at config.sh; edit as needed

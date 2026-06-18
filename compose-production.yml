@@ -75,6 +75,21 @@ services:
     volumes:
       - /data/csrpt_auth:/csrpt_auth:rw,Z
 
+  admin:
+    extends:
+      service: base
+    build:
+      target: admin
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
+      - /data/dynamic_config:/dynamic_config:rw,z
+
   celery-fast:
     extends:
       service: base

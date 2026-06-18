@@ -5,6 +5,8 @@
 set -e
 source ./config.sh
 
+sed -i "s/UMASK\s\s*027/UMASK 022/" /etc/login.defs
+
 # Rationalle for the daemon.json contents...
 # * Limit the size of the log files. (Docker logs may be useful to diagnose problems, but shouldn't be needed long-term.)
 # * Ensure that Docker's internal IP addresses don't conflict with the data centre's internal address range.

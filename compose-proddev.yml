@@ -61,6 +61,7 @@ services:
       - mysql
     volumes:
       - submitted_files:/submitted_files:rw
+      - dynamic_config:/dynamic_config:ro
     restart: no
     deploy:
       replicas: 0
@@ -75,6 +76,8 @@ services:
       replicas: 1
     networks:
       - web
+    volumes:
+      - csrpt_auth:/csrpt_auth:rw
 
   manage:
     extends:
@@ -87,6 +90,23 @@ services:
     networks:
       - backend
       - web
+    volumes:
+      - csrpt_auth:/csrpt_auth:rw,Z
+
+  admin:
+    extends:
+      service: base
+    build:
+      target: admin
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - csrpt_auth:/csrpt_auth:rw
+      - dynamic_config:/dynamic_config:rw
 
   celery-fast:
     extends:

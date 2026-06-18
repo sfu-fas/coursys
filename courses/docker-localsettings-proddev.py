@@ -26,6 +26,13 @@ except KeyError:
 MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'localhost:8080').strip().split()
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').strip().split()
 
-# from django.utils.safestring import mark_safe
+
+import os
+from django.utils.safestring import mark_safe
 # SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i> Info on the index page.</p>''')
 # SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclamation-triangle"></i> Warning on every page</p>''')
+
+if os.path.isfile('/dynamic_config/server_message_index.html'):
+    SERVER_MESSAGE_INDEX = mark_safe(open('/dynamic_config/server_message_index.html', 'rt', encoding='utf-8').read())
+if os.path.isfile('/dynamic_config/server_message.html'):
+    SERVER_MESSAGE = mark_safe(open('/dynamic_config/server_message.html', 'rt', encoding='utf-8').read())

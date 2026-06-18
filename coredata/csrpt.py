@@ -30,6 +30,7 @@ def get_output(process: subprocess.Popen):
 def initial_csrpt_auth(username: str, password: str, get_cert: bool = True) -> Optional[str]:
     """
     Authenticate a user against the CSRPT service, creating keytab.
+    Returns None or an error message.
     """
     assert '\n' not in password and '\r' not in password, "cannot safely have ktutil conversation"
 
@@ -62,7 +63,8 @@ def initial_csrpt_auth(username: str, password: str, get_cert: bool = True) -> O
 
 def refresh_csrpt_auth() -> Optional[str]:
     """
-    Refresh the CSRPT authentication by renewing the keytab file to get a certificate.
+    Refresh the CSRPT authentication by renewing the keytab file to get a ticket.
+    Returns None or an error message.
     """
     username = open(username_file, 'rt', encoding='ascii').read().strip()
 
@@ -76,14 +78,16 @@ def refresh_csrpt_auth() -> Optional[str]:
     if kinit.returncode != 0:
         return f'kinit exited {kinit.returncode}'
 
-    # juggle the ticket into the shared location so other workers can see it
-    # (they will have the same symlink from the docker recipe)
+    # Juggle the ticket into the shared location so other workers can see it.
     temp_ticket = f'/tmp/krb5cc_{os.getuid()}'
 
     if not os.path.isfile(temp_ticket) or os.path.islink(temp_ticket):
-        return 'ticket in /tmp is not a regular file, which is what we assume'
+        return f'ticket in {temp_ticket} is not a regular file, which is what we assume'
 
     shutil.move(temp_ticket, ticket_file)
+
+    # Us and other containers will have this same symlink. (Others have it from the docker recipe.)
+    # ... so the ticket can be shared by any container with /csrpt_auth mounted.
     os.symlink(ticket_file, temp_ticket)
 
     return None
