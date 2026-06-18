@@ -5,7 +5,7 @@
 set -e
 source ./config.sh
 
-sed -i "s/UMASK\s\s*027/UMASK 022/" /etc/login.defs
+grep -q "umask 022" /etc/profile || echo "umask 022" >> /etc/profile
 
 # Rationalle for the daemon.json contents...
 # * Limit the size of the log files. (Docker logs may be useful to diagnose problems, but shouldn't be needed long-term.)

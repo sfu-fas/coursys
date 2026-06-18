@@ -32,7 +32,25 @@ You can type queries, and `go` to run them.
 
 ## Access in Production
 
+Access is available only in specific docker containers. For database-shell-style access, the `tsql` command is available in the admin container:
+```shell
+docker compose run admin tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
+```
+```sql
+SELECT STRM FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'
+go
+```
 
+Or the manage container can do Python-style access:
+```shell
+docker compose run manage
+```
+```py
+from coredata.queries import *
+db = SIMSConn()
+db.execute("SELECT STRM FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'", ())
+list(db)
+```
 
 
 ## Auth in Production
@@ -42,6 +60,9 @@ The production server must have authentication done by someone with Reporting Da
 We have a sysadmin web UI to enter a username and password (/sysadmin/csrpt). That calls `coredata.csrpt.initial_csrpt_auth` which creates a kerberos keytab and `coredata.csrpt.refresh_csrpt_auth` to generate a ticket. A periodic task calls `refresh_csrpt_auth` to refresh the ticket every few hours. Those files are shared among the docker containers as the `csrpt_auth` volume.
 
 The shell scripts `kinit.sh` and `kinit-refresh.sh` do these same steps. They shouldn't be necessary, but have been retained. They can be run in the admin container if necessary.
+```shell
+docker compose run admin ./kinit.sh
+```
 
 
 ## More Auth Details

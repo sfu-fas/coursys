@@ -11,7 +11,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'coredata.tasks.csrpt_refresh_periodic': {
         'task': 'coredata.tasks.csrpt_refresh_periodic',
-        'schedule': crontab(minute='0', hour='*/2'),
+        'schedule': 7200,
     },
     'coredata.tasks.daily_import': {
         'task': 'coredata.tasks.daily_import',
