@@ -3,6 +3,7 @@ import tomllib
 config = tomllib.load(open('/run/secrets/app-config', 'rb'))
 
 DEPLOY_MODE = config['system']['deploy_mode']
+SECRET_KEY = config['system']['django_secret']
 
 DB_CONNECTION = {
     'HOST': config['database']['hostname'],
@@ -16,6 +17,8 @@ RABBITMQ_PASSWORD = config['rabbitmq']['password']
 RABBITMQ_VHOST = config['rabbitmq']['vhost']
 ELASTICSEARCH_PASSWORD = config['elasticsearch']['password']
 NPM_ROOT_PATH = '/build'
+
+
 
 EMAIL_HOST = 'smtp4dev'
 try:

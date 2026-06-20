@@ -53,20 +53,16 @@ docker compose up --remove-orphans -d
 
 ## Demo Data
 
-For the demo system, we use a mix of real-but-public data, and enough fake data to work with.
-
-On the *production* server, capture the basic public info we want to have:
+Demo data can be fetched from the production server, giving a secret key that is the first 6
+characters of the server secret (technically, `urllib.parse.quote(settings.SECRET_KEY[:6])`). 
 ```shell
-./manage.py dump_demo_data > /tmp/demodata.json
+curl https://coursys.sfu.ca/sysadmin/demo_data?key=abc123 > /tmp/demodata.json
 ```
 
-Copy `demodata.json` to the demo server and **on the demo server**:
+Then, **on the demo server**:
 ```shell
-cd /coursys
-sudo cp ~/demodata.json ./demodata.json
-sudo chmod 0644 ./demodata.json
-docker compose build
-docker compose run manage load_demo_data ./demodata.json
+cp /tmp/demodata.json /data/dynamic_config/
+docker compose run manage load_demo_data /dynamic_config/demodata.json
 docker compose run manage rebuild_index --noinput
 ```
 

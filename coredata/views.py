@@ -1,3 +1,5 @@
+import itertools
+
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -1757,3 +1759,58 @@ def csrpt_auth(request):
     }
     return render(request, 'coredata/csrpt_auth.html', context)
 
+
+def _clear_config(objects):
+    for o in objects:
+        o.config = {}
+
+
+def demo_data(request):
+    """
+    Export privacy-dafe demo data for import on a demo server
+    
+    Requires first few characters of the server secret as ?key=abc123, so we can easily access with
+    curl or similar, but still not broadcast this too publicly (even though it's all public data).
+    """
+    from django.core import serializers
+
+    key = settings.SECRET_KEY[:6]
+    if 'key' not in request.GET or request.GET['key'] != key:
+        return HttpResponse('Unauthorized', status=401)
+
+    data = []
+    the_past = datetime.date.today() - datetime.timedelta(days=365)
+
+    semesters = Semester.objects.all()
+    data.append(semesters)
+
+    all_units = Unit.objects.all()
+    # Get units in dependency order, so .parent is there when inserting
+    units = [u for u in all_units if u.parent is None]
+    last_len = 0
+    while len(units) != last_len:
+        last_len = len(units)
+        units.extend([u for u in all_units if u.parent in units and u not in units])
+    _clear_config(units)
+    data.append(units)
+
+    offerings = CourseOffering.objects.filter(semester__start__gte=the_past).exclude(component="CAN").select_related('course')
+    _clear_config(offerings)
+
+    courses = {o.course for o in offerings}
+    data.append(courses)
+    data.append(offerings)
+
+    instructors = Member.objects.filter(offering__in=offerings, role='INST', added_reason='AUTO').select_related('person')
+    _clear_config(instructors)
+
+    people = {m.person for m in instructors}
+    _clear_config(people)
+    for i, p in enumerate(people):
+        p.emplid = str(400000000 + i)
+        p.title = 'M'
+    data.append(people)
+    data.append(instructors)
+
+    content = serializers.serialize('json', itertools.chain.from_iterable(data), indent=2)
+    return HttpResponse(content, content_type='application/json')

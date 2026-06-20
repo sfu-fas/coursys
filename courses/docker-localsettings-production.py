@@ -2,6 +2,7 @@ import tomllib
 config = tomllib.load(open('/run/secrets/app-config', 'rb'))
 
 DEPLOY_MODE = config['system']['deploy_mode']
+SECRET_KEY = config['system']['django_secret']
 
 DB_CONNECTION = {
     'HOST': config['database']['hostname'],
@@ -21,9 +22,8 @@ SIMS_DB_SERVER = config['external']['csrpt_server']
 DO_IMPORTING_HERE = True
 FORCE_CAS = True
 
-SECRET_KEY = config['system']['django_secret']
 EMPLID_API_SECRET = config['external']['emplid_api_secret']
-# AMAINT_DB_PASSWORD = config['external']['amaint_password']
+# AMAINT_DB_PASSWORD = config['external']['amaint_password']  # unused with current API?
 
 # MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'coursys.sfu.ca fasit.sfu.ca').strip().split()
 # CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://coursys.sfu.ca https://fasit.sfu.ca').strip().split()
