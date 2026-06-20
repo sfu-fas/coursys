@@ -61,7 +61,7 @@ JavaScript dependencies are in `package.json`: versions can be bumped as necessa
 npm install
 ./manage.py collectstatic  # if you need it
 ```
-The page of frontend checks should give a quick view on the various libraries working or not: http://localhost:8000/frontend-check
+The page of frontend checks should give a quick view on the various libraries working or not: http://localhost:8000/sysadmin/frontend-check
 
 Of course, checking the behaviour *in situ* use is a good idea too.
 

@@ -40,7 +40,6 @@ toplevel_patterns = [
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=True)),
     url(r'^csp-reports', csp_report_view, name='csp_reports'),
     url(r'^mossicon/(?P<filename>.*)$', moss_icon, name='moss_icon'),
-    url(r'^frontend-check$', dashboard_views.frontend_check, name='frontend_check'),
     url(r'^healthcheck$', dashboard_views.healthcheck, name='healthcheck'),
 
     # top-level pages

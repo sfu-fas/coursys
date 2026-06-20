@@ -83,6 +83,7 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^roleaccount/edit/(?P<roleaccount_id>\d+)$', coredata_views.edit_roleaccount, name='edit_roleaccount'),
     url(r'^logging/$', log_views.log_explore, name='log_explore'),
     url(r'^logging/(?P<log_type>\w+)/(?P<log_id>[0-9a-z\-]+)$', log_views.log_view, name='log_view'),
+    url(r'^frontend-check$', dashboard_views.frontend_check, name='frontend_check'),
     url(r'^csrpt$', coredata_views.csrpt_auth, name='csrpt_auth'),
     url(r'^demo_data$', coredata_views.demo_data, name='demo_data'),
 ]

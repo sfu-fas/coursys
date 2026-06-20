@@ -118,7 +118,7 @@ USER root
 # add tsql command line tool for CSRPT checks
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    nano freetds-bin \
+    nano wget freetds-bin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 RUN install -o coursys -d /home/coursys

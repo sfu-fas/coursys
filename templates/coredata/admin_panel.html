@@ -41,6 +41,13 @@ $(document).ready(function() {
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>
+  <p><a href="{% url 'sysadmin:frontend_check' %}">Frontend Check</a>: check that JS libraries are working as expected.</p>
+  <!--
+  <ul>
+    <li><a href="{% url 'sysadmin:admin_panel' %}?content=throw">Throw an exception</a></li>
+    <li><a href="{% url 'sysadmin:admin_panel' %}?content=failing_task">Throw an exception in Celery</a></li>
+  </ul>
+  -->
   </div>
 </div>
 

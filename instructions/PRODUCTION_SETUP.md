@@ -11,7 +11,7 @@ Teams -> CourSys -> General -> Shared -> production access.docx.
 
 1. Get an appropriate VM: probably 4 CPU cores, 16GB memory, 100GB root volume.
 2. Mount the NFS share that holds our file data on `/filestore`.
-3. Ensure the production database server is accessible (i.e. connection on port 3306 is possible).
+3. Ensure the production database server is accessible.
 
 TODO Other external APIs we access: CSRPT, CAS, photos API, AMAINT
 
@@ -49,7 +49,8 @@ echo "espass" > ./secrets/elastic-initial-password
 ```
 Edit the secrets to reflect the real production setup. In particular, the SECRET_KEY (in
 app-config.toml as "django_secret") must match the old server. Otherwise all users will be logged
-out during the migration.
+out during the migration. Passwords for other services (elasticsearch, rabbitmq) could be generated
+with `./tools/random-password.sh`.
 
 Likely copy the contents of the `moss` directory from the old server, i.e. `/coursys/moss/moss.pl`
 should exist.
@@ -59,7 +60,8 @@ should exist.
 
 It's likely safe to start the background services:
 ```shell
-docker compose up -d rabbitmq elasticsearch memcached  # if following this in proddev mode, probably also mysql and smtp4dev
+docker compose up -d rabbitmq elasticsearch memcached
+# if following this in proddev mode, probably also: docker compose up -d mysql smtp4dev
 ```
 
 The system is fairly good at inspecting itself. Consider:
@@ -74,6 +76,7 @@ You can also bring up arbitrary shells to poke around at what's there.
 docker compose run manage dbshell
 docker compose run manage shell
 ```
+
 
 ### External Services
 
@@ -103,7 +106,7 @@ docker compose down celery-email
 
 ### Actually Switching Over
 
-If database access is okay, and Elastic search is up, the indexing can be started ahead of time:
+If database access is okay and Elasticsearch is up, the indexing can be started ahead of time:
 ```shell
 docker compose up -d celery-batch
 docker compose run manage update_index_task --full-rebuild
@@ -122,17 +125,25 @@ server. Then you can exercise it at your leisure.
 Finally, have the SFU load balancer point the coursys.sfu.ca name at the new server.
 
 
-### Draining The Old Server
+### Draining The Old Server's Celery Tasks
 
+Since we aren't migrating any Celery jobs waiting in RabbitMQ, let's make sure they're done before
+turning everything off. Stop any new tasks from being queued:
+```shell
+touch /coursys/503       # stop web frontend
+service celerybeat stop  # stop new periodic tasks
+```
+Wait, possibly making sure nothing new is appearing in the celery log files. Then it should
+definitely be safe to:
+```shell
+service celery stop
+```
 
 
 ## Pending
 
 * we probably need our IP address whitelisted for some of the external services: CSRPT, CAS, photos API, AMAINT
 * load balancer switchover
-* database main server migration
-* submitted files migration (and file ownership?)
-
 
 
 ## Database Server Migration
