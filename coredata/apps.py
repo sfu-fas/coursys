@@ -4,8 +4,8 @@ class CoredataConfig(AppConfig):
     name = 'coredata'
 
 
-import os
 from django.core.checks import Error, register
+
 
 @register()
 def sanity_check(app_configs, **kwargs):

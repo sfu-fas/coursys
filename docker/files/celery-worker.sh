@@ -6,4 +6,4 @@ set -e
 python /coursys/manage.py check
 
 exec celery -A courses worker --loglevel INFO  \
-    --queues ${QUEUE} --hostname ${QUEUE} --concurrency ${CONCURRENCY}
+    --queues ${QUEUE} --hostname ${QUEUE}@%n --concurrency ${CONCURRENCY}

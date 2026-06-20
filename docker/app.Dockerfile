@@ -28,10 +28,12 @@ RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
+# packages groups here: basics; csrpt connection; admin helpers
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    locales-all default-mysql-client curl \
+    locales-all default-mysql-client \
     unixodbc-dev krb5-user tdsodbc \
+    curl wget freetds-bin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -115,12 +117,6 @@ CMD ["shell"]
 
 FROM base AS admin
 USER root
-# add tsql command line tool for CSRPT checks
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-    nano wget freetds-bin \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
 RUN install -o coursys -d /home/coursys
 USER coursys
 CMD ["bash"]

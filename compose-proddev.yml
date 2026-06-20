@@ -15,7 +15,7 @@ services:
       file: compose-base.yml
       service: rabbitmq
     volumes:
-      - rabbitmq3:/var/lib/rabbitmq:rw
+      - rabbitmq4:/var/lib/rabbitmq:rw
 
   elasticsearch:
     extends:
@@ -161,7 +161,7 @@ services:
 volumes:
   mysql:
   static:
-  rabbitmq3:
+  rabbitmq4:
   elasticsearch7:
   nginx_logs:
   dynamic_config:
