@@ -16,7 +16,7 @@ WORKDIR /build
 
 COPY package.json /build/package.json
 COPY package-lock.json /build/package-lock.json
-RUN npm install
+RUN npm ci
 
 RUN pip install --no-cache-dir --upgrade pip
 COPY requirements.txt /build/requirements.txt
