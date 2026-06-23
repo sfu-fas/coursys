@@ -367,6 +367,8 @@ def csrpt_refresh_periodic():
 
 @task(queue='sims')
 def csrpt_refresh():
+    if settings.DISABLE_REPORTING_DB:
+        return
     res = refresh_csrpt_auth()
     if res is not None:
         raise RuntimeError(res)

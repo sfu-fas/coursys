@@ -91,7 +91,7 @@ services:
       - backend
       - web
     volumes:
-      - csrpt_auth:/csrpt_auth:rw,Z
+      - csrpt_auth:/csrpt_auth:rw
 
   admin:
     extends:

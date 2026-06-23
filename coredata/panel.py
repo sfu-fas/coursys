@@ -101,18 +101,6 @@ def sanity_checks():
     except django.db.utils.ProgrammingError:
         failed.append(('Main database connection', "database tables missing"))
 
-    # non-BMP Unicode in database
-    try:
-        l = MonitoringDataLog.objects.create(time=datetime.datetime.now(), duration=datetime.timedelta(0), metric='Unicode Test \U0001F600', value=0.0, data={})
-    except OperationalError:
-        failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
-    else:
-        l = MonitoringDataLog.objects.get(id=l.id)
-        if '\U0001F600' in l.metric:
-            passed.append(('Unicode handling in database', 'okay'))
-        else:
-            failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
-
     # check that celery broker can be contacted (not if celery workers are up)
     if settings.USE_CELERY:
         from courses.celery import app
@@ -137,6 +125,19 @@ def deploy_checks():
     # cache something now to see if it's still there further down.
     randval = random.randint(1, 1000000)
     cache.set('check_things_cache_test', randval, 60)
+
+    # non-BMP Unicode in database
+    try:
+        l = MonitoringDataLog.objects.create(time=datetime.datetime.now(), duration=datetime.timedelta(0), metric='Unicode Test \U0001F600', value=0.0, data={})
+    except OperationalError:
+        failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
+    else:
+        l = MonitoringDataLog.objects.get(id=l.id)
+        if '\U0001F600' in l.metric:
+            passed.append(('Unicode handling in database', 'okay'))
+        else:
+            failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
+        l.delete()
 
     # check that all database tables are utf8mb4, if mysql
     if settings.DATABASES['default']['ENGINE'].endswith('.mysql'):
@@ -607,11 +608,13 @@ def pip_info():
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
 
+
 def csrpt_info():
     try:
         return csrpt_update()
     except SIMSProblem as e:
         return [('SIMS problem', str(e))]
+
 
 def health_check() -> Dict[str, Any]:
     """

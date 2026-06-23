@@ -13,7 +13,7 @@ RUN apk add --no-cache \
     grep
 
 ENV TZ=America/Vancouver
-# volume for the logrotate status file: this will let it survive rebuild, but no great loss if it disappears.
+# volume for the logrotate status file: this will let it survive start/stop, but no great loss if it disappears.
 VOLUME /status
 
 COPY --chmod=0644 docker/files/logrotate-nginx.conf /etc/logrotate.d/nginx-coursys

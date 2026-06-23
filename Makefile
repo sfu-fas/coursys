@@ -27,6 +27,8 @@ redeploy:
 
 new-code: rebuild redeploy
 
+new-code-pull: pull-rebuild redeploy
+
 migrate-safe:
 	${DOCKERCOMPOSE} run manage backup_db_task
 	${DOCKERCOMPOSE} run manage migrate
