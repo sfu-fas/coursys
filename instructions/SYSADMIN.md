@@ -46,11 +46,11 @@ docker compose run manage bash
 There are only two places where important persistent data is stored:
 
 * The database (MariaDB managed by SFU IT Services and CSTS), i.e. `DATABASES['default']` from settings.py.
-* The files that have been uploaded, i.e. `SUBMISSION_PATH` from settings.py
+* The files that have been uploaded, i.e. `SUBMISSION_PATH` from settings.py, mounted into containers at `/submitted_files`.
 
-The search indices in ElasticSearch are managed by that Docker container (it has a volume for the database directory), but those can always be recreated with a `manage.py rebuild_index`.
+The search indices in ElasticSearch are managed by that Docker container (volume from `/data/elasticsearch*`), but those can always be recreated with a `manage.py rebuild_index`.
 
-In theory the RabbitMQ messages can encode tasks in-flight that could lose data if lost: as long as no tasks are in motion then nothing important is in RabbitMQ. The easiest way to ensure this is probably `make 503; service start celery` and make sure any pending tasks complete.
+In theory the RabbitMQ messages can encode tasks in-flight that could lose data if destroyed: as long as no tasks are in motion then nothing important is in RabbitMQ. The easiest way to ensure this is probably `make 503; docker compose up -d celery-*` and make sure any pending tasks complete.
 
 Memcached stores only ephemeral cache and can be freely purged.
 
@@ -112,28 +112,41 @@ Almost all the time, the procedure is:
 1. Accept a pull request into the master branch, or push into master.
 2. Log on to the production server.
 3. Get the code: `make pull`.
-4. Get that code running: `make new-code`. This reloads/restarts the gunicorn and celery processes.
+4. Get that code running: `make new-code`. This reloads/restarts the gunicorn and celery containers.
 4. Make sure our deployment checks pass:  System Administration -> View Admin Panel -> Deployment Checks
 5. Maybe also make sure emails are going through: the admin panel Email Check tab.
-
 
 ### With Maximum Paranoia
 
 If you're worried, it may be worth putting the server into "503 unavailable" mode to make sure nothing happens in an inconsistent state.
+It's also possible to build the containers before actually trying to deploy them.
 
 ```shell
 make 503
 make pull
 make migrate-safe  # takes database snapshots before and after migration
-make manage ARGS=check_things
+make build
+docker compose manage check_things
 make new-code
 make rm503
 ```
 
 
+## Server Messages
+
+The system can display all-user status messages either on the top index page (`SERVER_MESSAGE_INDEX`) or on every page (`SERVER_MESSAGE`).
+
+These can be controlled in the container images' `courses/localsettings.py` (copied from `courses/docker-localsettings-production.py` for a production deployment). Changing these files would require a build and rollout.
+
+If present, they are also read from the `dynamic_config` volume: `/data/dynamic_config/server_message_index.html` and `/data/dynamic_config/server_message.html` on the server. You can create/edit/delete those files (with some reasonably-valid HTML) and tell the gunicorn process to gracefully restart its workers:
+```shell
+docker compose kill -s SIGHUP app  # gunicorn 
+```
+
+
 ## In Case of Problems
 
-The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` uses docker-rollout, which checks the health status of the main Django container (`app`) and waits to bring down the old containers until the new ones are healthy. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from coming alive.
+The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` uses docker-rollout, which checks the health status of the main Django container (`app`) and waits to bring down the old containers until the new ones are healthy. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from taking over.
 
 If there's any confusion, it might be informative to run the Django container in various ways to see what's going on. Perhaps one of:
 ```shell
@@ -143,7 +156,7 @@ docker compose run app ./manage.py check_things
 docker compose run app bash
 ```
 
-Just running any `manage.py` command will often trigger whatever error is happening, in a more helpful environment.
+Just running any `manage` command will often trigger whatever error is happening, in a more helpful environment.
 
 A database dump is done every few hours in production into `/filestore/prod/db_backup/`. In a worst-case scenario, these can be examined for changes in the database and/or information on what has been happening.
 

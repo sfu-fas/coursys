@@ -43,6 +43,7 @@ services:
     networks:
       - backend
       - web
+    command: ["--memory-limit=1024"]
 
   nginx:
     build:

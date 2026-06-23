@@ -24,7 +24,7 @@ sudo chown -R ${COURSYS_USERNAME} ${SOURCE_LOCATION}
 sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
 [ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/secrets/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
 [ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" > ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
-[ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass123" > ${SOURCE_LOCATION}/secrets/elastic-initial-password
+[ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass" > ${SOURCE_LOCATION}/secrets/elastic-initial-password
 
 # data directories & permissions
 sudo install -o root -d ${DATA_PREFIX}
@@ -43,7 +43,7 @@ Log out and back in so the group membership takes effect.
 cd /coursys
 make get-docker-rollout
 docker compose pull
-docker compose build
+docker compose build --pull
 docker compose up -d mysql elasticsearch rabbitmq memcached
 docker compose run manage migrate
 docker compose run manage collectstatic --no-input
