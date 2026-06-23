@@ -80,6 +80,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
         <th scope="col">Start Date</th>
         <th scope="col">End Date</th>
         <th scope="col">Total Pay</th>
+        <th scope="col">Hiring Category</th>
       </tr>
     </thead>
     <tbody>
@@ -95,6 +96,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
           <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td>${{ req.total_pay }}</td>
+          <td>{{ req.hiring_category }}{% if req.hiring_category == "RA" and req.usra %} (USRA) {% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -164,6 +166,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
         <th scope="col">Start Date</th>
         <th scope="col">End Date</th>
         <th scope="col">Total Pay</th>
+        <th scope="col">Hiring Category</th>
       </tr>
     </thead>
     <tbody>
@@ -179,6 +182,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
           <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td>${{ req.total_pay }}</td>
+          <td>{{ req.hiring_category }}{% if req.hiring_category == "RA" and req.usra %} (USRA) {% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -197,7 +201,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
 <thead>
 <tr><th scope="col">Appointee</th><th scope="col">Supervisor</th><th scope="col">Unit</th>
 <th scope="col">Fund</th><th scope="col">Project</th><th scope="col">Start Date</th>
-<th scope="col">End Date</th><th scope="col">Total Pay</th>
+<th scope="col">End Date</th><th scope="col">Total Pay</th><th scope="col">Hiring Category</th>
 </tr>
 </thead>
 <tbody></tbody>

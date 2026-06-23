@@ -3,7 +3,7 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
@@ -90,7 +90,7 @@ MIN_BIWEEKLY_HOURS = 4
 CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
 ENSC_CONTACT = "ensc-finance@sfu.ca"
-SEE_CONTACT = "fas_admin_manager@sfu.ca"
+SEE_CONTACT = "fas_sry_admin@sfu.ca"
 DEANS_CONTACT = "fas_budget_manager@sfu.ca"
 # intro contacts
 URA_CONTACT = "fas_academic_relations@sfu.ca"
@@ -688,22 +688,22 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('total_gross', error_message)
                 if weeks_vacation == None:
                     self.add_error('weeks_vacation', error_message)
-                elif weeks_vacation < MIN_WEEKS_VACATION:
+                elif weeks_vacation < MIN_WEEKS_VACATION and not edit:
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if float(gross_hourly) < get_minimum_wage(end_date):
+                if float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
             if nc_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif float(gross_hourly) < get_minimum_wage(end_date):
+                elif float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
-                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
+                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE and not edit:
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
@@ -798,8 +798,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        usra = kwargs.pop('usra', False)
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
-        
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
                 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
@@ -807,6 +807,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
         
+        if usra:
+            self.fields['ra_payment_method'].choices = RA_PAYMENT_METHOD_CHOICES_USRA
 
     def clean(self):
         cleaned_data = super().clean()
@@ -862,26 +864,26 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('total_gross', error_message)
                 if weeks_vacation == None:
                     self.add_error('weeks_vacation', error_message)
-                elif weeks_vacation < MIN_WEEKS_VACATION:
+                elif weeks_vacation < MIN_WEEKS_VACATION and not edit:
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra:
+                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra and not edit:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
-                elif float(gross_hourly) < get_minimum_wage(end_date):
+                elif float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra:
+                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra and not edit:
                     raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
-                elif float(gross_hourly) < get_minimum_wage(end_date):
+                elif float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
-                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
+                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE and not edit:
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)

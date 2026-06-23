@@ -51,14 +51,18 @@ class RATest(TestCase):
         req = RARequest(person=p, unit=unit, author=supervisor, supervisor=supervisor, config={}, hiring_category='RA', start_date=datetime.date(2021, 6, 1), end_date=datetime.date(2021, 9, 1), draft=False, total_pay=1000)
         req.save()
 
-        # test research assistants with FDMA
+        # test research assistants and non continuing with FDMA
         r = Role(person=admin, role='FDMA', unit=unit, expiry=(datetime.date.today() + datetime.timedelta(days=5)))
         r.save()
         test_views(self, c, 'ra:', ['view_request', 'edit_request', 'reappoint_request', 'edit_request_notes',
                                     'request_paf', 'request_offer_letter_update', 'new_admin_attachment'], {'ra_slug': req.slug})
+        req.hiring_category = "NC"
+        req.save()
+        test_views(self, c, 'ra:', ['view_request', 'edit_request', 'reappoint_request', 'edit_request_notes',
+                                    'request_paf', 'request_offer_letter_update', 'new_admin_attachment'], {'ra_slug': req.slug})
         r.delete()
         
-        # test research assistants without FDMA
+        # test pages without FDMA
         url = reverse('ra:edit_request', kwargs={'ra_slug': req.slug})
         response = c.get(url)
         self.assertEqual(response.status_code, 404)
@@ -69,20 +73,30 @@ class RATest(TestCase):
         response = c.get(url)
         self.assertEqual(response.status_code, 404)
 
-        # admin shouldn't be able to delete drafts that aren't theirs
+        # admin shouldn't be able to delete or edit drafts that aren't theirs
         req.draft = True
         req.save()
+
         url = reverse('ra:delete_request_draft', kwargs={'ra_slug': req.slug})
         response = c.get(url)
         self.assertEqual(response.status_code, 404)
+
+        url = reverse('ra:edit_request', kwargs={'ra_slug': req.slug})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 404)
+
         req.draft = False
         req.save()
 
+        # test research assistants
+        req.hiring_category = "RA"
+        req.save()
+        test_views(self, c, 'ra:', ['view_request', 'reappoint_request', 'edit_request_notes', 'new_admin_attachment'], {'ra_slug': req.slug})
+        
         # test non-continuing
         req.hiring_category = "NC"
         req.save()
-        test_views(self, c, 'ra:', ['view_request', 'edit_request', 'reappoint_request', 'edit_request_notes',
-                                    'request_paf', 'request_offer_letter_update', 'new_admin_attachment'], {'ra_slug': req.slug})
+        test_views(self, c, 'ra:', ['view_request', 'reappoint_request', 'edit_request_notes', 'new_admin_attachment'], {'ra_slug': req.slug})
         
         # test graduate research assistant
         req.hiring_category = "GRAS"

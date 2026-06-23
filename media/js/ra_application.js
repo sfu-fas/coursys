@@ -552,6 +552,35 @@ function ncBackDated(){
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
+function biweeklyHoursWarning () {
+    var $warning = $('#biweekly_warning')
+    if (!$warning.length) {
+        return
+    }
+
+    var updateWarning = function () {
+        var raHours = parseFloat($('#id_research_assistant-biweekly_hours').val())
+        var raMethod = $('input[name=research_assistant-ra_payment_method]:checked').val()
+
+        var ncHours = parseFloat($('#id_non_continuing-biweekly_hours').val())
+        var ncMethod = $('input[name=non_continuing-nc_payment_method]:checked').val()
+
+        var showRA = !isNaN(raHours) && raHours > 80 && raMethod === 'BW'
+        var showNC = !isNaN(ncHours) && ncHours > 80 && ncMethod === 'BW'
+
+        if (showRA || showNC) {
+            $warning.show()
+        } else {
+            $warning.hide()
+        }
+    }
+
+    $('#id_research_assistant-biweekly_hours, #id_non_continuing-biweekly_hours').on('input change', updateWarning)
+    $('input[name=research_assistant-ra_payment_method], input[name=non_continuing-nc_payment_method]').on('change', updateWarning)
+
+    updateWarning()
+}
+
 $(document).ready(function() {
     // prevent 'enter' key from submitting the form
     $(window).keydown(function(event){
@@ -640,6 +669,7 @@ $(document).ready(function() {
     grasPaymentMethod()
     ncPaymentMethod()
     backDatedPaymentMethod()
+    biweeklyHoursWarning()
 
     // select if appointee does not have an ID
     $('#id_intro-nonstudent').change(idFieldsUpdate)

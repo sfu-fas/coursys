@@ -306,6 +306,11 @@ RA_PAYMENT_METHOD_CHOICES = (
     ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time. Timesheet must be submitted biweekly for the Appointee to be paid.)')
 )
 
+RA_PAYMENT_METHOD_CHOICES_USRA = (
+    ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
+    ('H', 'No (The Appointee will receive vacation pay in lieu of vacation time. No timesheet is required, and the Appointee will receive the bi-weekly amount indicated on the PAF, plus 4% vacation pay, regardless of actual hours worked.)')
+)
+
 NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
