@@ -23,33 +23,45 @@ agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
 
 users <-> lb : HTTPS
 
-package "Docker" {    
-    folder "static" as static
-    control "Daily Import\nTask" as import
-    
-    agent "<$python>\nCelery" as celery
-    agent "Celerybeat" as celerybeat
-    agent "<$nginx>\nNginx" as nginx
-    agent "<$python>\nGunicorn" as gunicorn
+package "Production Server" {
+    actor Admins
+    package "Docker" {    
+        folder "static" as static
+        control "Daily Import\nTask" as import
+        
+        agent "<$python>\nCelery" as celery
+        agent "Celerybeat" as celerybeat
+        agent "<$nginx>\nNginx" as nginx
+        agent "<$python>\nGunicorn" as gunicorn
 
-    queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
-    database "<$memcached>\nMemcached" as memcached
-    database "<$elasticsearch>\nElasticsearch" as elasticsearch
-    agent "Logrotate" as logrotate
+        queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
+        database "<$memcached>\nMemcached" as memcached
+        database "<$elasticsearch>\nElasticsearch" as elasticsearch
+        agent "Logrotate" as logrotate
 
-    static <-- gunicorn  : "compressor"
-    'gunicorn --> static : "compressor"
-    nginx <-- static : "static\nfiles"
-    nginx <---> gunicorn : "dynamic\npages"
-    
-    gunicorn ..> rabbitmq : tasks
-    celery <.. rabbitmq : tasks
-    gunicorn <--> memcached : cache
-    gunicorn <--> elasticsearch : search
-    rabbitmq <.. celerybeat : periodic\ntasks
-    import <... celery : runs
+        static <-- gunicorn  : "compressor"
+        'gunicorn --> static : "compressor"
+        nginx <-- static : "static\nfiles"
+        nginx <---> gunicorn : "dynamic\npages"
+        
+        gunicorn ..> rabbitmq : tasks
+        celery <.. rabbitmq : tasks
+        gunicorn <--> memcached : cache
+        gunicorn <--> elasticsearch : search
+        rabbitmq <.. celerybeat : periodic\ntasks
+        import <... celery : runs
 
-    control "manage\ncollectstatic" as collectstatic
+        control "manage\ncollectstatic" as collectstatic
+    }
+
+    folder "nginx_logs" as nginx_logs
+    nginx_logs <-- nginx : writes
+    nginx_logs <.. logrotate : rotates
+
+    folder "submitted_files\n(NFS share)" as files
+    gunicorn <--> files
+    celery <--> files
+
 }
 
 package "Onara" {
@@ -60,6 +72,8 @@ lb <--> nginx : HTTP
 db <--> gunicorn
 db <--> celery
 db <- import
+
+
 
 'package "External APIs" {
     database "CSRPT" as csrpt
@@ -80,8 +94,5 @@ import <-- amaint
 'static <- collectstatic : "writes"
 collectstatic -> static : "writes"
 
-folder "nginx_logs" as nginx_logs
-nginx_logs <-- nginx : writes
-nginx_logs <.. logrotate : rotates
 
 @enduml
