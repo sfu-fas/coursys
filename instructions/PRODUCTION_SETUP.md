@@ -83,10 +83,11 @@ docker compose run manage shell
 We should verify connectivity to external services before switching to the new server. Notes
 about what worked historically on new servers (within the SFU cloud world):
 
+* NFS mount: the main file storage is an NFS mount from ITS. It needs to be mounted and symlinked from `/data/submitted_files`.
 * CAS: ???
 * Photos API: seems to just work (given the password that's reguarly rotated and stored in the database).
 * CSRPT: seems to work once the auth stuff is bootstrapped.
-* AMAINT/EMPLID API: needs whitelisting.
+* AMAINT/EMPLID API: needs whitelisting by IP address. Responsible group is ITS Identity and Access Management.
 * email sending: seems to just work.
 
 To test the photos API, we would need those celery workers up (but fetching ID photos is the *only* thing they do):
