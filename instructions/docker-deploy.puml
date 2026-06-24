@@ -17,6 +17,8 @@ package "compose-production.yml" {
     agent nginx
     agent logrotate
     artifact base
+    artifact manage
+    artifact admin
     agent app
     agent rabbitmq
     agent celery_fast
@@ -25,12 +27,12 @@ package "compose-production.yml" {
     agent celery_photos
     agent celery_sims
     agent beat
-    artifact manage
 
     base ..> app
     base ..> celery_fast
     base ..> beat
     base ..> manage
+    base ..> admin
     celery_fast ..> celery_batch
     celery_fast ..> celery_email
     celery_fast ..> celery_photos

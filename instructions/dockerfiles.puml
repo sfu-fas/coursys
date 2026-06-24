@@ -41,10 +41,10 @@ package "app.Dockerfile" {
         ./manage.py commands
     ]
     artifact admin [
-        manage
+        admin
         ----
-        helper for admins to get
-        a bash shell
+        helper for admins to run
+        shell commands
     ]
 
     builder -[#black,thickness=4]-> base :  Python and NPM libs copied
