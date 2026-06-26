@@ -68,35 +68,6 @@ package "Onara" {
     database "<$mariadb>\nDatabase" as db
 }
 
-package "Docker" {    
-    folder "static" as static
-    control "Daily Import\nTask" as import
-    
-    agent "<$python>\nCelery" as celery
-    agent "Celerybeat" as celerybeat
-    agent "<$nginx>\nNginx" as nginx
-    agent "<$python>\nGunicorn" as gunicorn
-
-    queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
-    database "<$memcached>\nMemcached" as memcached
-    database "<$elasticsearch>\nElasticsearch" as elasticsearch
-    agent "Logrotate" as logrotate
-
-    static <-- gunicorn  : "compressor"
-    'gunicorn --> static : "compressor"
-    nginx <-- static : "static\nfiles"
-    nginx <---> gunicorn : "dynamic\npages"
-    
-    gunicorn ..> rabbitmq : tasks
-    celery <.. rabbitmq : tasks
-    gunicorn <--> memcached : cache
-    gunicorn <--> elasticsearch : search
-    rabbitmq <.. celerybeat : periodic\ntasks
-    import <... celery : runs
-
-    control "manage\ncollectstatic" as collectstatic
-}
-
 lb <--> nginx : HTTP
 db <--> gunicorn
 db <--> celery
