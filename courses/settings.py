@@ -366,7 +366,7 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
-if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG):
+if not FORCE_CAS and DEPLOY_MODE != 'production':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     LOGIN_URL = "/fake_login"

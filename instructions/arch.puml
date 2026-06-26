@@ -23,6 +23,47 @@ agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
 
 users <-> lb : HTTPS
 
+package "Production Server" {
+    actor Admins
+    package "Docker" {    
+        folder "static" as static
+        control "Daily Import\nTask" as import
+        
+        agent "<$python>\nCelery\nworkers" as celery
+        agent "Celerybeat" as celerybeat
+        agent "<$nginx>\nNginx" as nginx
+        agent "<$python>\nGunicorn" as gunicorn
+
+        queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
+        database "<$memcached>\nMemcached" as memcached
+        database "<$elasticsearch>\nElasticsearch" as elasticsearch
+        agent "Logrotate" as logrotate
+
+        static <-- gunicorn  : "compressor"
+        'gunicorn --> static : "compressor"
+        nginx <-- static : "static\nfiles"
+        nginx <---> gunicorn : "dynamic\npages"
+        
+        gunicorn ..> rabbitmq : tasks
+        celery <.. rabbitmq : tasks
+        gunicorn <--> memcached : cache
+        gunicorn <--> elasticsearch : search
+        rabbitmq <.. celerybeat : periodic\ntasks
+        import <... celery : runs
+
+        control "manage\ncollectstatic" as collectstatic
+    }
+
+    folder "nginx_logs" as nginx_logs
+    nginx_logs <-- nginx : writes
+    nginx_logs <.. logrotate : rotates
+
+    folder "submitted_files" as files
+    gunicorn <--> files
+    celery <--> files
+
+}
+
 package "Onara" {
     database "<$mariadb>\nDatabase" as db
 }
@@ -67,7 +108,6 @@ database "Photo API" as photo
 database "AMAINT" as amaint
 cloud "smtpserver.sfu.ca" as email
 
-
 import <-- csrpt
 csrpt --> celery
 csrpt --> gunicorn
@@ -79,8 +119,7 @@ import <- amaint
 'static <- collectstatic : "writes"
 collectstatic -> static : "writes"
 
-folder "nginx_logs" as nginx_logs
-nginx_logs <-- nginx : writes
-nginx_logs <.. logrotate : rotates
+storage "ITS file\nserver" as nfs
+nfs <-> files : NFS
 
 @enduml
