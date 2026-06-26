@@ -1,8 +1,7 @@
 COURSYS_USER=coursys
-COURSYS_USER_HOME=/home/${COURSYS_USER}
+#COURSYS_USER_HOME=/home/${COURSYS_USER}
 
-#SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
-SUCOURSYS=sudo -u ${COURSYS_USER}
+GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
 DOCKERROLLOUT=docker rollout
 
@@ -10,10 +9,10 @@ start-all:
 	${DOCKERCOMPOSE} up -d --remove-orphans
 
 pull:
-	${SUCOURSYS} git pull
+	${GIT} pull
 
 pull-rebuild:
-	${SUCOURSYS} git pull
+	${GIT} pull
 	${DOCKERCOMPOSE} pull
 	${DOCKERCOMPOSE} build --pull
 

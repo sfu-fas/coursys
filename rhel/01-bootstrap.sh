@@ -8,7 +8,8 @@ echo "export HTTP_PROXY=http://bby-vcontrol-proxy.its.sfu.ca:8080" >> ~/.bashrc
 echo "export HTTPS_PROXY=http://bby-vcontrol-proxy.its.sfu.ca:8080"  >> ~/.bashrc
 echo "export NO_PROXY=localhost,.sfu.ca,*.sfu.ca" >> ~/.bashrc
 . ~/.bashrc
-echo 'Defaults env_keep += "HTTP_PROXY HTTPS_PROXY NO_PROXY"' | sudo tee /etc/sudoers.d/coursys
+#echo 'Defaults env_keep += "HTTP_PROXY HTTPS_PROXY NO_PROXY"' | sudo tee /etc/sudoers.d/coursys
+echo 'Defaults:%scs-cloud-coursys-servers-priv-pam  env_keep += "HTTP_PROXY HTTPS_PROXY NO_PROXY"' | sudo tee /etc/sudoers.d/coursys
 
 
 # In general:

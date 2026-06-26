@@ -1,10 +1,12 @@
 from courselib.celerytasks import task
-from celery.schedules import crontab
+from django.conf import settings
 from reports.models import Report, schedule_ping
 
 
 @task()
 def run_regular_reports():
+    if not settings.DO_IMPORTING_HERE:
+        return
     schedule_ping()
 
 
