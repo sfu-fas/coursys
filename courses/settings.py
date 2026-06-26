@@ -1,7 +1,6 @@
 #from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
-import socket, sys, os
-hostname = socket.gethostname()
+import sys, os
 assert sys.version_info >= (3, 7)  # some logic assumes the insertion-ordered dicts from Python 3.7+
 
 try:
@@ -14,12 +13,6 @@ except ImportError:
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
     DEPLOY_MODE = localsettings.DEPLOY_MODE
-elif hostname == 'courses':  # TODO: this is no longer the correct condition
-    # full production mode
-    DEPLOY_MODE = 'production'
-elif False:
-    # production-like development environment
-    DEPLOY_MODE = 'proddev'
 else:
     # standard development environment
     DEPLOY_MODE = 'devel'
@@ -373,7 +366,7 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
-if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
+if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG):
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     LOGIN_URL = "/fake_login"
