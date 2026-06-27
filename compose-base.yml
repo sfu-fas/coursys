@@ -85,6 +85,8 @@ services:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
       - /data/dynamic_config:/dynamic_config:ro,z
+    environment:
+      - HEALTHCHECK_HOSTNAME=coursys.sfu.ca # Host header for healthcheck requests
     secrets:
       - app-config
     restart: no

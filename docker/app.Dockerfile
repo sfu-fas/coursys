@@ -77,8 +77,9 @@ RUN echo "" | python -m unidecode  # make sure our modules are there: failure po
 FROM base AS app
 
 COPY docker/files/gunicorn-worker.sh /gunicorn-worker.sh
+COPY docker/files/gunicorn-healthcheck.sh /gunicorn-healthcheck.sh
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-  CMD curl --fail http://localhost:8000/healthcheck || exit 1
+  CMD /gunicorn-healthcheck.sh || exit 1
 CMD ["/gunicorn-worker.sh"]
 
 
