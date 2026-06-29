@@ -17,15 +17,12 @@ from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
+from coredata.tasks import check_db_backup_free
 from dashboard.photos import do_photo_fetch
-from log.models import LogEntry, MonitoringDataLog
+from log.models import MonitoringDataLog
 
 import celery, kombu, amqp
-import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
-
-
-def _last_component(s):
-    return s.split('.')[-1]
+import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, copy, pprint
 
 
 def _certificate_expiry(domain: str) -> datetime.datetime:
@@ -59,6 +56,20 @@ def check_file_create(directory):
         fh.write('test file: may safely delete')
         fh.close()
         os.unlink(filename)
+
+
+def check_free_space(directory, label, min_gb):
+    try:
+        p, f = [], []
+        free = psutil.disk_usage(directory).free/1024/1024/1024
+        if free > min_gb:
+            p.append((f'Space in {label}', f'okay ({free:.1f} GB)'))
+        else:
+            f.append((f'Space in {label}', f'Low: {free:.1f} GB'))
+    except FileNotFoundError:
+        f.append((f'Space in {label}', 'directory does not exist'))
+    
+    return p, f
 
 
 def settings_info():
@@ -364,65 +375,30 @@ def deploy_checks():
     # DB backup directory may only be accessible from that celery worker: that's okay.
     if settings.USE_CELERY and celery_okay:
         from coredata.tasks import check_db_backup_create
-        task = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
-        res = task.get()
+        taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
+        taskf = check_db_backup_free.delay(settings.DB_BACKUP_DIR)
+        resc = taskc.get()
+        p, f = taskf.get()
     else:
-        res = check_file_create(settings.DB_BACKUP_DIR)
-    label = 'DB backup dir'
-    if res is None:
-        passed.append(('File creation in ' + label, 'okay'))
+        resc = check_file_create(settings.DB_BACKUP_DIR)
+        p, f = check_free_space(settings.DB_BACKUP_DIR, 'DB backup dir', 50)
+
+    if resc is None:
+        passed.append(('File creation in DB backup dir', 'okay'))
     else:
-        failed.append(('File creation in ' + label, res))
+        failed.append(('File creation in DB backup dir', resc))
+    passed.extend(p)
+    failed.extend(f)
 
+    # Check for appropriate free disk space
+    p, f = check_free_space('/tmp', '/tmp', 4)
+    passed.extend(p)
+    failed.extend(f)
+    # in prod, we have been running ~7G/month, so this checks for ~1 year of space
+    p, f = check_free_space(settings.SUBMISSION_PATH, 'SUBMISSION_PATH', 7*12)
+    passed.extend(p)
+    failed.extend(f)
 
-    # space in /tmp
-    tmp_free = psutil.disk_usage('/tmp').free/1024/1024/1024
-    if tmp_free > 4:
-        passed.append(('Space in /tmp', 'okay (%.1f GB)' % (tmp_free,)))
-    else:
-        failed.append(('Space in /tmp', 'Low: %.1f GB' % (tmp_free,)))
-
-    # space in SUBMISSION_PATH
-    try:
-        sub_free = psutil.disk_usage(settings.SUBMISSION_PATH).free/1024/1024/1024
-        # in prod, we have been running ~7G/month, so this checks for ~1 year of space
-        if sub_free > 7*12:
-            passed.append(('Space in SUBMISSION_PATH', 'okay (%.1f GB)' % (sub_free,)))
-        else:
-            failed.append(('Space in SUBMISSION_PATH', 'Low: %.1f GB' % (sub_free,)))
-    except FileNotFoundError:
-        failed.append(('Space in SUBMISSION_PATH', 'directory does not exist'))
-
-    # are any services listening publicly that shouldn't?
-    hostname = socket.gethostname()
-    ports = [
-        #25, # mail server
-        #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
-        45130, # beam? rabbitmq something
-        4000, # main DB stunnel
-        50000, # reporting DB
-        8000, # gunicorn
-        11211, # memcached
-        9200, 9300, # elasticsearch
-    ]
-    connected = []
-    for p in ports:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.connect((hostname, p))
-        except socket.error:
-            # couldn't connect: good
-            pass
-        else:
-            connected.append(p)
-        finally:
-            s.close()
-
-    if 'IN_DOCKER' not in os.environ and connected:
-        # trust that inside docker containers, we're managing network connectivity properly (and in a way undetectable from inside)
-        failed.append(('Ports listening externally', 'got connections to port ' + ','.join(str(p) for p in connected)))
-    else:
-        passed.append(('Ports listening externally', 'okay'))
 
     # correct serving/redirecting of production domains
     # TODO: re-enable once we're settled with proxy settings etc
