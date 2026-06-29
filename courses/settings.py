@@ -17,7 +17,7 @@ else:
     # standard development environment
     DEPLOY_MODE = 'devel'
 
-DEBUG = DEPLOY_MODE != 'production' and getattr(localsettings, 'DEPLOY_MODE', True)
+DEBUG = DEPLOY_MODE != 'production' and getattr(localsettings, 'DEBUG', True)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )

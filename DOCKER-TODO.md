@@ -7,5 +7,3 @@
 * update dependance update instructions to include dockerfiles etc
 * finalize sudo config in prod
 * double-check that db backup is working
-* celery logs to files instead of docker?
-* initial migration now fails because of system check

@@ -28,7 +28,7 @@ sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose
 
 # data directories & permissions
 sudo install -o root -d ${DATA_PREFIX}
-sudo install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
+sudo install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config ${DATA_PREFIX}celery_logs
 sudo install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 sudo apt-get install -y make docker-compose-v2 docker-buildx
@@ -61,7 +61,8 @@ curl https://coursys.sfu.ca/sysadmin/demo_data?key=abc123 > /tmp/demodata.json
 
 Then, **on the demo server**:
 ```shell
-cp /tmp/demodata.json /data/dynamic_config/
+sudo cp /tmp/demodata.json /data/dynamic_config/
+sudo chmod 0644 /data/dynamic_config/demodata.json
 docker compose run manage load_demo_data /dynamic_config/demodata.json
 docker compose run manage rebuild_index --noinput
 ```
