@@ -4,6 +4,7 @@ config = tomllib.load(open('/run/secrets/app-config', 'rb'))
 
 DEPLOY_MODE = config['system']['deploy_mode']
 SECRET_KEY = config['system']['django_secret']
+DEBUG = False
 
 DB_CONNECTION = {
     'HOST': config['database']['hostname'],

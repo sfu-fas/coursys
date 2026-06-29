@@ -6,4 +6,5 @@
 * some monitoring of docker containers/usage/etc?
 * update dependance update instructions to include dockerfiles etc
 * finalize sudo config in prod
-* resize /
+* double-check that db backup is working
+* celery logs to files instead of docker?

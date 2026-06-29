@@ -398,7 +398,9 @@ def deploy_checks():
     p, f = check_free_space(settings.SUBMISSION_PATH, 'SUBMISSION_PATH', 7*12)
     passed.extend(p)
     failed.extend(f)
-
+    p, f = check_free_space('/', 'filesystem root', 20)
+    passed.extend(p)
+    failed.extend(f)
 
     # correct serving/redirecting of production domains
     # TODO: re-enable once we're settled with proxy settings etc

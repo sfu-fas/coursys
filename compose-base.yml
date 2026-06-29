@@ -78,9 +78,12 @@ services:
         - UID=888
         - DEPLOY_MODE=override_me
     depends_on:
-      - rabbitmq
-      - elasticsearch
-      - memcached
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
