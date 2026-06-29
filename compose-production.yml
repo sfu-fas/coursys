@@ -103,6 +103,8 @@ services:
       - CONCURRENCY=2
     networks:
       - backend
+    volumes:
+      - /data/celery_logs:/celery_logs:rw,Z
   celery-batch:
     extends: celery-fast
     volumes:
@@ -138,10 +140,13 @@ services:
     restart: unless-stopped
     networks:
       - backend
+    volumes:
+      - /data/celery_logs:/celery_logs:rw,Z
 
 
 volumes:
   static:
+  status:
 
 
 networks:

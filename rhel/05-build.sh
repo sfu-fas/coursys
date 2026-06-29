@@ -10,7 +10,7 @@ source ./config.sh
 
 # make sure the various data directories exist with the right ownership
 install -o root -d ${DATA_PREFIX}nginx_logs
-install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
+install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config ${DATA_PREFIX}celery_logs
 install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 # select out compose file as the default

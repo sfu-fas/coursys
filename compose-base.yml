@@ -67,7 +67,9 @@ services:
       dockerfile: docker/logrotate.Dockerfile
     pid: host  # give the container access to signal nginx to re-open log files
     volumes:
+      - status:/status:rw
       - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/celery_logs:/celery_logs:rw,Z
 
   base:
     build:

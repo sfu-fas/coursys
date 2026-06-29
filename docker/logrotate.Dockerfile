@@ -16,7 +16,7 @@ ENV TZ=America/Vancouver
 # volume for the logrotate status file: this will let it survive start/stop, but no great loss if it disappears.
 VOLUME /status
 
-COPY --chmod=0644 docker/files/logrotate-nginx.conf /etc/logrotate.d/nginx-coursys
-RUN echo "0 5 * * * /usr/sbin/logrotate -v --state /status/logrotate.status /etc/logrotate.d/nginx-coursys" > /etc/crontabs/root
+COPY --chmod=0644 docker/files/logrotate.conf /etc/logrotate.d/coursys
+RUN echo "0 5 * * * /usr/sbin/logrotate -v --state /status/logrotate.status /etc/logrotate.d/coursys" > /etc/crontabs/root
 
 CMD ["crond", "-f", "-d", "8"]

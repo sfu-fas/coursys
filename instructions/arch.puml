@@ -24,7 +24,8 @@ agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
 users <-> lb : HTTPS
 
 package "Production Server" {
-    actor Admins
+    folder "nginx_logs\ncelery_logs" as nginx_logs
+
     package "Docker" {    
         folder "static" as static
         control "Daily Import\nTask" as import
@@ -40,7 +41,6 @@ package "Production Server" {
         agent "Logrotate" as logrotate
 
         static <-- gunicorn  : "compressor"
-        'gunicorn --> static : "compressor"
         nginx <-- static : "static\nfiles"
         nginx <---> gunicorn : "dynamic\npages"
         
@@ -54,11 +54,11 @@ package "Production Server" {
         control "manage\ncollectstatic" as collectstatic
     }
 
-    folder "nginx_logs" as nginx_logs
-    nginx_logs <-- nginx : writes
-    nginx_logs <.. logrotate : rotates
+    nginx_logs <. nginx
+    nginx_logs <. celery
+    nginx_logs <. logrotate : rotates
 
-    folder "submitted_files" as files
+    folder "submitted_files\ndb_backups" as files
     gunicorn <--> files
     celery <--> files
 
@@ -87,7 +87,6 @@ celery <-- photo : photos
 email <- celery : "outgoing email"
 import <- amaint
 
-'static <- collectstatic : "writes"
 collectstatic -> static : "writes"
 
 storage "ITS file\nserver" as nfs

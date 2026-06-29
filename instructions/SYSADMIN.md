@@ -99,10 +99,10 @@ make new-code
 
 Most logs are left to Docker, so you can check what has been happening with Docker's log tools:
 ```shell
-docker compose logs celery-batch
+docker compose logs app
 ```
 
-The outlier is Nginx, which has logs stored outside of Docker, in `/data/nginx_logs`.
+The outliers is Nginx which has logs stored outside of Docker in `/data/nginx_logs`, and the Celery workers in `/data/celery_logs`.
 
 
 ## Deploying code

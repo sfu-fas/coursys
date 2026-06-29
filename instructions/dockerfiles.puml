@@ -76,7 +76,7 @@ package "logrotate.Dockerfile" {
     artifact logrotate [
         logrotate
         ----
-        rotates the nginx log
+        rotates the log
         files daily
     ]
 }

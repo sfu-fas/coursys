@@ -49,7 +49,8 @@ services:
       service: logrotate
     volumes:
       - nginx_logs:/nginx_logs:rw
- 
+      - celery_logs:/celery_logs:rw
+
   base:
     extends:
       file: compose-base.yml
@@ -121,6 +122,8 @@ services:
       - CONCURRENCY=2
     networks:
       - backend
+    volumes:
+      - celery_logs:/celery_logs:rw
   celery-batch:
     extends: celery-fast
     volumes:
@@ -156,14 +159,18 @@ services:
     restart: unless-stopped
     networks:
       - backend
+    volumes:
+      - celery_logs:/celery_logs:rw
 
 
 volumes:
   mysql:
   static:
+  status:
   rabbitmq4:
   elasticsearch7:
   nginx_logs:
+  celery_logs:
   dynamic_config:
   submitted_files:
   db_backups:
