@@ -10,7 +10,7 @@ COURSYS_USERNAME=coursys
 COURSYS_UID=888
 COURSYS_HOME=/home/${COURSYS_USERNAME}
 SOURCE_LOCATION=/coursys
-BRANCH=master
+BRANCH=docker-deploy
 DATA_PREFIX=/data/
 DOCKER_COMPOSE_FILE='compose-demo.yml'
 
@@ -22,14 +22,14 @@ sudo chown -R ${COURSYS_USERNAME} ${SOURCE_LOCATION}
 
 # basic config choices
 sudo ln -sf ${SOURCE_LOCATION}/${DOCKER_COMPOSE_FILE} ${SOURCE_LOCATION}/compose.yml
-[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || install -o root -m 0644 ${SOURCE_LOCATION}/secrets/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
-[ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" > ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
-[ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass" > ${SOURCE_LOCATION}/secrets/elastic-initial-password
+[ -f ${SOURCE_LOCATION}/secrets/app-config.toml ] || sudo install -o root -m 0644 ${SOURCE_LOCATION}/secrets/app-config-template.toml ${SOURCE_LOCATION}/secrets/app-config.toml
+[ -f ${SOURCE_LOCATION}/secrets/rabbitmq-default-password ] || echo "rmqpass" | sudo tee ${SOURCE_LOCATION}/secrets/rabbitmq-default-password
+[ -f ${SOURCE_LOCATION}/secrets/elastic-initial-password ] || echo "espass" | sudo tee ${SOURCE_LOCATION}/secrets/elastic-initial-password
 
 # data directories & permissions
 sudo install -o root -d ${DATA_PREFIX}
 sudo install -o ${COURSYS_USERNAME} -d ${DATA_PREFIX}submitted_files ${DATA_PREFIX}db_backups ${DATA_PREFIX}csrpt_auth ${DATA_PREFIX}dynamic_config
-install -o 1000 -d ${DATA_PREFIX}elasticsearch7
+sudo install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 sudo apt-get install -y make docker-compose-v2 docker-buildx
 sudo gpasswd -a `whoami` docker
@@ -54,7 +54,7 @@ docker compose up --remove-orphans -d
 ## Demo Data
 
 Demo data can be fetched from the production server, giving a secret key that is the first 6
-characters of the server secret (technically, `urllib.parse.quote(settings.SECRET_KEY[:6])`). 
+characters of the server secret (technically, `urllib.parse.quote(settings.SECRET_KEY[:6])`).
 ```shell
 curl https://coursys.sfu.ca/sysadmin/demo_data?key=abc123 > /tmp/demodata.json
 ```

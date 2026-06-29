@@ -1,3 +1,5 @@
+import sys
+
 from django.apps import AppConfig
 
 class CoredataConfig(AppConfig):
@@ -10,6 +12,10 @@ from django.core.checks import Error, register
 @register()
 def sanity_check(app_configs, **kwargs):
     errors = []
+
+    if 'migrate' in sys.argv[1:]:
+        # skip when we're migrating, so we can perform the initial DB population
+        return []
 
     # if 'IN_DOCKER' in os.environ :
     from coredata import panel
