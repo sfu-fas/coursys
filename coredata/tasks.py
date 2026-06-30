@@ -86,7 +86,8 @@ def regular_backup():
 
 @task()
 def backup_database():
-    call_command('backup_db', clean_old=True)
+    if settings.DO_IMPORTING_HERE:
+        call_command('backup_db', clean_old=True)
 
 
 @task()

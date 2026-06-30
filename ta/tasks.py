@@ -6,6 +6,8 @@ import datetime
 
 @task()
 def check_and_execute_reminders():
+    if not settings.DO_IMPORTING_HERE:
+        return
     semester = Semester.current()
     
     # check every day - if it is Day 0, 7, 14, 28 of the semester
