@@ -1,5 +1,5 @@
 from courselib.celerytasks import task
-from celery.schedules import crontab
+from django.conf import settings
 from ta.models import TAEvaluation
 from coredata.models import Semester, SemesterWeek
 import datetime
