@@ -140,7 +140,7 @@ These can be controlled in the container images' `courses/localsettings.py` (cop
 
 If present, they are also read from the `dynamic_config` volume: `/data/dynamic_config/server_message_index.html` and `/data/dynamic_config/server_message.html` on the server. You can create/edit/delete those files (with some reasonably-valid HTML) and tell the gunicorn process to gracefully restart its workers:
 ```shell
-docker compose kill -s SIGHUP app  # gunicorn 
+docker compose kill -s SIGHUP app
 ```
 
 

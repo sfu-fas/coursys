@@ -135,7 +135,7 @@ SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serv
 SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
 REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
-if DEBUG:
+if DEPLOY_MODE != 'production':
     ALLOWED_HOSTS.append('localhost')
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 

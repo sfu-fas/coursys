@@ -23,6 +23,9 @@ chmod 0755 /usr/local/lib/docker/cli-plugins/docker-rollout
 
 systemctl enable --now docker
 
+echo 'alias dc="docker compose"' > /etc/profile.d/coursys.sh
+chmod 0644 /etc/profile.d/coursys.sh
+
 # Put users into the docker group
 setup_user_docker() {
   U=$1
