@@ -121,8 +121,10 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Disable migrations only when running tests.
-IN_TESTING = 'test' in sys.argv[1:] and DEPLOY_MODE != 'production'
+IN_TESTING = 'test' in sys.argv[1:]
 if IN_TESTING:
+    if DEPLOY_MODE == 'production':
+        raise ValueError
     MIGRATION_MODULES = {}
     for m in INSTALLED_APPS:
         MIGRATION_MODULES[m] = None
