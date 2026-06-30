@@ -3,6 +3,10 @@ services:
     build:
       context: .
       dockerfile: docker/rabbitmq.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
     volumes:
       - /data/rabbitmq4:/var/lib/rabbitmq:rw,Z
     environment:
@@ -19,6 +23,10 @@ services:
     build:
       context: .
       dockerfile: docker/elasticsearch.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
     volumes:
       - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:
@@ -40,10 +48,14 @@ services:
       timeout: 5s
       interval: 60s
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     networks:
       - backend
       - web
-    command: ["--memory-limit=1024"]
+    command: ["--memory-limit=768"]
 
   nginx:
     build:
@@ -54,6 +66,10 @@ services:
     depends_on:
       - app
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     volumes:
       - static:/static:ro
       - /data/nginx_logs:/nginx_logs:rw,Z
@@ -66,6 +82,10 @@ services:
       context: .
       dockerfile: docker/logrotate.Dockerfile
     pid: host  # give the container access to signal nginx to re-open log files
+    deploy:
+      resources:
+        limits:
+          memory: 10mb
     volumes:
       - status:/status:rw
       - /data/nginx_logs:/nginx_logs:rw,Z
@@ -86,6 +106,10 @@ services:
         condition: service_healthy
       memcached:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1.5gb
     volumes:
       - static:/static:rw
       - /data/submitted_files:/submitted_files:rw,z
