@@ -10,7 +10,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
 import django
-from django.urls import reverse
 
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -23,18 +22,6 @@ from log.models import MonitoringDataLog
 
 import celery, kombu, amqp
 import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, copy, pprint
-
-
-def _certificate_expiry(domain: str) -> datetime.datetime:
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_OPTIONAL
-
-    conn = http.client.HTTPSConnection(domain, context=context)
-    conn.connect()
-    cert = conn.sock.getpeercert()
-
-    return parsedate_to_datetime(cert['notAfter'])
 
 
 def check_file_create(directory):
@@ -82,8 +69,6 @@ def settings_info():
     info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
         info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
-    if hasattr(settings, 'CELERY_BROKER_URL'):
-        info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
     if hasattr(settings, 'EMAIL_HOST'):
         info.append(('Email host', settings.EMAIL_HOST))
 
@@ -398,60 +383,10 @@ def deploy_checks():
     p, f = check_free_space(settings.SUBMISSION_PATH, 'SUBMISSION_PATH', 7*12)
     passed.extend(p)
     failed.extend(f)
+    # does / in the container always match the host? It seems to
     p, f = check_free_space('/', 'filesystem root', 20)
     passed.extend(p)
     failed.extend(f)
-
-    # correct serving/redirecting of production domains
-    # TODO: re-enable once we're settled with proxy settings etc
-    if False and settings.DEPLOY_MODE in ['production', 'proddev']:
-        production_host_fails = 0
-        for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
-            # check HTTPS serving/redirect
-            try:
-                url = 'https://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
-                resp = requests.get(url, allow_redirects=False, timeout=5)
-                if host in settings.SERVE_HOSTS and resp.status_code != 200:
-                    failed.append(('HTTPS Serving', 'expected 200 okay, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-                elif host in settings.REDIRECT_HOSTS and resp.status_code != 301:
-                    failed.append(('HTTPS Serving', 'expected 301 redirect, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-            except requests.exceptions.SSLError:
-                failed.append(('HTTPS Serving', 'bad SSL/TLS certificate for %s' % (url,)))
-                production_host_fails += 1
-            except requests.exceptions.RequestException:
-                failed.append(('HTTPS Serving', 'unable to connect to request %s' % (url,)))
-                production_host_fails += 1
-
-            # check HTTP redirect
-            try:
-                url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
-                resp = requests.get(url, allow_redirects=False, timeout=5)
-                if resp.status_code not in [301, 302]:
-                    failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-            except requests.exceptions.RequestException:
-                failed.append(('HTTP Serving', 'unable to connect to request %s' % (url,)))
-                production_host_fails += 1
-
-        if production_host_fails == 0:
-            passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
-
-        if 'https_proxy' in os.environ:
-            failed.append(('Certificate TTL', 'Skipping because https_proxy environment variable is set.'))
-        else:
-            low_ttl_certs = 0
-            min_age = datetime.timedelta(days=14)
-            now = datetime.datetime.now(datetime.timezone.utc)
-            for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
-                # check that certs aren't expiring soon
-                expiry = _certificate_expiry(host)
-                if expiry - now < min_age:
-                    low_ttl_certs += 1
-                    failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
-            if production_host_fails == 0:
-                passed.append(('Certificate TTL', 'okay'))
 
     # is the server time close to real-time?
     import ntplib
@@ -464,14 +399,6 @@ def deploy_checks():
             passed.append(('Server time', 'okay'))
     except ntplib.NTPException as e:
         failed.append(('Server time', 'Unable to query NTP reference: %s' % (e,)))
-
-    # locale is UTF-8 (matters for the SIMS database connection... or is legacy from DB2?)
-    import locale
-    _, encoding = locale.getdefaultlocale()
-    if encoding == 'UTF-8':
-        passed.append(('Locale encoding', 'okay'))
-    else:
-        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     # library sanity
     err = bitfield_check()
@@ -487,6 +414,14 @@ def deploy_checks():
     # MOSS subprocess
     from submission.moss import check_moss_executable
     check_moss_executable(passed, failed)
+
+    # locale is UTF-8 (matters for the SIMS database connection... or is legacy from DB2?)
+    import locale
+    _, encoding = locale.getdefaultlocale()
+    if encoding == 'UTF-8':
+        passed.append(('Locale encoding', 'okay'))
+    else:
+        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     return passed, failed
 
@@ -544,8 +479,6 @@ def cache_check():
     v0 = cache.get(k)
     if v != v0:
         return 'python-memcached butchering Unicode strings'
-
-
 
 
 def send_test_email(email):

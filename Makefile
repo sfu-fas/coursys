@@ -1,5 +1,4 @@
 COURSYS_USER=coursys
-#COURSYS_USER_HOME=/home/${COURSYS_USER}
 
 GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
@@ -43,7 +42,12 @@ purge-static:  # shouldn't be necessary in general, but just in case we want to 
 	make purge-cache  # django-compressor caches what has already been built: force it to re-check
 	${DOCKERCOMPOSE} run admin rm /dynamic_config/503
 
-503:
+drain-tasks:  # make absolutely sure there are no pending tasks (i.e. that rabbitmq can be purged during an upgrade/migration)
+	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
+	${DOCKERCOMPOSE} stop beat
+	echo "Watch celery_logs until nothing else is being processed. Then you can safely purge/restore rabbitmq and 'make rm503'"
+
+503:  # ensure that the system is down in such a way that no database/file changes are happening
 	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
 	${DOCKERCOMPOSE} stop `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
 

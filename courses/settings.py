@@ -1,4 +1,3 @@
-#from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
 import sys, os
 assert sys.version_info >= (3, 7)  # some logic assumes the insertion-ordered dicts from Python 3.7+
@@ -194,10 +193,7 @@ else:
 
 # static file settings
 STATIC_URL = '/static/'
-if 'COURSYS_STATIC_DIR' in os.environ:  # TODO: still needed?
-    STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+STATIC_ROOT = getattr(localsettings, 'STATIC_ROOT', os.path.join(BASE_DIR, '..', 'static', 'static'))
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

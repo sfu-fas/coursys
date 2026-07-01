@@ -1767,7 +1767,7 @@ def _clear_config(objects):
 
 def demo_data(request):
     """
-    Export privacy-dafe demo data for import on a demo server
+    Export privacy-safe demo data for import on a demo server
     
     Requires first few characters of the server secret as ?key=abc123, so we can easily access with
     curl or similar, but still not broadcast this too publicly (even though it's all public data).

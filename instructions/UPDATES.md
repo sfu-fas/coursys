@@ -87,8 +87,8 @@ Have a look at the `FROM` lines in the Dockerfiles and the versions of images in
 In general, there's no guarantee that the on-disk formats will be compatible across versions. Perhaps check data compatibility and plan an upgrade/migration in production. The persistent data stored by Docker services isn't critical:
 
 * memcached: doesn't store persistent data. Update freely.
-* rabbitmq: stores pending Celery tasks. If you can make sure the Celery queue is empty, then any stored data is unimportant: this can be done by putting the site in 503, stopping celery beat, but letting the workers run for a few moments.
-* elasticsearch: stores the full-text indexes. Needed, but at worst, `./manage.py rebuild_index` will restore them fully.
+* rabbitmq: stores pending Celery tasks. If you can make sure the Celery queue is empty, then any stored data is unimportant. See the "`make drain-tasks`" recipe.
+* elasticsearch: stores the full-text indexes. Needed, but at worst, `docker compose run manage update_index_task --full-rebuild` will restore them fully.
 * other containers: no persistent state relevant to version updates.
 
 
