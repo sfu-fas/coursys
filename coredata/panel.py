@@ -79,13 +79,12 @@ def settings_info():
     return info
 
 
-def deploy_checks():
+def sanity_checks():
+    """
+    Checks that *must* pass before we even try to start a gunicorn server or celery worker.
+    """
     passed = []
     failed = []
-
-    # cache something now to see if it's still there further down.
-    randval = random.randint(1, 1000000)
-    cache.set('check_things_cache_test', randval, 60)
 
     # Django database
     try:
@@ -95,6 +94,31 @@ def deploy_checks():
         failed.append(('Main database connection', "can't connect to database"))
     except django.db.utils.ProgrammingError:
         failed.append(('Main database connection', "database tables missing"))
+
+    # check that celery broker can be contacted (not if celery workers are up)
+    if settings.USE_CELERY:
+        from courses.celery import app
+        try:
+            app.control.inspect().ping()
+            passed.append(('Celery broker accessiblity', 'okay'))
+        except Exception as e:
+            failed.append(('Celery broker accessiblity', f'Failed: {e}'))
+
+    # cache is accessible
+    try:
+        cache.set('check_things_cache_ping', 0, 60)
+    except Exception as e:
+        failed.append(('Cache accessiblity', f'Failed: {e}'))
+
+    return passed, failed
+
+
+def deploy_checks():
+    passed, failed = sanity_checks()
+
+    # cache something now to see if it's still there further down.
+    randval = random.randint(1, 1000000)
+    cache.set('check_things_cache_test', randval, 60)
 
     # non-BMP Unicode in database
     try:
@@ -332,7 +356,8 @@ def deploy_checks():
             failed.append(('File creation in ' + label, res))
     
     # DB backup directory may only be accessible from that celery worker: that's okay.
-    if settings.USE_CELERY and celery_okay and False:  # disabled pending this task being merged
+    if settings.USE_CELERY and celery_okay and False:  # disabled pending new deploy
+        from coredata.tasks import check_db_backup_free
         from coredata.tasks import check_db_backup_create
         taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
         taskf = check_db_backup_free.delay(settings.DB_BACKUP_DIR)
