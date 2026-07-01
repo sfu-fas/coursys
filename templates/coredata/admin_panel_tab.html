@@ -49,22 +49,8 @@ Some guess about how fresh the reporting database is&hellip;
 {{ csrpt|panel_info }}
 {% endif %}
 
-{% if psinfo %}
-<h2 id="psinfo">Process Info</h2>
-{{ psinfo|panel_info }}
-{% endif %}
-
 {% if the_request %}
 <pre>{{ the_request }}</pre>
-{% endif %}
-
-{% if git %}
-<table>
-    <th>Most Recent Commit</th>
-    <td>
-        <a href="https://github.com/sfu-fas/coursys/commit/{{git.revision}}">{{git.branch}} - {{git.revision}}</a>
-    </td>
-</table>
 {% endif %}
 
 {% if environ %}

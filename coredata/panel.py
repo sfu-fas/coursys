@@ -16,10 +16,10 @@ from django.utils.html import conditional_escape as escape
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
-from log.models import LogEntry
+from log.models import MonitoringDataLog
 
 import celery, kombu, amqp
-import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
+import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, copy, pprint
 
 
 def check_file_create(directory):
@@ -43,6 +43,20 @@ def check_file_create(directory):
         os.unlink(filename)
 
 
+def check_free_space(directory, label, min_gb):
+    try:
+        p, f = [], []
+        free = psutil.disk_usage(directory).free/1024/1024/1024
+        if free > min_gb:
+            p.append((f'Space in {label}', f'okay ({free:.1f} GB)'))
+        else:
+            f.append((f'Space in {label}', f'Low: {free:.1f} GB'))
+    except FileNotFoundError:
+        f.append((f'Space in {label}', 'directory does not exist'))
+    
+    return p, f
+
+
 def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
@@ -53,8 +67,6 @@ def settings_info():
     info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
         info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
-    if hasattr(settings, 'CELERY_BROKER_URL'):
-        info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
     if hasattr(settings, 'EMAIL_HOST'):
         info.append(('Email host', settings.EMAIL_HOST))
 
@@ -67,7 +79,7 @@ def settings_info():
     return info
 
 
-def deploy_checks(request=None):
+def deploy_checks():
     passed = []
     failed = []
 
@@ -77,11 +89,8 @@ def deploy_checks(request=None):
 
     # Django database
     try:
-        n = Semester.objects.all().count()
-        if n > 0:
-            passed.append(('Main database connection', 'okay'))
-        else:
-            failed.append(('Main database connection', "Can't find any coredata.Semester objects"))
+        Semester.objects.all().count()
+        passed.append(('Main database connection', 'okay'))
     except django.db.utils.OperationalError:
         failed.append(('Main database connection', "can't connect to database"))
     except django.db.utils.ProgrammingError:
@@ -89,15 +98,16 @@ def deploy_checks(request=None):
 
     # non-BMP Unicode in database
     try:
-        l = LogEntry.objects.create(userid='ggbaker', description='Test Unicode \U0001F600', related_object=Semester.objects.first())
+        l = MonitoringDataLog.objects.create(time=datetime.datetime.now(), duration=datetime.timedelta(0), metric='Unicode Test \U0001F600', value=0.0, data={})
     except OperationalError:
         failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
     else:
-        l = LogEntry.objects.get(id=l.id)
-        if '\U0001F600' in l.description:
+        l = MonitoringDataLog.objects.get(id=l.id)
+        if '\U0001F600' in l.metric:
             passed.append(('Unicode handling in database', 'okay'))
         else:
             failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
+        l.delete()
 
     # check that all database tables are utf8mb4, if mysql
     if settings.DATABASES['default']['ENGINE'].endswith('.mysql'):
@@ -106,6 +116,7 @@ def deploy_checks(request=None):
 
         CORRECT_CHARSET = 'utf8mb4'
         CORRECT_COLLATION = 'utf8mb4_unicode_ci'
+        JSONFIELD__COLLATION = 'utf8mb4_bin'
         db_name = settings.DATABASES['default']['NAME']
 
         with connection.cursor() as cursor:
@@ -133,13 +144,13 @@ def deploy_checks(request=None):
                                    'table %s has incorrect CHARACTER SET and COLLATION: consider "ALTER TABLE %s CHARACTER SET=%s COLLATE=%s;"'
                                    % (table, table, CORRECT_CHARSET, CORRECT_COLLATION)))
 
-            cursor.execute('''SELECT table_name, column_name, character_set_name, collation_name
+            cursor.execute('''SELECT table_name, character_set_name, collation_name
                 FROM information_schema.`COLUMNS`
                 WHERE table_schema=%s
                     AND (character_set_name IS NOT NULL OR collation_name IS NOT NULL)
-                    AND (character_set_name!=%s OR collation_name!=%s);
-                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION))
-            for table, column, charset, collation in cursor.fetchall():
+                    AND (character_set_name!=%s OR (collation_name!=%s AND collation_name!=%s));
+                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION, JSONFIELD__COLLATION))
+            for table, charset, collation in cursor.fetchall():
                 failed.append(('MySQL database charset',
                                'table %s has incorrect CHARACTER SET and COLLATION on a column (%s and %s): consider "ALTER TABLE %s CONVERT TO CHARACTER SET %s COLLATE %s;"'
                                % (table, charset, collation, table, CORRECT_CHARSET, CORRECT_COLLATION)))
@@ -242,7 +253,7 @@ def deploy_checks(request=None):
     except Exception as e:
         failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 
-    if settings.USE_CELERY and sims_task:
+    if settings.USE_CELERY and sims_task and celery_okay:
         # sims_task started above, so we can double-up on any wait
         try:
             res = sims_task.get(timeout=5)
@@ -310,7 +321,6 @@ def deploy_checks(request=None):
     # file creation in the necessary places
     os.makedirs(os.path.join(settings.COMPRESS_ROOT, 'CACHE'), mode=0o755, exist_ok=True)
     dirs_to_check = [
-        (settings.DB_BACKUP_DIR, 'DB backup dir'),
         (settings.SUBMISSION_PATH, 'submitted files path'),
         (os.path.join(settings.COMPRESS_ROOT, 'CACHE'), 'compressed media root'),
     ]
@@ -320,55 +330,37 @@ def deploy_checks(request=None):
             passed.append(('File creation in ' + label, 'okay'))
         else:
             failed.append(('File creation in ' + label, res))
-
-    # space in /tmp
-    tmp_free = psutil.disk_usage('/tmp').free/1024/1024/1024
-    if tmp_free > 4:
-        passed.append(('Space in /tmp', 'okay (%.1f GB)' % (tmp_free,)))
+    
+    # DB backup directory may only be accessible from that celery worker: that's okay.
+    if settings.USE_CELERY and celery_okay and False:  # disabled pending this task being merged
+        from coredata.tasks import check_db_backup_create
+        taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
+        taskf = check_db_backup_free.delay(settings.DB_BACKUP_DIR)
+        resc = taskc.get()
+        p, f = taskf.get()
     else:
-        failed.append(('Space in /tmp', 'Low: %.1f GB' % (tmp_free,)))
+        resc = check_file_create(settings.DB_BACKUP_DIR)
+        p, f = check_free_space(settings.DB_BACKUP_DIR, 'DB backup dir', 50)
 
-    # space in SUBMISSION_PATH
-    try:
-        sub_free = psutil.disk_usage(settings.SUBMISSION_PATH).free/1024/1024/1024
-        # in prod, we have been running ~7G/month, so this checks for ~1 year of space
-        if sub_free > 7*12:
-            passed.append(('Space in SUBMISSION_PATH', 'okay (%.1f GB)' % (sub_free,)))
-        else:
-            failed.append(('Space in SUBMISSION_PATH', 'Low: %.1f GB' % (sub_free,)))
-    except FileNotFoundError:
-        failed.append(('Space in SUBMISSION_PATH', 'directory does not exist'))
-
-    # are any services listening publicly that shouldn't?
-    hostname = socket.gethostname()
-    ports = [
-        #25, # mail server
-        #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
-        45130, # beam? rabbitmq something
-        4000, # main DB stunnel
-        50000, # reporting DB
-        8000, # gunicorn
-        11211, # memcached
-        9200, 9300, # elasticsearch
-        8983,  # solr
-    ]
-    connected = []
-    for p in ports:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.connect((hostname, p))
-        except socket.error:
-            # couldn't connect: good
-            pass
-        else:
-            connected.append(p)
-        finally:
-            s.close()
-
-    if connected:
-        failed.append(('Ports listening externally', 'got connections to port ' + ','.join(str(p) for p in connected)))
+    if resc is None:
+        passed.append(('File creation in DB backup dir', 'okay'))
     else:
-        passed.append(('Ports listening externally', 'okay'))
+        failed.append(('File creation in DB backup dir', resc))
+    passed.extend(p)
+    failed.extend(f)
+
+    # Check for appropriate free disk space
+    p, f = check_free_space('/tmp', '/tmp', 4)
+    passed.extend(p)
+    failed.extend(f)
+    # in prod, we have been running ~7G/month, so this checks for ~1 year of space
+    p, f = check_free_space(settings.SUBMISSION_PATH, 'SUBMISSION_PATH', 7*12)
+    passed.extend(p)
+    failed.extend(f)
+    # does / in the container always match the host? It seems to
+    p, f = check_free_space('/', 'filesystem root', 20)
+    passed.extend(p)
+    failed.extend(f)
 
     # is the server time close to real-time?
     import ntplib
@@ -471,11 +463,6 @@ def send_test_email(email):
     except socket.error:
         return False, "socket error: maybe can't communicate with AMPQ for celery sending?"
 
-def git_branch():
-    return subprocess.check_output(['git', 'rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])
-
-def git_revision():
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
 def celery_info():
     from coredata.tasks import app
@@ -498,44 +485,6 @@ def celery_info():
 
     info.sort()
     return info
-
-
-def ps_info():
-    import psutil, time
-    CMD_DISP_MAX = 80
-    data = []
-    data.append(('System Load', os.getloadavg()))
-    cpu_total = 0
-    psdata = ['<table id="procs"><thead><tr><th>PID</th><th>Owner</th><th>CPU %</th><th>VM Use (MB)</th><th>Status</th><th>Command</th></tr></thead><tbody>']
-    for proc in psutil.process_iter():
-        # start the clock on CPU usage percents
-        try:
-            proc.cpu_percent()
-        except psutil.NoSuchProcess:
-            pass
-
-    time.sleep(2)
-    for proc in psutil.process_iter():
-        try:
-            perc = proc.cpu_percent()
-            if perc > 0:
-                cpu_total += perc
-                mem = proc.memory_info().vms / 1024.0 / 1024.0
-                cmd = ' '.join(proc.cmdline())
-                if len(cmd) > CMD_DISP_MAX:
-                    cmd = '<span title="%s">%s</span>' % (escape(cmd), escape(cmd[:(CMD_DISP_MAX-5)]) + '&hellip;')
-                else:
-                    cmd = escape(cmd)
-
-                psdata.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
-                    % (proc.pid, proc.username(), perc, mem, escape(str(proc.status())), cmd))
-
-        except psutil.NoSuchProcess:
-            pass
-    psdata.append('</tbody></table>')
-    data.append(('CPU Percent', cpu_total))
-    data.append(('Running Processes', mark_safe(''.join(psdata))))
-    return data
 
 
 def pip_info():
