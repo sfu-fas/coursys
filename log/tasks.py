@@ -24,8 +24,9 @@ def log_regular():
     Logging we want to do regularly: every ~15 minutes.
     """
     log_system_usage()
-    log_process_usage()
-    log_container_usage()
+    # these fail inside a docker container: would have to be done outside and piped in if we need them.
+    #log_process_usage()
+    #log_container_usage()
 
 
 @task(queue="batch")
