@@ -84,6 +84,7 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^logging/$', log_views.log_explore, name='log_explore'),
     url(r'^logging/(?P<log_type>\w+)/(?P<log_id>[0-9a-z\-]+)$', log_views.log_view, name='log_view'),
     url(r'^csrpt$', coredata_views.csrpt_auth, name='csrpt_auth'),
+    url(r'^demo_data$', coredata_views.demo_data, name='demo_data'),
 ]
 
 browse_patterns = [ # prefix /browse/
