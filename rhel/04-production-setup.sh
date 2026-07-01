@@ -6,6 +6,8 @@ set -e
 source ./config.sh
 
 grep -q "umask 022" /etc/profile || echo "umask 022" >> /etc/profile
+echo 'Defaults:%scs-cloud-coursys-servers-priv-pam  env_keep += "HTTP_PROXY HTTPS_PROXY NO_PROXY"' > /etc/sudoers.d/coursys
+chmod 0644 /etc/sudoers.d/coursys
 
 # Rationalle for the daemon.json contents...
 # * Limit the size of the log files. (Docker logs may be useful to diagnose problems, but shouldn't be needed long-term.)
