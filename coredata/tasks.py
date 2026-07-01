@@ -80,13 +80,8 @@ def set_beat_time() -> None:
     u.save()
 
 
-@task()
+@task(queue='batch')
 def regular_backup():
-    backup_database.si().apply_async()
-
-
-@task()
-def backup_database():
     if settings.DO_IMPORTING_HERE:
         call_command('backup_db', clean_old=True)
 
@@ -197,21 +192,8 @@ def grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@task()
-def daily_import():
-    """
-    Start the daily import work.
-    """
-    # This is a separate task because periodic tasks run in the worker queue. We want all SIMS access running in the
-    # sims queue. This task essentially starts and bounces the work into the other queue.
-    if not settings.DO_IMPORTING_HERE:
-        return
-
-    import_task.apply_async()
-
-
 @task(queue='sims')
-def import_task():
+def daily_import():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
