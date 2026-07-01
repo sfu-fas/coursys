@@ -19,6 +19,7 @@
 {% include 'pages/markup_edit_head.html' %}
 {% compress js %}
 <script src="{% static 'js/quizzes.js' %}"></script>
+{% endcompress %}
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('.code-answer').each(function(i, pre) {
@@ -26,7 +27,6 @@ $(document).ready(function() {
     });
 });
 </script>
-{% endcompress %}
 {% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
