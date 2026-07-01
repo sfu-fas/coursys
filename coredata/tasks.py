@@ -81,13 +81,8 @@ def set_beat_time() -> None:
     u.save()
 
 
-@task()
-def regular_backup():
-    backup_database.si().apply_async()
-
-
 @task(queue='batch')
-def backup_database():
+def regular_backup():
     if settings.DO_IMPORTING_HERE:
         call_command('backup_db', clean_old=True)
 
@@ -104,7 +99,7 @@ def check_db_backup_free(backup_dir):
     return check_free_space(backup_dir, 'DB backup dir', 50)
 
 
-@task()
+@task(queue='sims')
 def check_sims_connection():
     if settings.DISABLE_REPORTING_DB:
         return
@@ -198,21 +193,8 @@ def grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@task()
-def daily_import():
-    """
-    Start the daily import work.
-    """
-    # This is a separate task because periodic tasks run in the batch queue. We want all SIMS access running in the
-    # sims queue. This task essentially starts and bounces the work into the other queue.
-    if not settings.DO_IMPORTING_HERE:
-        return
-
-    import_task.apply_async()
-
-
 @task(queue='sims')
-def import_task():
+def daily_import():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
@@ -364,17 +346,10 @@ def import_active_grad_gpas():
 
 
 ###################################################################################################
-# CSRPT auth tasks
-
-
-@task()
-def csrpt_refresh_periodic():
-    # bounce from the queue doing periodic tasks over to the sims queue, which has access to the auth files
-    csrpt_refresh.delay()
-
+# CSRPT auth
 
 @task(queue='sims')
-def csrpt_refresh():
+def csrpt_refresh_periodic():
     if settings.DISABLE_REPORTING_DB:
         return
     res = refresh_csrpt_auth()
