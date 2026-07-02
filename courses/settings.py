@@ -1,7 +1,5 @@
-from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
-import socket, sys, os
-hostname = socket.gethostname()
+import sys, os
 assert sys.version_info >= (3, 7)  # some logic assumes the insertion-ordered dicts from Python 3.7+
 
 try:
@@ -20,31 +18,25 @@ except ImportError:
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
     DEPLOY_MODE = localsettings.DEPLOY_MODE
-elif hostname == 'courses':  # TODO: this is no longer the correct condition
-    # full production mode
-    DEPLOY_MODE = 'production'
-elif False:
-    # production-like development environment
-    DEPLOY_MODE = 'proddev'
 else:
     # standard development environment
     DEPLOY_MODE = 'devel'
 
-#print "DEPLOY_MODE: ", DEPLOY_MODE
-
-DEBUG = DEPLOY_MODE != 'production'
+DEBUG = DEPLOY_MODE != 'production' and getattr(localsettings, 'DEBUG', True)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
-sys.path.append( os.path.join(BASE_DIR, 'external') )
+
+if os.path.exists(os.path.join(BASE_DIR, 'this_is_production.txt')) and DEPLOY_MODE != 'production':
+    # we take the existence of this file to indicate we have access to production data, so *must* be in production mode
+    raise ValueError('Refusing to start in non-production mode')
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
     ('Renee Chong', 'renee_chong@sfu.ca'),
 )
-SERVER_EMAIL = 'ggbaker@sfu.ca'
+SERVER_EMAIL = 'noreply@coursys.sfu.ca'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -148,7 +140,7 @@ SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serv
 SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
 REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
-if DEBUG:
+if DEPLOY_MODE != 'production':
     ALLOWED_HOSTS.append('localhost')
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 
@@ -167,7 +159,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            #'CONN_MAX_AGE': 360,
+            'PORT': 3306,
             'OPTIONS': {
                 "init_command": "SET default_storage_engine=INNODB, character_set_client=utf8mb4, character_set_connection=utf8mb4, character_set_results=utf8mb4, collation_connection=utf8mb4_unicode_ci, collation_server=utf8mb4_unicode_ci;",
                 'charset': 'utf8mb4',
@@ -197,6 +189,13 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
+    if IN_TESTING:
+        DATABASES['default'].update({
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite',
+            'OPTIONS': {},
+        })
+
 else:
     DATABASES = {
         'default': {
@@ -208,8 +207,7 @@ else:
 if DEPLOY_MODE == 'production':
     SECRET_KEY = secrets.SECRET_KEY
 else:
-    SECRET_KEY = 'a'*50
-
+    SECRET_KEY = getattr(localsettings, 'SECRET_KEY', 'a'*50)
 
 
 # static file settings
@@ -261,11 +259,6 @@ else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
-    if getattr(localsettings, 'FORCE_MEMCACHED', False):
-        CACHES = { 'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-            'LOCATION': '127.0.0.1:11211',
-        } }
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
@@ -303,7 +296,7 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel') and not IN_TESTING
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
     RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
@@ -359,14 +352,13 @@ EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'smtpserver.sfu.ca')
 EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 25)
 EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', False)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
-DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
-SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
+DEFAULT_SENDER_EMAIL = 'coursys-help@sfu.ca'
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
 CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/tmp/csrpt_auth')
 
-EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
-MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
+EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', './moss')
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 
@@ -390,7 +382,7 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
-if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
+if not FORCE_CAS and DEPLOY_MODE != 'production':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     LOGIN_URL = "/fake_login"
