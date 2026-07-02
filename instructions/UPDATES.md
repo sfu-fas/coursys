@@ -69,7 +69,6 @@ Updates for these libraries are hard to test. At worst, may be necessary to deli
 JavaScript dependencies are in `package.json`: versions can be bumped as necessary.
 ```shell
 npm install
-./manage.py collectstatic  # if you need it
 ```
 The page of frontend checks should give a quick view on the various libraries working or not: http://localhost:8000/sysadmin/frontend-check
 

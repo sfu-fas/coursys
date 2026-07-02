@@ -6,3 +6,4 @@
 * some monitoring of docker containers/usage/etc?
 * finalize sudo config in prod
 * double-check that db backup is working
+* check_sims_connection is running in the wrong queue

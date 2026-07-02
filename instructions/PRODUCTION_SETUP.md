@@ -33,9 +33,9 @@ DATA_PREFIX=/data/
 DOCKER_COMPOSE_FILE='compose-production.yml'
 ```
 
-Consider setting `DO_IMPORTING_HERE = False` in `courses/docker-localsettings-production.py`
-temporarily while setting up: it's intended to ensure there's no split-brain on any critical data
-updates during a transition like this.
+Set `DO_IMPORTING_HERE = False` in `courses/docker-localsettings-production.py` temporarily while
+setting up: it's intended to ensure there's no split-brain on any critical data updates during a
+transition like this. (See "Switching Critical Celery Tasks" below.)
 
 Review and run scripts 02-05 in `rhel/`. Have a look around and make sure things are as expected.
 You will have to log out and back in after 03 to get the docker group membership active.
@@ -84,7 +84,7 @@ We should verify connectivity to external services before switching to the new s
 about what worked historically on new servers (within the SFU cloud world):
 
 * NFS mount: the main file storage is an NFS mount from ITS. It needs to be mounted and symlinked from `/data/submitted_files`.
-* CAS: ???
+* CAS: should be fine as long as the external hostname (i.e. coursys.sfu.ca) doesn't change.
 * Photos API: seems to just work (given the password that's reguarly rotated and stored in the database).
 * CSRPT: seems to work once the auth stuff is bootstrapped.
 * AMAINT/EMPLID API: needs whitelisting by IP address. Responsible group is ITS Identity and Access Management.
@@ -105,7 +105,7 @@ docker compose down celery-email
 ```
 
 
-### Actually Switching Over
+### Testing Before Switching
 
 If database access is okay and Elasticsearch is up, the indexing can be started ahead of time:
 ```shell
@@ -119,39 +119,41 @@ docker compose up -d
 docker compose run manage check_things
 ```
 
-If time is on your side, and both the database server and NFS share are common to the old and new
-deployments, consider having the SFU load balancer point a temporary domain name at this new
-server. Then you can exercise it at your leisure.
+If time is on your side (and both the database server and NFS share are common to the old and new
+deployments) consider having the SFU load balancer point to the new server for a specific IP
+addresses. Then you can exercise it at your leisure.
 
 Finally, have the SFU load balancer point the coursys.sfu.ca name at the new server.
+
+
+### Switching Critical Celery Tasks
+
+Periodic tasks may double-fire while a new server is being configured. The `DO_IMPORTING_HERE` flag
+is meant to protect tasks that have side effects (e.g. send emails) or other critical tasks. It
+should be true in exactly one place.
+
+It can be switched either before or after the web frontend, and may be a good chance to test a new
+server before sending users to it.
+
 
 
 ### Draining The Old Server's Celery Tasks
 
 Since we aren't migrating any Celery jobs waiting in RabbitMQ, let's make sure they're done before
-turning everything off. Stop any new tasks from being queued:
-```shell
-touch /coursys/503       # stop web frontend
-service celerybeat stop  # stop new periodic tasks
-```
+turning everything off. Stop any new tasks from being queued: the equivalent of the "`make drain-tasks`"
+recipe.
+
 Wait, possibly making sure nothing new is appearing in the celery log files. Then it should
-definitely be safe to:
-```shell
-service celery stop
-```
+definitely be safe to stop celery and purge rabbitmq.
 
 
-## Pending
-
-* we probably need our IP address whitelisted for some of the external services: CSRPT, CAS, photos API, AMAINT
-* load balancer switchover
 
 
 ## Database Server Migration
 
 When we have updated the MariaDB server in the past, the process was something like this:
 
-0. A few days before, add a note warning of downtime in `SERVER_MESSAGE_INDEX` in `courses/docker-localsettings-production.py`.
+0. A few days before, add a note warning of downtime in `dynamic_config/server_message_index.html` (see SYSADMIN.md).
 1. Stop the world: `make 503`. Likely also bring down Docker services to ensure no database updates are happening.
 2. Do the actual database migration: `mysqldump` on the old server, and restore that dump on the new.
 3. Do a few queries (below) against the old database server, so we can sanity check the new one.
