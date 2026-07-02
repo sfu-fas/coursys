@@ -14,9 +14,9 @@ from courselib.celerytasks import task
 from coredata.models import Role, Unit, EnrolmentHistory
 import celery
 
-# if settings.USE_CELERY:
-#     # Periodic tasks don't fire without app constructed... 
-#     app = celery.Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)
+if settings.USE_CELERY:
+    # Periodic tasks don't fire without app constructed... 
+    app = celery.Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)
 
 # the maximum beat test age we'd be happy with
 BEAT_FILE_MAX_AGE = 1200
