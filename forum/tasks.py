@@ -133,6 +133,9 @@ def create_instr_idents() -> None:
 
 @task()
 def send_digests(immediate=False) -> None:
+    if not settings.DO_IMPORTING_HERE:
+        return
+    
     now = datetime.datetime.now()
     idents = _relevant_idents().filter(digest_frequency__isnull=False)
     for i in idents:
