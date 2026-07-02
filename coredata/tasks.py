@@ -83,6 +83,8 @@ def set_beat_time() -> None:
 
 @task(queue='batch')
 def backup_database():
+    if not settings.DO_IMPORTING_HERE:
+        return
     call_command('backup_db', clean_old=True)
 
 
