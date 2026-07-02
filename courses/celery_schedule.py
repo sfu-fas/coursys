@@ -16,7 +16,7 @@ def beat(task: str, schedule: int | crontab, *, queue: str = 'batch'):
 
 CELERY_BEAT_SCHEDULE = dict([
     beat('coredata.tasks.beat_test', 300, queue='fast'),
-    beat('coredata.tasks.regular_backup', crontab(minute=0, hour='*/3'), queue='batch'),
+    beat('coredata.tasks.backup_database', crontab(minute=0, hour='*/3'), queue='batch'),
     beat('coredata.tasks.csrpt_refresh_periodic', 7200, queue='sims'),
     beat('coredata.tasks.daily_import', crontab(minute='30', hour='8'), queue='sims'),
     beat('grad.tasks.grad_daily_import', crontab(minute='40', hour='8'), queue='sims'),
