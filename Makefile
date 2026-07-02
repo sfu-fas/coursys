@@ -20,8 +20,8 @@ rebuild:
 
 redeploy:
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERROLLOUT} --wait-after-healthy 5 app  # zero-downtime rollout of app service
-	${DOCKERCOMPOSE} up -d --remove-orphans      # restart celery and anything else changed
+	${DOCKERROLLOUT} --timeout 120 --wait-after-healthy 5 app  # zero-downtime rollout of app service
+	${DOCKERCOMPOSE} up -d --remove-orphans                    # restart celery and anything else changed
 
 new-code: rebuild redeploy
 
