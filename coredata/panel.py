@@ -16,7 +16,6 @@ from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
-from coredata.tasks import check_db_backup_free
 from dashboard.photos import do_photo_fetch
 from log.models import MonitoringDataLog
 
@@ -359,6 +358,7 @@ def deploy_checks():
     
     # DB backup directory may only be accessible from that celery worker: that's okay.
     if settings.USE_CELERY and celery_okay:
+        from coredata.tasks import check_db_backup_free
         from coredata.tasks import check_db_backup_create
         taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
         taskf = check_db_backup_free.delay(settings.DB_BACKUP_DIR)
