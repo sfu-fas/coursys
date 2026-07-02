@@ -78,7 +78,7 @@ FROM base AS app
 
 COPY docker/files/gunicorn-worker.sh /gunicorn-worker.sh
 COPY docker/files/gunicorn-healthcheck.sh /gunicorn-healthcheck.sh
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --start-interval=5s \
   CMD /gunicorn-healthcheck.sh || exit 1
 CMD ["/gunicorn-worker.sh"]
 
@@ -89,7 +89,7 @@ CMD ["/gunicorn-worker.sh"]
 FROM base AS celery
 
 COPY docker/files/celery-worker.sh /celery-worker.sh
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --start-interval=5s \
   CMD curl --fail http://localhost:9000/ || exit 1
 ARG QUEUE
 ARG CONCURRENCY
