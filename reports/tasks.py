@@ -3,7 +3,7 @@ from django.conf import settings
 from reports.models import Report, schedule_ping
 
 
-@task()
+@task(queue='sims')
 def run_regular_reports():
     if not settings.DO_IMPORTING_HERE:
         return
