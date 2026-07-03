@@ -33,7 +33,7 @@ CELERY_BEAT_SCHEDULE = dict([
     beat('onlineforms.tasks.reject_dormant_initial', crontab(hour="18", minute="0")),
     beat('ra.tasks.expiring_ras_reminder', crontab(minute='0', hour='13')),
     beat('reminders.tasks.daily_reminders', crontab(minute='0', hour='9')),
-    beat('reports.tasks.run_regular_reports', crontab(hour=9, minute=15), queue='sims'),
+    beat('reports.tasks.run_regular_reports', crontab(hour=9, minute=15)),
     beat('ta.tasks.check_and_execute_reminders', crontab(minute='0', hour='8')),
     beat('log.tasks.log_regular', crontab(hour='*', minute='0,15,30,45'), queue='fast'),
     beat('log.tasks.log_avg_request_duration', crontab(hour='*', minute=0), queue='fast'),
