@@ -5,6 +5,8 @@ These instructions cover deploying and configuring a new production server.
 There are some additional notes (of details that we don't make public) in the CourSys Team:
 Teams -> CourSys -> General -> Shared -> production access.docx.
 
+
+
 ## A New Web Server
 
 ### Server Creation
@@ -12,8 +14,6 @@ Teams -> CourSys -> General -> Shared -> production access.docx.
 1. Get an appropriate VM: probably 4 CPU cores, 16GB memory, 100GB root volume.
 2. Mount the NFS share that holds our file data on `/filestore`.
 3. Ensure the production database server is accessible.
-
-TODO Other external APIs we access: CSRPT, CAS, photos API, AMAINT
 
 
 ### Bootstrapping
@@ -83,7 +83,8 @@ docker compose run manage shell
 We should verify connectivity to external services before switching to the new server. Notes
 about what worked historically on new servers (within the SFU cloud world):
 
-* NFS mount: the main file storage is an NFS mount from ITS. It needs to be mounted and symlinked from `/data/submitted_files`.
+* Database server: discuss with the techs who oversee it.
+* NFS mount: the main file storage is an NFS mount from ITS. It needs to be mounted and symlinked from `/data/submitted_files` and `/data/db_backups`.
 * CAS: should be fine as long as the external hostname (i.e. coursys.sfu.ca) doesn't change.
 * Photos API: seems to just work (given the password that's reguarly rotated and stored in the database).
 * CSRPT: seems to work once the auth stuff is bootstrapped.
@@ -130,11 +131,10 @@ Finally, have the SFU load balancer point the coursys.sfu.ca name at the new ser
 
 Periodic tasks may double-fire while a new server is being configured. The `DO_IMPORTING_HERE` flag
 is meant to protect tasks that have side effects (e.g. send emails) or other critical tasks. It
-should be true in exactly one place.
+should be `True` in exactly one place.
 
 It can be switched either before or after the web frontend, and may be a good chance to test a new
 server before sending users to it.
-
 
 
 ### Draining The Old Server's Celery Tasks
@@ -146,6 +146,13 @@ recipe.
 Wait, possibly making sure nothing new is appearing in the celery log files. Then it should
 definitely be safe to stop celery and purge rabbitmq.
 
+
+### Frontend Switch
+
+The user facing change is switching traffic at the SFU load balancer to the new server.
+
+This must be done by somebody in IT Services: make a request to that group and set up a time to move
+all traffic to the new server, and remove the old.
 
 
 
@@ -173,6 +180,8 @@ RequestLog.objects.all().order_by('-time').first()
 CeleryTaskLog.objects.all().order_by('-time').first()
 Member.objects.count()
 ```
+
+
 
 ## Files/NFS Migration
 
