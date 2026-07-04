@@ -54,7 +54,7 @@ WORKDIR /coursys
 
 ARG UID=888
 RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
-  && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config /celery_logs
+  && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config /celery_logs /status
 
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
@@ -102,7 +102,7 @@ CMD ["/celery-worker.sh"]
 # celery beat image
 
 FROM base AS beat
-CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO", "--logfile", "/celery_logs/beat.log"]
+CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO", "--logfile", "/celery_logs/beat.log", "-s", "/status/celerybeat-schedule"]
 
 
 

@@ -8,7 +8,6 @@ def beat(task: str, schedule: int | crontab, *, queue: str = 'batch'):
     entry = {
         'task': task,
         'schedule': schedule,
-        'queue': queue,
         'options': { 'queue': queue, 'routing_key': queue },
     }
     return (task, entry)

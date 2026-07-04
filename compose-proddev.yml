@@ -160,6 +160,7 @@ services:
     networks:
       - backend
     volumes:
+      - status:/status:rw
       - celery_logs:/celery_logs:rw
 
 

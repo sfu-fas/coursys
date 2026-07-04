@@ -141,6 +141,7 @@ services:
     networks:
       - backend
     volumes:
+      - status:/status:rw
       - /data/celery_logs:/celery_logs:rw,Z
 
 
