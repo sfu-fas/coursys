@@ -7,7 +7,6 @@ services:
       resources:
         limits:
           memory: 2gb
-    hostname: rabbitmq
     volumes:
       - /data/rabbitmq4:/var/lib/rabbitmq:rw,Z
     environment:
