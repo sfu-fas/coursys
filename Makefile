@@ -10,28 +10,28 @@ start-all:
 pull:
 	${GIT} pull
 
-pull-rebuild:
+pull-build:
 	${GIT} pull
 	${DOCKERCOMPOSE} pull
-	${DOCKERCOMPOSE} build --pull
+	${DOCKERCOMPOSE} build --pull --no-cache
 
-rebuild:
+build:
 	${DOCKERCOMPOSE} build
 
-redeploy:
+deploy:
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERROLLOUT} --timeout 120 --wait-after-healthy 5 app  # zero-downtime rollout of app service
 	${DOCKERCOMPOSE} up -d --remove-orphans                    # restart celery and anything else changed
 
-redeploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
+deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERCOMPOSE} up -d --remove-orphans
 
-new-code: rebuild redeploy
+new-code: build redeploy
 
-new-code-pull: pull-rebuild redeploy
+new-code-pull: pull-build deploy
 
-new-code-no-rollout: rebuild redeploy-no-rollout
+new-code-no-rollout: build deploy-no-rollout
 
 migrate-safe:
 	${DOCKERCOMPOSE} run manage backup_db_task

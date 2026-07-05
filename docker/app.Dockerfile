@@ -48,6 +48,9 @@ ENV LANG=en_CA.UTF-8
 ENV IN_DOCKER=yes
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+# Host header for healthcheck requests:
+ARG HEALTHCHECK_HOSTNAME=coursys.sfu.ca
+ENV HEALTHCHECK_HOSTNAME=${HEALTHCHECK_HOSTNAME}
 
 RUN mkdir -p /coursys
 WORKDIR /coursys
@@ -78,7 +81,7 @@ FROM base AS app
 
 COPY docker/files/gunicorn-worker.sh /gunicorn-worker.sh
 COPY docker/files/gunicorn-healthcheck.sh /gunicorn-healthcheck.sh
-HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --start-interval=5s \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --start-interval=5s \
   CMD /gunicorn-healthcheck.sh || exit 1
 CMD ["/gunicorn-worker.sh"]
 
