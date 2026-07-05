@@ -5,7 +5,7 @@ import datetime
 from collections import defaultdict
 
 
-@task()
+@task(queue='sims')
 def update_program_info(advisor_visit_ids):
     visits = AdvisorVisit.objects.filter(id__in=advisor_visit_ids) \
             .exclude(student__isnull=True).select_related('student')
