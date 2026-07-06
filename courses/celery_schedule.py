@@ -13,10 +13,10 @@ def beat(task: str, schedule: int | crontab, *, queue: str = 'batch'):
     return (task, entry)
 
 
-# Celerybeat has had consistent problems with non-UTC timezone. Thus it has been told to schedule in
+# Celerybeat has had consistent problems with a non-UTC timezone. Thus it has been told to schedule in
 # UTC, and all times here must be in UTC (i.e. Vancouver + 7 hours)
 def h(hour):
-    "Convert hour from Vancouver to UTF"
+    "Convert hour from Vancouver to UTC"
     return (hour + 7) % 24
 
 

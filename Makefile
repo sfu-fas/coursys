@@ -27,7 +27,7 @@ deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" w
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERCOMPOSE} up -d --remove-orphans
 
-new-code: build redeploy
+new-code: build deploy
 
 new-code-pull: pull-build deploy
 

@@ -39,12 +39,12 @@ package "compose-production.yml" {
     celery_fast ..> celery_sims
 }
 
-rabbitmq_b --> rabbitmq
-elasticsearch_b --> elasticsearch
-memcached_b --> memcached
-nginx_b --> nginx
-logrotate_b --> logrotate
-base_b --> base
+rabbitmq_b ..> rabbitmq
+elasticsearch_b ..> elasticsearch
+memcached_b ..-> memcached
+nginx_b ..> nginx
+logrotate_b ..> logrotate
+base_b ..> base
 
 agent "server\ncontainers" as server
 
