@@ -17,3 +17,5 @@ do
   cat forward-host.conf | sed "s/DOMAIN_NAME/"${HOST}"/g" | sed "s/CANONICAL_NAME/"${CANONICAL_NAME}"/g" >> /etc/nginx/conf.d/default.conf
   echo -e "\n" >> /etc/nginx/conf.d/default.conf
 done
+
+cat default-host.conf | sed "s/CANONICAL_NAME/"${CANONICAL_NAME}"/g" >> /etc/nginx/conf.d/default.conf

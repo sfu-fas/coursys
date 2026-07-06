@@ -16,6 +16,7 @@ COPY docker/nginx/common.conf /etc/nginx/common.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/serve-host.conf /etc/nginx/
 COPY docker/nginx/forward-host.conf /etc/nginx/
+COPY docker/nginx/default-host.conf /etc/nginx/
 COPY docker/nginx/configure-hosts.sh /etc/nginx/
 
 # The configure-hosts.sh script is responsible for appending server{} blocks to the nginx
