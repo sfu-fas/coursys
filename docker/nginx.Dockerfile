@@ -1,7 +1,7 @@
 FROM nginx:1
 
 ARG SERVE_HOSTS="coursys.sfu.ca fasit.sfu.ca"
-ARG FORWARD_HOSTS="courses.cs.sfu.ca"
+ARG FORWARD_HOSTS="coursys.cs.sfu.ca courses.cs.sfu.ca"
 ARG CANONICAL_NAME="coursys.sfu.ca"
 
 ENV SERVE_HOSTS=${SERVE_HOSTS}
