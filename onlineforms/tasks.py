@@ -11,4 +11,6 @@ def waiting_forms_reminder():
 
 @task()
 def reject_dormant_initial():
+    if not settings.DO_IMPORTING_HERE:
+        return
     SheetSubmission.reject_dormant_initial()
