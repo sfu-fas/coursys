@@ -1,5 +1,9 @@
 FROM elasticsearch:7.17.28
 
+ENV xpack.security.enabled="true"
+ENV discovery.type="single-node"
+ENV ES_JAVA_OPTS="-Xms1g -Xmx1g"
+
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --start-interval=2s CMD ["/elasticsearch-healthcheck.sh"]
 
 # allow "anonymous_user" to show up without authz

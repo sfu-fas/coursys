@@ -36,7 +36,8 @@ services:
     build:
       args:
         - SERVE_HOSTS=localhost
-        - FORWARD_HOSTS=
+        - FORWARD_HOSTS=olddomain
+        - CANONICAL_NAME=localhost:8080
     ports: !override
       - "8080:80"
     volumes:

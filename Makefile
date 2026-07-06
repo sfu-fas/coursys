@@ -55,7 +55,7 @@ drain-tasks:  # make absolutely sure there are no pending tasks (i.e. that rabbi
 
 503:  # ensure that the system is down in such a way that no database/file changes are happening
 	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
-	${DOCKERCOMPOSE} stop `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+	${DOCKERCOMPOSE} stop `${DOCKERCOMPOSE} config --services | grep -e '^celery'` beat
 
 rm503:
 	${DOCKERCOMPOSE} run admin rm /dynamic_config/503

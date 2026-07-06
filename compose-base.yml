@@ -30,9 +30,6 @@ services:
     volumes:
       - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
     environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - xpack.security.enabled=true
       - ELASTIC_PASSWORD=espass # the secret wins if both are present
       - ELASTIC_PASSWORD_SECRET=/run/secrets/elastic-initial-password
     restart: unless-stopped

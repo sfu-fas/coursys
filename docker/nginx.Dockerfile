@@ -23,3 +23,6 @@ COPY docker/nginx/configure-hosts.sh /etc/nginx/
 # config for whatever hostnames we're dealing with, either by serving directly, or forwarding to
 # the canonical name.
 RUN /etc/nginx/configure-hosts.sh
+
+# View the resulting config:
+# docker compose run nginx cat /etc/nginx/conf.d/default.conf
