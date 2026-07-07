@@ -348,7 +348,7 @@ def import_active_grad_gpas():
 ###################################################################################################
 # CSRPT auth
 
-@task(queue='sims')
+@task(queue='sims', max_retries=3, default_retry_delay=300)
 def csrpt_refresh_periodic():
     if settings.DISABLE_REPORTING_DB:
         return
