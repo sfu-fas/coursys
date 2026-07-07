@@ -5,3 +5,9 @@ contains `moss.pl` and friends, it makes sense to add to `localsettings.py`:
 ```py
 MOSS_DISTRIBUTION_PATH = './moss'
 ```
+
+Our moss.pl has been modified to use more sane temp locations:
+```pl
+$errfile = "/tmp/mosserrors$$";
+$TMP = "/tmp/mosstmp$$";
+```

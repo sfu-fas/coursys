@@ -338,7 +338,7 @@ SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
 CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/csrpt_auth')
 
 EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
-MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', './moss')
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', '/coursys/moss')
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 
