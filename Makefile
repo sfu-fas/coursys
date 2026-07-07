@@ -19,11 +19,13 @@ build:
 	${DOCKERCOMPOSE} build
 
 deploy:
+	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERROLLOUT} --timeout 120 --wait-after-healthy 5 app  # zero-downtime rollout of app service
-	${DOCKERCOMPOSE} up -d --remove-orphans                    # restart celery and anything else changed
+	${DOCKERROLLOUT} --timeout 60 --wait-after-healthy 5 app        # zero-downtime rollout of app service
+	${DOCKERCOMPOSE} up -d --remove-orphans                         # restart celery and anything else changed
 
 deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
+	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERCOMPOSE} up -d --remove-orphans
 
