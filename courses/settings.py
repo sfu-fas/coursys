@@ -270,7 +270,7 @@ elif DEPLOY_MODE == 'proddev':
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 
 else:
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "./submitted_files")
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 
