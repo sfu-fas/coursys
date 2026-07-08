@@ -1,0 +1,128 @@
+@startuml
+
+package "app.Dockerfile" {
+
+    artifact builder [
+        builder
+        ----
+        collects and builds Python
+        requirements.txt and NPM
+        packages.json
+    ]
+    artifact base [
+        base
+        ----
+        common components for all
+        Django-based tools
+    ]
+    artifact app [
+        app
+        ----
+        web service doing
+        the real Django work,
+        run in Gunicorn
+    ]
+    artifact celery [
+        celery
+        ----
+        base image for Celery
+        workers
+    ]
+    artifact beat [
+        beat
+        ----
+        celery beat that
+        sends periodic tasks
+    ]
+    artifact manage [
+        manage
+        ----
+        helper for admins to run
+        ./manage.py commands
+    ]
+    artifact admin [
+        admin
+        ----
+        helper for admins to run
+        shell commands
+    ]
+
+    builder -[#black,thickness=4]-> base :  Python and NPM libs copied
+    base ..> app
+    base ..> celery
+    base ..> beat
+    manage <. base
+    base .> admin
+
+    cloud python
+    python .> builder
+    python ..> base
+
+}
+
+package "nginx.Dockerfile" {
+    artifact nginx [
+        nginx
+        ----
+        frontend web server with
+        our config
+    ]
+}
+
+cloud nginx as nginx_base
+nginx_base ..> nginx
+
+package "logrotate.Dockerfile" {
+    artifact logrotate [
+        logrotate
+        ----
+        rotates the log
+        files daily
+    ]
+}
+
+cloud alpine
+alpine ..> logrotate
+
+package "rabbitmq.Dockerfile" {
+    artifact rabbitmq [
+        rabbitmq
+        ----
+        message queue for celery
+    ]
+}
+
+cloud rabbitmq as rabbitmq_base
+rabbitmq_base ..> rabbitmq
+
+package "elasticsearch.Dockerfile" {
+    artifact elasticsearch [
+        elasticsearch
+        ----
+        full-text index for
+        search and autocomplete
+    ]
+}
+
+cloud elasticsearch as elasticsearch_base
+elasticsearch_base ..> elasticsearch
+
+
+cloud memcached
+
+agent "server\ncontainers" as server
+
+app --> server
+celery --> server
+celery --> server
+celery --> server
+celery --> server
+celery --> server
+beat --> server
+nginx --> server
+logrotate --> server
+rabbitmq ----> server
+elasticsearch ----> server
+memcached ---> server
+
+@enduml
