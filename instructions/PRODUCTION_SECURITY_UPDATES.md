@@ -21,14 +21,13 @@ docker compose run manage test
 And bring the system up and run the deployment tests:
 ```shell
 docker compose up -d
-docker ps  # wait until things are healthy
+docker compose ps  # wait until things are healthy
 docker compose run manage check_things
 ```
-In this context, we expect system checks related to external APIs to fail: reporting database/CSRPT, photo API, emplid API.
+In this context, we expect system checks related to external APIs to fail: reporting database/CSRPT, photo API, emplid API, moss integration.
 
 
 ## On The Server
-
 
 ```shell
 sudo dnf -y update
