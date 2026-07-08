@@ -125,6 +125,7 @@ services:
       - backend
     volumes:
       - celery_logs:/celery_logs:rw
+  # celery-fast was chosen as the base for the other workers, because it has no custom config, but some others do.
   celery-batch:
     extends: celery-fast
     volumes:

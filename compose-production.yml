@@ -43,7 +43,7 @@ services:
         - UID=6501
     # environment:
     #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
-    #   - CSRF_TRUSTED_ORIGINS=https://alternate-hostname.sfu.ca
+    #   - CSRF_TRUSTED_ORIGINS=https://coursys.sfu.ca https://fasit.sfu.ca https://alternate-hostname.sfu.ca
     restart: no
     deploy:
       replicas: 0

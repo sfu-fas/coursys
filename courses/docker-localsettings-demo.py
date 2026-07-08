@@ -1,5 +1,7 @@
 import os
 import tomllib
+from django.utils.safestring import mark_safe
+
 config = tomllib.load(open('/run/secrets/app-config', 'rb'))
 
 DEPLOY_MODE = config['system']['deploy_mode']
@@ -28,9 +30,6 @@ except KeyError:
 MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'coursys-demo.selfip.net coursys-test.selfip.net localhost:8080').strip().split()
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://coursys-demo.selfip.net http://coursys-test.selfip.net http://localhost:8080').strip().split()
 
-
-import os
-from django.utils.safestring import mark_safe
 SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i>
     Welcome to the CourSys demo server. You can experiment here consequence-free. You can fake-authenticate as other
     users as needed to explore the system. No emails will be sent by anything here.</p>
