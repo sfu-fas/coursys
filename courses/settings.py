@@ -226,7 +226,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
-            'URL': f'http://elastic:{ELASTICSEARCH_PASSWORD}@{ELASTICSEARCH_HOST}:9200/',
+            'URL': f'http://{ELASTICSEARCH_HOST}:9200/',
+            'KWARGS': {'http_auth': ("elastic", ELASTICSEARCH_PASSWORD)},
             'INDEX_NAME': 'haystack',
             'TIMEOUT': 60,
         },
