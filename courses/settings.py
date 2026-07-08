@@ -173,20 +173,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     if gunicorn_process:
         DATABASES['default']['CONN_MAX_AGE'] = 3600
 
-    if DEPLOY_MODE == 'proddev':
-        DATABASES['default'].update({
-            'NAME': 'coursys',
-            'USER': 'coursysuser',
-            'PASSWORD': 'coursyspassword',
-            'HOST': '127.0.0.1',
-            'PORT': 3306,
-        })
-
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
-    DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
-    if getattr(localsettings, 'MORE_DATABASES', None):
-        DATABASES.update(localsettings.MORE_DATABASES)
-
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
     if IN_TESTING:
@@ -212,10 +199,7 @@ else:
 
 # static file settings
 STATIC_URL = '/static/'
-if 'COURSYS_STATIC_DIR' in os.environ:
-    STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+STATIC_ROOT = getattr(localsettings, 'STATIC_ROOT', os.path.join(BASE_DIR, '..', 'static', 'static'))
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -253,7 +237,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     }
     if IN_TESTING:
         HAYSTACK_CONNECTIONS['default']['INDEX_NAME'] = 'haystack-testing'
-    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', '/db_backups')
 
 else:
     CACHES = { 'default': {
