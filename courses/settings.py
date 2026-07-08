@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'compressor',
     'haystack',
     'djcelery_email',
-    'django_celery_beat',
+    # 'django_celery_beat',
     'formtools',
     'coredata',
     'dashboard',
@@ -294,13 +294,13 @@ if USE_CELERY:
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+    #CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     from courses import celery_schedule
     CELERY_BEAT_SCHEDULE = celery_schedule.CELERY_BEAT_SCHEDULE
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
-    CELERY_ENABLE_UTC = False
-    CELERY_TIMEZONE = TIME_ZONE
+    CELERY_ENABLE_UTC = True
+    CELERY_TIMEZONE = 'UTC'
     CELERY_TASK_ALWAYS_EAGER = False
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'
