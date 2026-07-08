@@ -3,6 +3,9 @@ COURSYS_USER=coursys
 GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
 DOCKERROLLOUT=docker rollout
+# containers where our code runs, which are usually all that need to be rebuilt:
+CODE_CONTAINERS=app beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+
 
 start-all:
 	${DOCKERCOMPOSE} up -d --remove-orphans
@@ -18,6 +21,9 @@ pull-build:
 build:
 	${DOCKERCOMPOSE} build
 
+build-code-containers:  # we almost never need containers without our code rebuilt, so don't by default.
+	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
+
 deploy:
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
@@ -29,11 +35,11 @@ deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" w
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERCOMPOSE} up -d --remove-orphans
 
-new-code: build deploy
+new-code: build-code-containers deploy
 
 new-code-pull: pull-build deploy
 
-new-code-no-rollout: build deploy-no-rollout
+new-code-no-rollout: build-code-containers deploy-no-rollout
 
 migrate-safe:
 	${DOCKERCOMPOSE} run manage backup_db_task
