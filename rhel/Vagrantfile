@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+USERNAME = 'vagrant'
+
+Vagrant.configure("2") do |config|
+  # wget https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-VirtualBox-44-1.7.x86_64.vagrant.virtualbox.box -O /tmp/fedora.box
+  # vagrant box add /tmp/fedora.box --name rhel
+  config.vm.box = 'rhel'
+
+  # With that image, it's necessary to resize root:
+  # sudo parted /dev/sda "resizepart 3 100%"
+  # sudo btrfs filesystem resize max /
+
+  config.vm.synced_folder "../", '/coursys/', owner: USERNAME
+  config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8025, host: 8025, host_ip: "127.0.0.1"
+
+  unless Vagrant.has_plugin?("vagrant-disksize")
+    raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+  end
+  config.disksize.size = '20GB'
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.cpus = 4
+    vb.memory = 6*1024
+  end
+end

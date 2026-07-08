@@ -1,0 +1,6 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+xpack.security.authc.anonymous:
+  username: "anonymous_user"
+  roles: "health_monitor_role"
+  authz_exception: true

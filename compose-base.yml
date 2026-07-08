@@ -1,0 +1,116 @@
+services:
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: docker/rabbitmq.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
+    volumes:
+      - /data/rabbitmq4:/var/lib/rabbitmq:rw,Z
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmquser
+      - RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_PASS_SECRET=/run/secrets/rabbitmq-default-password # the secret wins if both are present
+      - RABBITMQ_DEFAULT_VHOST=vhost
+    restart: unless-stopped
+    networks:
+      - backend
+      - web
+
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: docker/elasticsearch.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
+    volumes:
+      - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
+    environment:
+      - ELASTIC_PASSWORD=espass # the secret wins if both are present
+      - ELASTIC_PASSWORD_SECRET=/run/secrets/elastic-initial-password
+    restart: unless-stopped
+    networks:
+      - backend
+      - web
+
+  memcached:
+    image: 'memcached:1-alpine'
+    restart: unless-stopped
+    healthcheck:
+      test: echo "version" | nc -vn -w 1 127.0.0.1 11211
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    networks:
+      - backend
+      - web
+    command: ["--memory-limit=768"]
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    volumes:
+      - static:/static:ro
+      - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/dynamic_config:/dynamic_config:ro,z
+    networks:
+      - web
+
+  logrotate:
+    build:
+      context: .
+      dockerfile: docker/logrotate.Dockerfile
+    pid: host  # give the container access to signal nginx to re-open log files
+    deploy:
+      resources:
+        limits:
+          memory: 10mb
+    volumes:
+      - status:/status:rw
+      - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/celery_logs:/celery_logs:rw,Z
+
+  base:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: base
+      args:
+        - UID=888
+        - DEPLOY_MODE=override_me
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1.5gb
+    volumes:
+      - static:/static:rw
+      - /data/submitted_files:/submitted_files:rw,z
+      - /data/dynamic_config:/dynamic_config:ro,z
+    secrets:
+      - app-config
+    restart: no

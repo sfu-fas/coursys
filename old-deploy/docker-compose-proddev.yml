@@ -1,0 +1,23 @@
+version: '3'
+services:
+
+  mysql:
+    image: 'mariadb:11.8'
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - /data/mysql:/var/lib/mysql:rw
+    environment:
+      - MYSQL_USER=coursysuser
+      - MYSQL_PASSWORD=coursyspassword
+      - MYSQL_DATABASE=coursys
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+
+  smtp4dev:
+    image: 'rnwood/smtp4dev'
+    restart: always
+    ports:
+      - "127.0.0.1:2525:25"
+      - "0.0.0.0:8025:80"

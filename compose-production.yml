@@ -1,0 +1,166 @@
+services:
+
+  rabbitmq:
+    extends:
+      file: compose-base.yml
+      service: rabbitmq
+    secrets:
+      - rabbitmq-default-password
+
+  elasticsearch:
+    extends:
+      file: compose-base.yml
+      service: elasticsearch
+    secrets:
+      - elastic-initial-password
+
+  memcached:
+    extends:
+      file: compose-base.yml
+      service: memcached
+
+  nginx:
+    extends:
+      file: compose-base.yml
+      service: nginx
+    # build:
+    #   args:
+    #     - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
+    #     - FORWARD_HOSTS=coursys.cs.sfu.ca courses.cs.sfu.ca
+
+  logrotate:
+    extends:
+      file: compose-base.yml
+      service: logrotate
+ 
+  base:
+    extends:
+      file: compose-base.yml
+      service: base
+    build:
+      args:
+        - DEPLOY_MODE=production
+        - UID=6501
+    # environment:
+    #   - MORE_ALLOWED_HOSTS=alternate-hostname.sfu.ca
+    #   - CSRF_TRUSTED_ORIGINS=https://coursys.sfu.ca https://fasit.sfu.ca https://alternate-hostname.sfu.ca
+    restart: no
+    deploy:
+      replicas: 0
+
+  app:
+    extends:
+      service: base
+    build:
+      target: app
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+    networks:
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
+
+  manage:
+    extends:
+      service: base
+    build:
+      target: manage
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
+
+  admin:
+    extends:
+      service: base
+    build:
+      target: admin
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
+      - /data/dynamic_config:/dynamic_config:rw,z
+
+  celery-fast:
+    extends:
+      service: base
+    build:
+      target: celery
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+    environment:
+      - QUEUE=fast
+      - CONCURRENCY=2
+    networks:
+      - backend
+    volumes:
+      - /data/celery_logs:/celery_logs:rw,Z
+  # celery-fast was chosen as the base for the other workers, because it has no custom config, but some others do.
+  celery-batch:
+    extends: celery-fast
+    volumes:
+      - /data/db_backups:/db_backups:rw,Z
+    environment:
+      - QUEUE=batch
+      - CONCURRENCY=2
+  celery-email:
+    extends: celery-fast
+    environment:
+      - QUEUE=email
+      - CONCURRENCY=2
+  celery-photo:
+    extends: celery-fast
+    environment:
+      - QUEUE=photo
+      - CONCURRENCY=5
+  celery-sims:
+    extends: celery-fast
+    environment:
+      - QUEUE=sims
+      - CONCURRENCY=3
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,Z
+
+  beat:
+    extends:
+      service: base
+    build:
+      target: beat
+    deploy:
+      replicas: 1
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - status:/status:rw
+      - /data/celery_logs:/celery_logs:rw,Z
+
+
+volumes:
+  static:
+  status:
+
+
+networks:
+  web:
+  backend:
+
+
+secrets:
+  app-config:
+    file: ./secrets/app-config.toml
+  rabbitmq-default-password:
+    file: ./secrets/rabbitmq-default-password
+  elastic-initial-password:
+    file: ./secrets/elastic-initial-password
+
