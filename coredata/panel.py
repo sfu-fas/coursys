@@ -321,7 +321,7 @@ def deploy_checks():
         except urllib.error.HTTPError as e:
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
-        failed.append(('Photo fetching', 'not testing since memcached'))
+        failed.append(('Photo fetching', 'not testing since memcached failed'))
 
     # emplid/userid API
     emplid = userid_to_emplid('ggbaker')
@@ -357,7 +357,7 @@ def deploy_checks():
             failed.append(('File creation in ' + label, res))
     
     # DB backup directory may only be accessible from that celery worker: that's okay.
-    if settings.USE_CELERY and celery_okay and False:  # disabled pending new deploy
+    if settings.USE_CELERY and celery_okay:
         from coredata.tasks import check_db_backup_free
         from coredata.tasks import check_db_backup_create
         taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
