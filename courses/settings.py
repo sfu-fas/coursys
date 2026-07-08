@@ -8,12 +8,6 @@ except ImportError:
     # not there? Assume the defaults are okay
     localsettings = None
 
-try:
-    from . import secrets
-except ImportError:
-    # not there? Hope we're not in production and continue
-    secrets = None
-
 # set overall deployment personality
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
@@ -192,7 +186,7 @@ else:
     }
 
 if DEPLOY_MODE == 'production':
-    SECRET_KEY = secrets.SECRET_KEY
+    SECRET_KEY = localsettings.SECRET_KEY
 else:
     SECRET_KEY = getattr(localsettings, 'SECRET_KEY', 'a'*50)
 
@@ -283,12 +277,12 @@ else:
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel') and not IN_TESTING
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
-    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
+    RABBITMQ_PASSWORD = getattr(localsettings, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
     RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
-    CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
+    CELERY_BROKER_URL = getattr(localsettings, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
     CELERY_RESULT_BACKEND = 'rpc://'
     CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
