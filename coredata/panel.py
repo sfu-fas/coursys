@@ -321,7 +321,7 @@ def deploy_checks():
         except urllib.error.HTTPError as e:
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
-        failed.append(('Photo fetching', 'not testing since memcached'))
+        failed.append(('Photo fetching', 'not testing since memcached failed'))
 
     # emplid/userid API
     emplid = userid_to_emplid('ggbaker')
@@ -357,7 +357,7 @@ def deploy_checks():
             failed.append(('File creation in ' + label, res))
     
     # DB backup directory may only be accessible from that celery worker: that's okay.
-    if settings.USE_CELERY and celery_okay and False:  # disabled pending new deploy
+    if settings.USE_CELERY and celery_okay:
         from coredata.tasks import check_db_backup_free
         from coredata.tasks import check_db_backup_create
         taskc = check_db_backup_create.delay(settings.DB_BACKUP_DIR)
@@ -549,7 +549,7 @@ def health_check() -> Dict[str, Any]:
     # check haystack search
     from haystack.query import SearchQuerySet
     search_res = SearchQuerySet().filter(text='cmpt').count()
-    assert search_res > 0, "haystack check: no results found"
+    # assert search_res > 0, "haystack check: no results found"  # elasticsearch sometimes returns empty while it's still starting: just check that we can connect
 
     # finish celery check
     if settings.USE_CELERY:
