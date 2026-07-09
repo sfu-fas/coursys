@@ -8,7 +8,7 @@ sudo apt install docker-compose-v2 docker-buildx
 Set up a proddev docker world:
 ```sh
 ln -s compose-proddev.yml compose.yml  # or otherwise copy/link compose-proddev.yml to compose.yml
-cp docker/app-config-template.toml secrets/app-config.toml
+cp secrets/app-config-template.toml secrets/app-config.toml
 make get-docker-rollout
 ```
 
@@ -39,4 +39,18 @@ docker compose stop
 docker compose rm
 docker system prune --volumes
 #docker volume prune -a
+```
+
+
+## On Windows
+
+It should be possible to do all of this in Windows. Some notes...
+
+First, install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+
+I used the [git shell for Windows](https://git-scm.com/install/windows) to run the above commands,
+but any way you can get `docker compose` to run should work. The git shell was mangling the line
+endings of the source files and I had to do this to stop it:
+```shell
+git config --global core.autocrlf false
 ```
