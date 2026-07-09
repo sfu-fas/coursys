@@ -1,4 +1,4 @@
-# Decurity Updates in Production
+# Security Updates in Production
 
 We should do regular updates of our dependencies in production to get security updates on our docker base images, etc.
 

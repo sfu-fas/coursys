@@ -24,7 +24,7 @@ RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 
 
-# base image: common config to both the web app and celery workers (i.e. most congig)
+# base image: common config to both the web app and celery workers (i.e. most config)
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
