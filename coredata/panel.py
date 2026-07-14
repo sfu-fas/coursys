@@ -2,6 +2,7 @@ import datetime
 import http.client
 import ssl
 from email.utils import parsedate_to_datetime
+from typing import Any, Dict
 
 import psutil
 import requests
@@ -524,3 +525,43 @@ def csrpt_info():
         return csrpt_update()
     except SIMSProblem as e:
         return [('SIMS problem', str(e))]
+
+
+def health_check() -> Dict[str, Any]:
+    """
+    A minimal sanity check that can be used for a docker healthcheck (and dashboard.views.health_check).
+    Either returns a dict of status info, or throws an exception.
+    """
+    # check basic celery task (and implicitly rabbitmq)
+    if settings.USE_CELERY:
+        from coredata.tasks import ping
+        task = ping.delay()
+
+    # check main database connectivity
+    units = Unit.objects.all().count()
+    assert units > 0, "main database check failed: no Units found in database"
+    
+    # check cache
+    value = random.randint(0, 100000)
+    cache.set('_healthcheck', value)
+    _ = cache.get('_healthcheck')
+
+    # check haystack search
+    from haystack.query import SearchQuerySet
+    search_res = SearchQuerySet().filter(text='cmpt').count()
+    # assert search_res > 0, "haystack check: no results found"  # elasticsearch sometimes returns empty while it's still starting: just check that we can connect
+
+    # finish celery check
+    if settings.USE_CELERY:
+        celery_res = task.get(timeout=5)
+        assert celery_res is True, "celery check: incorrect result returned"
+    else:
+        celery_res = None
+
+    return {
+        'units': units,
+        'celery_res': celery_res,
+        'cache': 'ok',
+        'search_res': search_res > 0,
+    }
+
