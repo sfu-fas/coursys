@@ -137,11 +137,11 @@ def pre_fetch_photos(emplids):
 
 
 
-def do_photo_fetch(emplids):
+def do_photo_fetch(emplids, timeout=20):
     """
     Do the actual work of fetching photos: called by the celery task. Store them in the cache for finding by the view.
     """
-    photos = _get_photos(emplids)
+    photos = _get_photos(emplids, timeout=timeout)
     for emplid in photos:
         cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24)
 
@@ -196,7 +196,7 @@ def possibly_resize(original):
     return resize.getvalue()
 
 
-def _get_photos(emplids):
+def _get_photos(emplids, timeout=20):
     """
     Get actual photo data from photo service. Returns emplid -> JPEG data dict
     """
@@ -210,7 +210,7 @@ def _get_photos(emplids):
     headers = {'Authorization': 'Bearer ' + token}
     try:
         photo_request_obj = urllib.request.Request(url=photo_url, headers=headers)
-        photo_request = url_opener.open(photo_request_obj, timeout=30)
+        photo_request = url_opener.open(photo_request_obj, timeout=timeout)
     except IOError:
         return {}
 

@@ -292,7 +292,7 @@ def deploy_checks(request=None):
     # photo fetching
     if cache_okay and celery_okay:
         try:
-            res = do_photo_fetch(['301222726'])
+            res = do_photo_fetch(['301222726'], timeout=5)
             if '301222726' not in res: # I don't know who 301222726 is, but he/she is real.
                 failed.append(('Photo fetching', "didn't find photo we expect to exist"))
             else:
