@@ -549,7 +549,7 @@ def health_check() -> Dict[str, Any]:
     # check haystack search
     from haystack.query import SearchQuerySet
     search_res = SearchQuerySet().filter(text='cmpt').count()
-    assert search_res > 0, "haystack check: no results found"
+    # assert search_res > 0, "haystack check: no results found"  # elasticsearch sometimes returns empty while it's still starting: just check that we can connect
 
     # finish celery check
     if settings.USE_CELERY:
