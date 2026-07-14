@@ -8,7 +8,7 @@ import celery
 from django.conf import settings
 
 
-@task()
+@task(queue='sims')
 def grad_daily_import():
     """
     Enter the daily grad student-related import tasks into the queue.
