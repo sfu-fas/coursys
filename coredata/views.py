@@ -442,14 +442,11 @@ def add_combined_offering(request, pk):
 def admin_panel(request):
     if 'content' in request.GET:
         if request.GET['content'] == 'deploy_checks':
-            passed, failed = panel.deploy_checks(request=request)
+            passed, failed = panel.deploy_checks()
             return render(request, 'coredata/admin_panel_tab.html', {'passed': passed, 'failed': failed})
         elif request.GET['content'] == 'settings_info':
             data = panel.settings_info()
             return render(request, 'coredata/admin_panel_tab.html', {'settings_data': data})
-        elif request.GET['content'] == 'psinfo':
-            data = panel.ps_info()
-            return render(request, 'coredata/admin_panel_tab.html', {'psinfo': data})
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
@@ -461,11 +458,6 @@ def admin_panel(request):
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'the_request': pprint.pformat(request.__dict__)})
-        elif request.GET['content'] == 'git':
-            git = {}
-            git['branch'] = panel.git_branch().decode('utf8')
-            git['revision'] = panel.git_revision().decode('utf8')
-            return render(request, 'coredata/admin_panel_tab.html', {'git':git})
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
             return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
@@ -473,7 +465,7 @@ def admin_panel(request):
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
         elif request.GET['content'] == 'environ':
-            environ = [(k,v) for k,v in os.environ.items()]
+            environ = [(k,v) for k,v in os.environ.items() if 'PASS' not in k]
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
         elif request.GET['content'] == 'throw':
