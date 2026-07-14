@@ -487,6 +487,7 @@ def celery_info():
     return info
 
 
+
 def pip_info():
     pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
     output = pip.stdout.read().decode('utf8')
