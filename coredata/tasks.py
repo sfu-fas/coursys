@@ -368,7 +368,7 @@ def haystack_update():
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@task(queue='sims')
+@task(queue='batch')
 def haystack_rebuild():
     our_clear_index()
     our_update_index.delay(update_only=False)
