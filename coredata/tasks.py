@@ -7,6 +7,7 @@ from haystack.exceptions import NotHandled
 from haystack.utils import loading
 from haystack.utils.app_loading import haystack_get_models, haystack_load_apps
 
+from coredata.csrpt import refresh_csrpt_auth
 from coredata.queries import SIMSConn, SIMSProblem
 from django.core.management import call_command
 from courselib.celerytasks import task
@@ -346,6 +347,20 @@ def cleanup_tmp(path: str = '/tmp'):
 def import_active_grad_gpas():
     logger.info('Importing active grad GPAs')
     importer.import_active_grads_gpas()
+
+
+
+###################################################################################################
+# CSRPT auth
+
+@task(queue='sims')
+def csrpt_refresh_periodic():
+    if settings.DISABLE_REPORTING_DB:
+        return
+    res = refresh_csrpt_auth()
+    if res is not None:
+        raise RuntimeError(res)
+
 
 
 ###################################################################################################
