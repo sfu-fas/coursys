@@ -28,7 +28,7 @@ CELERY_BEAT_SCHEDULE = dict([
     beat('grad.tasks.grad_daily_import', crontab(minute='40', hour=h(8)), queue='sims'),
     beat('coredata.tasks.check_sims_connection', crontab(minute=0, hour='*/3'), queue='sims'),
     beat('coredata.tasks.expire_sessions_conveniently', crontab(minute='0', hour=h(4))),
-    beat('coredata.tasks.haystack_rebuild', crontab(minute='0', hour=h(2), day_of_week='saturday')),
+    beat('coredata.tasks.haystack_rebuild', crontab(minute='0', hour=h(2), day_of_week='saturday'), queue='batch'),
     beat('coredata.tasks.expiring_roles', crontab(minute='30', hour=h(7), day_of_week='mon,thu')),
     beat('dashboard.tasks.photo_password_update_task', crontab(day_of_month="10,20,30", hour=h(2), minute=0)),
     beat('advisornotes.tasks.cleanup_advising_surveys', crontab(minute=0, hour=h(2))),
