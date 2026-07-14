@@ -493,8 +493,8 @@ def admin_panel(request):
                 messages.error(request, res)
         elif 'tasks' in request.POST:
             if 'daily' in request.POST:
-                from coredata.tasks import import_task
-                import_task.apply_async()
+                from coredata.tasks import daily_import
+                daily_import.apply_async()
                 messages.success(request, 'Daily import task started.')
             elif 'visits' in request.POST:
                 from advisornotes.tasks import program_info_for_advisorvisits
