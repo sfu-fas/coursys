@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
 import django
-from django.urls import reverse
 
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -23,23 +22,7 @@ import celery, kombu, amqp
 import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
 
 
-def _last_component(s):
-    return s.split('.')[-1]
-
-
-def _certificate_expiry(domain: str) -> datetime.datetime:
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_OPTIONAL
-
-    conn = http.client.HTTPSConnection(domain, context=context)
-    conn.connect()
-    cert = conn.sock.getpeercert()
-
-    return parsedate_to_datetime(cert['notAfter'])
-
-
-def _check_file_create(directory):
+def check_file_create(directory):
     """
     Check that files can be created in the given directory.
 
@@ -290,10 +273,10 @@ def deploy_checks(request=None):
         failed.append(('Haystack search', "can't read/write index"))
 
     # photo fetching
-    if cache_okay and celery_okay:
+    if cache_okay:  # and celery_okay:  >> removed check so celery-photos can be tested on a not-yet-fully-deployed server
         try:
             res = do_photo_fetch(['301222726'], timeout=5)
-            if '301222726' not in res: # I don't know who 301222726 is, but he/she is real.
+            if '301222726' not in res: # I don't know who 301222726 is, but they are real.
                 failed.append(('Photo fetching', "didn't find photo we expect to exist"))
             else:
                 passed.append(('Photo fetching', 'okay'))
@@ -302,7 +285,7 @@ def deploy_checks(request=None):
         except urllib.error.HTTPError as e:
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
-        failed.append(('Photo fetching', 'not testing since memcached or celery failed'))
+        failed.append(('Photo fetching', 'not testing since memcached'))
 
     # emplid/userid API
     emplid = userid_to_emplid('ggbaker')
@@ -325,13 +308,14 @@ def deploy_checks(request=None):
         failed.append(('CAS Connectivity', 'Could not connect to CAS server: %s' % (e,)))
 
     # file creation in the necessary places
+    os.makedirs(os.path.join(settings.COMPRESS_ROOT, 'CACHE'), mode=0o755, exist_ok=True)
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),
         (settings.SUBMISSION_PATH, 'submitted files path'),
         (os.path.join(settings.COMPRESS_ROOT, 'CACHE'), 'compressed media root'),
     ]
     for directory, label in dirs_to_check:
-        res = _check_file_create(directory)
+        res = check_file_create(directory)
         if res is None:
             passed.append(('File creation in ' + label, 'okay'))
         else:
@@ -386,57 +370,6 @@ def deploy_checks(request=None):
     else:
         passed.append(('Ports listening externally', 'okay'))
 
-    # correct serving/redirecting of production domains
-    # TODO: re-enable once we're settled with proxy settings etc
-    if False and settings.DEPLOY_MODE in ['production', 'proddev']:
-        production_host_fails = 0
-        for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
-            # check HTTPS serving/redirect
-            try:
-                url = 'https://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
-                resp = requests.get(url, allow_redirects=False, timeout=5)
-                if host in settings.SERVE_HOSTS and resp.status_code != 200:
-                    failed.append(('HTTPS Serving', 'expected 200 okay, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-                elif host in settings.REDIRECT_HOSTS and resp.status_code != 301:
-                    failed.append(('HTTPS Serving', 'expected 301 redirect, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-            except requests.exceptions.SSLError:
-                failed.append(('HTTPS Serving', 'bad SSL/TLS certificate for %s' % (url,)))
-                production_host_fails += 1
-            except requests.exceptions.RequestException:
-                failed.append(('HTTPS Serving', 'unable to connect to request %s' % (url,)))
-                production_host_fails += 1
-
-            # check HTTP redirect
-            try:
-                url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
-                resp = requests.get(url, allow_redirects=False, timeout=5)
-                if resp.status_code not in [301, 302]:
-                    failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
-                    production_host_fails += 1
-            except requests.exceptions.RequestException:
-                failed.append(('HTTP Serving', 'unable to connect to request %s' % (url,)))
-                production_host_fails += 1
-
-        if production_host_fails == 0:
-            passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
-
-        if 'https_proxy' in os.environ:
-            failed.append(('Certificate TTL', 'Skipping because https_proxy environment variable is set.'))
-        else:
-            low_ttl_certs = 0
-            min_age = datetime.timedelta(days=14)
-            now = datetime.datetime.now(datetime.timezone.utc)
-            for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
-                # check that certs aren't expiring soon
-                expiry = _certificate_expiry(host)
-                if expiry - now < min_age:
-                    low_ttl_certs += 1
-                    failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
-            if production_host_fails == 0:
-                passed.append(('Certificate TTL', 'okay'))
-
     # is the server time close to real-time?
     import ntplib
     try:
@@ -464,7 +397,7 @@ def deploy_checks(request=None):
     from submission.moss import check_moss_executable
     check_moss_executable(passed, failed)
 
-    # locale is UTF-8 (matters for the SIMS database connection)
+    # locale is UTF-8 (matters for the SIMS database connection... or is legacy from DB2?)
     import locale
     _, encoding = locale.getdefaultlocale()
     if encoding == 'UTF-8':
@@ -530,8 +463,6 @@ def cache_check():
         return 'python-memcached butchering Unicode strings'
 
 
-
-
 def send_test_email(email):
     try:
         send_mail('check_things test message', "This is a test message to make sure they're getting through.",
@@ -567,6 +498,7 @@ def celery_info():
 
     info.sort()
     return info
+
 
 def ps_info():
     import psutil, time
@@ -605,11 +537,13 @@ def ps_info():
     data.append(('Running Processes', mark_safe(''.join(psdata))))
     return data
 
+
 def pip_info():
     pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
     output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
+
 
 def csrpt_info():
     try:
