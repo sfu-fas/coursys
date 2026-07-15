@@ -24,7 +24,7 @@ RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 
 
-# base image: common config to both the web app and celery workers (i.e. most congig)
+# base image: common config to both the web app and celery workers (i.e. most config)
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
@@ -59,14 +59,14 @@ ARG UID=888
 RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
   && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config /celery_logs /status
 
+COPY --from=builder /build/node_modules /build/node_modules
+COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
-
-COPY --from=builder /build/node_modules /build/node_modules
-COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 USER coursys
 RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}  # do this with coursys user ownership

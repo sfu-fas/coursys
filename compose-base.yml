@@ -28,7 +28,7 @@ services:
         limits:
           memory: 4gb
     volumes:
-      - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,z
+      - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,Z
     environment:
       - ELASTIC_PASSWORD=espass # the secret wins if both are present
       - ELASTIC_PASSWORD_SECRET=/run/secrets/elastic-initial-password
@@ -69,7 +69,7 @@ services:
           memory: 1gb
     volumes:
       - static:/static:ro
-      - /data/nginx_logs:/nginx_logs:rw,Z
+      - /data/nginx_logs:/nginx_logs:rw,z
       - /data/dynamic_config:/dynamic_config:ro,z
     networks:
       - web
@@ -85,8 +85,8 @@ services:
           memory: 10mb
     volumes:
       - status:/status:rw
-      - /data/nginx_logs:/nginx_logs:rw,Z
-      - /data/celery_logs:/celery_logs:rw,Z
+      - /data/nginx_logs:/nginx_logs:rw,z
+      - /data/celery_logs:/celery_logs:rw,z
 
   base:
     build:
