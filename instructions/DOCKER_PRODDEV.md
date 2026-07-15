@@ -1,60 +1,56 @@
 # An Almost-Production Configuration with Docker
 
-In `courses/localsettings.py`
-
-```py
-DEPLOY_MODE = 'proddev'
-# mail to a smtp4dev server: mail viewable at http://localhost:8025
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 2525
-EMAIL_USE_SSL = False
-```
-
-In `courses/secrets.py`:
-```py
-RABBITMQ_PASSWORD = 'rabbitmq_password'
-```
-
-
-Get the Docker-based things up and running:
+You need Docker and Docker Compose first. On an Ubuntu-ish system, they can be installed like this:
 ```sh
-export RABBITMQ_PASSWORD=rabbitmq_password
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml pull
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml build --pull
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
+sudo apt install docker-compose-v2 docker-buildx
 ```
 
-Basic setup as necessary: activate a virtualenv and,
+Set up a proddev docker world:
 ```sh
-pip install -r requirements.txt
-npm install
-python3 manage.py migrate
-python3 manage.py loaddata fixtures/*.json
-python3 manage.py update_index
-sudo mkdir -p /data/submitted_files
-sudo chown $USER /data/submitted_files
+ln -s compose-proddev.yml compose.yml  # or otherwise copy/link compose-proddev.yml to compose.yml
+cp secrets/app-config-template.toml secrets/app-config.toml
+make get-docker-rollout
 ```
 
-In one terminal, start Celery:
+Get things started:
 ```sh
-../bin/celery -A courses worker -l INFO -B
+docker compose pull
+docker compose build
+docker compose up -d mysql elasticsearch rabbitmq memcached
+docker compose run manage collectstatic --no-input
+docker compose run manage migrate
+docker compose run manage loaddata fixtures/*
+docker compose run manage update_index
+docker compose up --remove-orphans -d
 ```
 
-In another, start a Django dev server:
+The system should be available in a few seconds at http://localhost:8080/
+
+To update:
 ```sh
-python3 manage.py runserver
+docker compose build
+docker compose run manage collectstatic --no-input
+docker compose up -d
 ```
 
-Or if you want to be even more production-like (but without static files):
+To destroy:
 ```sh
-gunicorn --workers=5 --worker-class=sync --max-requests=100 --max-requests-jitter=10 --bind 127.0.0.1:8000 courses.wsgi:application
+docker compose stop
+docker compose rm
+docker system prune --volumes
+#docker volume prune -a
 ```
 
-## Shutting Down
 
+## On Windows
+
+It should be possible to do all of this in Windows. Some notes...
+
+First, install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+
+I used the [git shell for Windows](https://git-scm.com/install/windows) to run the above commands,
+but any way you can get `docker compose` to run should work. The git shell was mangling the line
+endings of the source files and I had to do this to stop it:
 ```shell
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml stop
-docker compose -f docker-compose.yml -f docker-compose-proddev.yml rm
-# sudo rm -rf /data/*
+git config --global core.autocrlf false
 ```

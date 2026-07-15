@@ -1,4 +1,4 @@
-from compressor.storage import CompressorFileStorage as BaseCompressorFileStorage
+from compressor.storage import GzipCompressorFileStorage as BaseCompressorFileStorage
 
 
 class CompressorFileStorage(BaseCompressorFileStorage):

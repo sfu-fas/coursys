@@ -8,7 +8,7 @@ import celery
 from django.conf import settings
 
 
-@task(queue='sims')
+@task(queue='sims', max_retries=3)  # allow a few retries in case csrpt isn't up when we start
 def grad_daily_import():
     """
     Enter the daily grad student-related import tasks into the queue.
