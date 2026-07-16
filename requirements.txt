@@ -31,7 +31,6 @@ git+https://github.com/gregbaker/django-cache-utils@e6a04c4
 celery==5.6.3
 kombu  # let celery choose the version
 django-celery-email==3.0.0
-django_celery_beat==2.8.1
 celery-healthcheck==0.2.0
 django-haystack==3.4.0
 whoosh==2.7.4
