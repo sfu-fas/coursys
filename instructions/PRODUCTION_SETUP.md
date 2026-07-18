@@ -18,10 +18,10 @@ Teams -> CourSys -> General -> Shared -> production access.docx.
 
 ### Bootstrapping
 
-The commands in `rhel/01-bootstrap.sh` are intended to be run manually to get the code in place.
+The commands in `deploy/01-bootstrap.sh` are intended to be run manually to get the code in place.
 
-After that, the scripts in `rhel/` should be able to set up the basics on the server. Have a look
-at `rhel/config.sh` first, Contents likely something like:
+After that, the scripts in `deploy/` should be able to set up the basics on the server. Have a look
+at `deploy/config.sh` first, Contents likely something like:
 ```bash
 USERNAME=ggbaker-pam
 USER_HOME=/home/${USERNAME}
@@ -37,7 +37,7 @@ Set `DO_IMPORTING_HERE = False` in `courses/docker-localsettings-production.py` 
 setting up: it's intended to ensure there's no split-brain on any critical data updates during a
 transition like this. (See "Switching Critical Celery Tasks" below.)
 
-Review and run scripts 02-05 in `rhel/`. Have a look around and make sure things are as expected.
+Review and run scripts 02-05 in `deploy/`. Have a look around and make sure things are as expected.
 You will have to log out and back in after 03 to get the docker group membership active.
 
 Get the system firmly into production mode:

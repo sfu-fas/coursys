@@ -64,7 +64,7 @@ COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ 
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
-  --exclude=submitted_files --exclude=whoosh_index --exclude=deploy --exclude=rhel \
+  --exclude=submitted_files --exclude=whoosh_index --exclude=deploy \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
 

@@ -1,7 +1,6 @@
 .git
 instructions
 deploy
-rhel
 secrets
 
 node_modules
