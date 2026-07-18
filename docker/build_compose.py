@@ -10,7 +10,7 @@ from django.template import Template, Context
 # "external_port":  the port where nginx should listen for HTTP requests
 # "selinux":        do we need the selinux "z" options for docker bind mounts?
 # "serve_hosts":    hostnames where we serve the actual site
-# "redirect_hosts": old hostnames that forward to the canonical locals
+# "redirect_hosts": old hostnames that forward to the canonical locations
 # "canonical_name": the canonical location to forward users to if they come from somewhere besides a serve_host
 # "user_protocol":  the protocol (http or https) that is visibile to users (for correct redirects)
 # "user_port":      the TCP port the user connects to (for correct redirects and CSRF checks)
