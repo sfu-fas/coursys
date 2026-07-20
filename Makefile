@@ -1,116 +1,85 @@
-SYSTEMCTL=sudo systemctl
-SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
-DOCKERCOMPOSE=${SUCOURSYS} docker compose
+COURSYS_USER=coursys
 
-# use the environment $PYTHON for Python executable if set (which it is in proddev and production environments).
-ifndef PYTHON
-PYTHON=python3
-endif
+GIT=sudo -u ${COURSYS_USER} git
+DOCKERCOMPOSE=docker compose
+DOCKERROLLOUT=docker rollout
+# containers where our code runs, which are usually all that need to be rebuilt:
+CODE_CONTAINERS=app beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
 
-# For local development
-
-devel-runserver:
-	${PYTHON} manage.py runserver 0:8000
-devel-celery:
-	celery -A courses -l INFO worker -B
-
-# For production-like development (possibly in a VM)
-
-proddev-start:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml up -d
-proddev-restart:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml restart
-proddev-stop:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose-proddev.yml stop
-proddev-rm-all:
-	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml rm
-
-# Production server tasks
 
 start-all:
-	${SYSTEMCTL} start nginx
-	${DOCKERCOMPOSE} up -d
-	${SYSTEMCTL} start gunicorn
-	${SYSTEMCTL} start celery
-	${SYSTEMCTL} start celerybeat
-restart-all:
-	${DOCKERCOMPOSE} restart
-	${SYSTEMCTL} restart gunicorn
-	${SYSTEMCTL} restart celery
-	${SYSTEMCTL} restart celerybeat
-	${SYSTEMCTL} restart nginx
+	${DOCKERCOMPOSE} up -d --remove-orphans
 
 pull:
-	${SUCOURSYS} git pull
+	${GIT} pull
 
-# New code/configuration tasks
+pull-build:
+	${GIT} pull
+	${DOCKERCOMPOSE} pull
+	${DOCKERCOMPOSE} build --pull --no-cache
 
-new-code-lite:
-	${SYSTEMCTL} reload gunicorn
-	${SYSTEMCTL} restart celery
-	${SYSTEMCTL} restart celerybeat
+build:
+	${DOCKERCOMPOSE} build
 
-new-code:
-	${SUCOURSYS} npm install
-	${SUCOURSYS} ${PYTHON} manage.py collectstatic --no-input
-	make new-code-lite
+build-code-containers:  # we almost never need containers without our code rebuilt, so don't by default.
+	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
 
-clear-cache:
-	${DOCKERCOMPOSE} restart memcached
+deploy:
+	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
+	${DOCKERCOMPOSE} run manage collectstatic --no-input
+	${DOCKERROLLOUT} --timeout 60 --wait-after-healthy 5 app        # zero-downtime rollout of app service
+	${DOCKERCOMPOSE} up -d --remove-orphans                         # restart celery and anything else changed
+
+deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
+	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
+	${DOCKERCOMPOSE} run manage collectstatic --no-input
+	${DOCKERCOMPOSE} up -d --remove-orphans
+
+new-code: build-code-containers deploy
+
+new-code-pull: pull-build deploy
+
+new-code-no-rollout: build-code-containers deploy-no-rollout
 
 migrate-safe:
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
-	${SUCOURSYS} ${PYTHON} manage.py migrate
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
+	${DOCKERCOMPOSE} run manage backup_db_task
+	${DOCKERCOMPOSE} run manage migrate
+	${DOCKERCOMPOSE} run manage backup_db_task
 
-503:
-	${SUCOURSYS} touch ${COURSYS_DIR}/503
-	${SYSTEMCTL} stop celery
-	${SYSTEMCTL} stop celerybeat
+purge-cache:  # if we have changed something in a way that breaks cached data: shouldn't happen, but just in case
+	${DOCKERCOMPOSE} run manage purge_cache
+
+purge-static:  # shouldn't be necessary in general, but just in case we want to tidy the static volume
+	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
+	${DOCKERCOMPOSE} run admin rm -r /static/static
+	${DOCKERCOMPOSE} run manage collectstatic --no-input
+	make purge-cache  # django-compressor caches what has already been built: force it to re-check
+	${DOCKERCOMPOSE} run admin rm /dynamic_config/503
+
+drain-tasks:  # make absolutely sure there are no pending tasks (i.e. that rabbitmq can be purged during an upgrade/migration)
+	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
+	${DOCKERCOMPOSE} stop beat
+	echo "Watch celery_logs until nothing else is being processed. Then you can safely purge/restore rabbitmq and 'make rm503'"
+
+503:  # ensure that the system is down in such a way that no database/file changes are happening
+	${DOCKERCOMPOSE} run admin touch /dynamic_config/503
+	${DOCKERCOMPOSE} stop `${DOCKERCOMPOSE} config --services | grep -e '^celery'` beat
+
 rm503:
-	${SUCOURSYS} rm ${COURSYS_DIR}/503
-	${SYSTEMCTL} start celery
-	${SYSTEMCTL} start celerybeat
-
-rebuild:
-	sudo apt update && sudo apt upgrade
-	sudo ${PYTHON} -m pip install -r ${COURSYS_DIR}/requirements.txt
-	${DOCKERCOMPOSE} build --pull
+	${DOCKERCOMPOSE} run admin rm /dynamic_config/503
 	${DOCKERCOMPOSE} up -d
-	make new-code
 
-rebuild-hardcore:
-	#make chef
-	${SYSTEMCTL} daemon-reload # catches any changed service definitions
-	make ntpdate
-	${DOCKERCOMPOSE} pull
-	make 503
-	${DOCKERCOMPOSE} restart
-	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static # to clear out any orphaned static files and freshen: must purge memcached around the same time so compressor knows to look for changes
-	make rebuild
-	make rm503
-	${SUCOURSYS} docker system prune -f # clear any orphaned docker images/containers
 
-ntpdate:
-	${SYSTEMCTL} stop ntp && (sudo ntpdate ns2.sfu.ca || sudo ntpdate pool.ntp.org) && ${SYSTEMCTL} start ntp
+# admin helpers
 
-chef:
-	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
-
-# Utility helpers
-
-kinit:
-	${SUCOURSYS} ./kinit.sh
-
-manage: # used like: "make manage ARGS=shell"
-	${SUCOURSYS} ${PYTHON} manage.py $(ARGS)
 shell:
-	${SUCOURSYS} ${PYTHON} manage.py shell
+	${DOCKERCOMPOSE} run manage shell
 dbshell:
-	${SUCOURSYS} ${PYTHON} manage.py dbshell
-backup_db:
-	${SUCOURSYS} ${PYTHON} manage.py backup_db
+	${DOCKERCOMPOSE} run manage dbshell
+admin:
+	${DOCKERCOMPOSE} run admin bash
+
+get-docker-rollout:  # should be installed globally in prod, but for dev environments, a handy fetcher...
+	mkdir -p ~/.docker/cli-plugins
+	wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O ~/.docker/cli-plugins/docker-rollout
+	chmod +x ~/.docker/cli-plugins/docker-rollout
