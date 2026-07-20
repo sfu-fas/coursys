@@ -53,6 +53,4 @@ gunicorn==23.0.0
 mysqlclient==2.2.7
 pyodbc==5.2.0
 django-cas-ng==5.1.1
-#git+https://github.com/gregbaker/django-cas-ng.git@132b2da79 # fix for mysql indexing bug (PR #291)
 
-#importlib-metadata<5.0 # hopefully temporary while upgrading celery https://stackoverflow.com/questions/74025035/importerror-cannot-import-name-celery-from-celery
