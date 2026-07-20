@@ -22,6 +22,12 @@ If anything is found that is **not** caught by tests, it's strongly encouraged t
 
 There are some tests of library behaviour in `coredata.tests.DependencyTest`: if any libraries behave badly on update, it might be wise to add some tests for the kinds of things we do with them here, in the hopes of failing-fast in the future.
 
+To exercise a more-production-like environment, the tests should run in containers as well.
+```shell
+ln -sf compose-proddev.yml compose.yml
+docker compose build
+docker compose run manage test
+```
 
 ### Django
 
@@ -35,7 +41,7 @@ Have a look at the Django release notes on major releases (x.0.0 or maybe x.y.0)
 
 Typically, I start by just getting the tests to pass. There are often minor changes: obscure methods that got renamed or sketchy things we did that are now caught as errors and should be tidied up.
 
-It's then time to check things in proddev deployment (see DOCKER_PRODDEV.md or VM_PRODDEV.md). Make sure Celery tasks run, etc.
+It's then time to check things in proddev deployment (see `DOCKER_PRODDEV.md`). Make sure Celery tasks run, etc.
 
 
 ### Celery
@@ -51,7 +57,11 @@ There are a couple of things that by necessity only happen in production.
 * CAS authentication
 * Reporting database/CSRPT access (which passes through the pyodbc module).
 
-Updates for these libraries are hard to test.
+Updates for these libraries are hard to test. At worst, may be necessary to delicately test in production. That may be:
+* create a separate branch
+* check it out in production. Build. Hope production containers don't restart any time soon.
+* run the `manage` or `admin` containers manually to poke around.
+* check out master again. Build.
 
 
 ## Static Files, NPM
@@ -59,25 +69,26 @@ Updates for these libraries are hard to test.
 JavaScript dependencies are in `package.json`: versions can be bumped as necessary.
 ```shell
 npm install
-./manage.py collectstatic  # if you need it
 ```
-The page of frontend checks should give a quick view on the various libraries working or not: http://localhost:8000/frontend-check
+The page of frontend checks should give a quick view on the various libraries working or not: http://localhost:8000/sysadmin/frontend-check
 
 Of course, checking the behaviour *in situ* use is a good idea too.
 
+Be sure to add changes to both `package.json` and `package-lock.json`: the containers do a `npm ci` which uses the exact versions from the lock file.
 
 
 ## Docker Images
 
-The final source of stale code: `docker-compose.yml`. The docker containers can be run in a proddev mode. See `DOCKER_PRODDEV.md`.
+The final source of stale code: `compose-*.yml` and the Dockerfiles in `docker/`.
 
-Since they store persistent data (in `/data/`), and there's no guarantee that the on-disk format will be compatible across versions, updates may lose that data but there's nothing critical in them:
+Have a look at the `FROM` lines in the Dockerfiles and the versions of images in `compose-base.yml`. Inspect the system running in Docker and make sure tests past, functionality we use works as best you can see, etc.
+
+In general, there's no guarantee that the on-disk formats will be compatible across versions. Perhaps check data compatibility and plan an upgrade/migration in production. The persistent data stored by Docker services isn't critical:
 
 * memcached: doesn't store persistent data. Update freely.
-* rabbitmq: stores messages in-queue (i.e. pending Celery tasks). If you can make sure the Celery queue is empty, then any stored data is unimportant.
-* elasticsearch: stores the full-text indexes. Needed, but at worst, `./manage.py rebuild_index` will restore them fully.
-
-Procedure to update containers needs better docs.
+* rabbitmq: stores pending Celery tasks. If you can make sure the Celery queue is empty, then any stored data is unimportant. See the "`make drain-tasks`" recipe.
+* elasticsearch: stores the full-text indexes. Needed, but at worst, `docker compose run manage update_index_task --full-rebuild` will restore them fully.
+* other containers: no persistent state relevant to version updates.
 
 
 ## Main Database
@@ -85,3 +96,5 @@ Procedure to update containers needs better docs.
 Get some tech help.
 
 Basically: stop the world (`make 503`), do a `mysqldump` on the old DB server and restore to the new DB server. Make sure the system is looking at the new server (i.e. update `courses/secrets.py` and `make new-code-lite`).
+
+See also `PRODUCTION_SETUP.md`.
