@@ -104,8 +104,12 @@ services:
     build:
       context: .
       dockerfile: docker/nginx.Dockerfile
-      # temporary "if" while we make sure these templates match exactly and work
-      
+      args:
+        - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
+        - REDIRECT_HOSTS=olddomain
+        - CANONICAL_NAME=coursys-demo.selfip.net
+        - USER_PROTOCOL=http
+        - USER_PORT=80
     ports:
       - "80:80"
     depends_on:
@@ -144,10 +148,10 @@ services:
       args:
         - UID=888
         - DEPLOY_MODE=demo
-        #- SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
-        #- REDIRECT_HOSTS=olddomain
-        #- USER_PROTOCOL=http
-        #- USER_PORT=80
+        - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
+        - CANONICAL_NAME=coursys-demo.selfip.net
+        - USER_PROTOCOL=http
+        - USER_PORT=80
     depends_on:
       rabbitmq:
         condition: service_healthy

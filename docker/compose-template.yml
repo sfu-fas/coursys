@@ -54,7 +54,7 @@ services:
     networks:
       - backend
       - web
-    {% if service_password_secrets %}
+    {% if service_secrets %}
     secrets:
       - rabbitmq-default-password
     {% endif %}
@@ -76,7 +76,7 @@ services:
     networks:
       - backend
       - web
-    {% if service_password_secrets %}
+    {% if service_secrets %}
     secrets:
       - elastic-initial-password
     {% endif %}
@@ -102,15 +102,12 @@ services:
     build:
       context: .
       dockerfile: docker/nginx.Dockerfile
-      # temporary "if" while we make sure these templates match exactly and work
-      {% if deploy_mode == 'proddev' %} 
       args:
         - SERVE_HOSTS={{ serve_hosts }}
-        - FORWARD_HOSTS={{ redirect_hosts }}
+        - REDIRECT_HOSTS={{ redirect_hosts }}
         - CANONICAL_NAME={{ canonical_name }}
-      #  - USER_PROTOCOL={{ user_protocol }}
-      #  - USER_PORT={{ user_port }}
-      {% endif %}
+        - USER_PROTOCOL={{ user_protocol }}
+        - USER_PORT={{ user_port }}
     ports:
       - "{{ external_port }}:80"
     depends_on:
@@ -149,10 +146,10 @@ services:
       args:
         - UID={{ uid }}
         - DEPLOY_MODE={{ deploy_mode }}
-        #- SERVE_HOSTS={{ serve_hosts }}
-        #- REDIRECT_HOSTS={{ redirect_hosts }}
-        #- USER_PROTOCOL={{ user_protocol }}
-        #- USER_PORT={{ user_port }}
+        - SERVE_HOSTS={{ serve_hosts }}
+        - CANONICAL_NAME={{ canonical_name }}
+        - USER_PROTOCOL={{ user_protocol }}
+        - USER_PORT={{ user_port }}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -296,7 +293,7 @@ networks:
 secrets:
   app-config:
     file: ./secrets/app-config.toml
-  {% if service_password_secrets %}
+  {% if service_secrets %}
   rabbitmq-default-password:
     file: ./secrets/rabbitmq-default-password
   elastic-initial-password:

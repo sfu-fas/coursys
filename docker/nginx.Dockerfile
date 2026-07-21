@@ -1,12 +1,15 @@
 FROM nginx:1
 
-ARG SERVE_HOSTS="coursys.sfu.ca fasit.sfu.ca"
-ARG FORWARD_HOSTS="coursys.cs.sfu.ca courses.cs.sfu.ca"
-ARG CANONICAL_NAME="coursys.sfu.ca"
-
+ARG SERVE_HOSTS
+ARG REDIRECT_HOSTS
+ARG CANONICAL_NAME
+ARG USER_PROTOCOL
+ARG USER_PORT
 ENV SERVE_HOSTS=${SERVE_HOSTS}
-ENV FORWARD_HOSTS=${FORWARD_HOSTS}
+ENV REDIRECT_HOSTS=${REDIRECT_HOSTS}
 ENV CANONICAL_NAME=${CANONICAL_NAME}
+ENV USER_PROTOCOL=${USER_PROTOCOL}
+ENV USER_PORT=${USER_PORT}
 ENV TZ=America/Vancouver
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
@@ -15,7 +18,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
 COPY docker/nginx/common.conf /etc/nginx/common.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/serve-host.conf /etc/nginx/
-COPY docker/nginx/forward-host.conf /etc/nginx/
+COPY docker/nginx/redirect-host.conf /etc/nginx/
 COPY docker/nginx/default-host.conf /etc/nginx/
 COPY docker/nginx/configure-hosts.sh /etc/nginx/
 

@@ -71,8 +71,12 @@ services:
     build:
       context: .
       dockerfile: docker/nginx.Dockerfile
-      # temporary "if" while we make sure these templates match exactly and work
-      
+      args:
+        - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
+        - REDIRECT_HOSTS=coursys.cs.sfu.ca courses.cs.sfu.ca
+        - CANONICAL_NAME=coursys.sfu.ca
+        - USER_PROTOCOL=https
+        - USER_PORT=443
     ports:
       - "80:80"
     depends_on:
@@ -111,10 +115,10 @@ services:
       args:
         - UID=6501
         - DEPLOY_MODE=production
-        #- SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
-        #- REDIRECT_HOSTS=coursys.cs.sfu.ca courses.cs.sfu.ca
-        #- USER_PROTOCOL=https
-        #- USER_PORT=443
+        - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
+        - CANONICAL_NAME=coursys.sfu.ca
+        - USER_PROTOCOL=https
+        - USER_PORT=443
     depends_on:
       rabbitmq:
         condition: service_healthy
