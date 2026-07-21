@@ -144,6 +144,8 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+
+# Here be dragons. Django's CSRF checks are different in https vs http, which makes them very hard to test outside of the production environment. Make sure POST requests work as expected (e.g. test email send in admin panel) if anything changes here.
 if (USER_PROTOCOL == 'https' and USER_PORT == 443) or (USER_PROTOCOL == 'http' and USER_PORT == 80):
     CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}' for h in SERVE_HOSTS]
 else:

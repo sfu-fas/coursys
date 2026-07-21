@@ -37,9 +37,7 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-#COPY docker/files/odbc.ini /etc/odbc.ini
 COPY docker/files/krb5.conf /etc/krb5.conf
-#COPY docker/files/odbcinst.ini /etc/odbcinst.ini
 
 ARG PYTHON_MINOR_VERSION
 ARG DEPLOY_MODE
