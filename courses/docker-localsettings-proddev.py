@@ -21,14 +21,15 @@ RABBITMQ_VHOST = config['rabbitmq']['vhost']
 ELASTICSEARCH_PASSWORD = config['elasticsearch']['password']
 NPM_ROOT_PATH = '/build'
 
+SERVE_HOSTS = os.environ['SERVE_HOSTS'].split()
+USER_PROTOCOL = os.environ['USER_PROTOCOL']
+USER_PORT = os.environ['USER_PORT']
+
 EMAIL_HOST = 'smtp4dev'
 try:
     NTP_REFERENCE = config['system']['ntp_reference']
 except KeyError:
     pass
-
-MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', 'localhost:8080').strip().split()
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').strip().split()
 
 # SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i> Info on the index page.</p>''')
 # SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclamation-triangle"></i> Warning on every page</p>''')

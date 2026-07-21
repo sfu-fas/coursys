@@ -98,15 +98,12 @@ services:
     build:
       context: .
       dockerfile: docker/nginx.Dockerfile
-      # temporary "if" while we make sure these templates match exactly and work
-       
       args:
         - SERVE_HOSTS=localhost
-        - FORWARD_HOSTS=olddomain
+        - REDIRECT_HOSTS=olddomain
         - CANONICAL_NAME=localhost
-      #  - USER_PROTOCOL=http
-      #  - USER_PORT=8080
-      
+        - USER_PROTOCOL=http
+        - USER_PORT=8080
     ports:
       - "8080:80"
     depends_on:
@@ -145,10 +142,10 @@ services:
       args:
         - UID=888
         - DEPLOY_MODE=proddev
-        #- SERVE_HOSTS=localhost
-        #- REDIRECT_HOSTS=olddomain
-        #- USER_PROTOCOL=http
-        #- USER_PORT=8080
+        - SERVE_HOSTS=localhost
+        - CANONICAL_NAME=localhost
+        - USER_PROTOCOL=http
+        - USER_PORT=8080
     depends_on:
       rabbitmq:
         condition: service_healthy

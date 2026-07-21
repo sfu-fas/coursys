@@ -5,22 +5,26 @@ from django.template import Template, Context
 
 
 # The context variables passed into the docker/compose-template.yml template:
-# "data_location":  prefix for docker mounts: directory or "" for pure docker volumes
-# "uid":            the UID for the coursys user in containers: must match any external files that already exist, else is arbitrary.
-# "external_port":  the port where nginx should listen for HTTP requests
-# "selinux":        do we need the selinux "z" options for docker bind mounts?
-# "serve_hosts":    hostnames where we serve the actual site
-# "redirect_hosts": old hostnames that forward to the canonical locations
-# "canonical_name": the canonical location to forward users to if they come from somewhere besides a serve_host
-# "user_protocol":  the protocol (http or https) that is visibile to users (for correct redirects)
-# "user_port":      the TCP port the user connects to (for correct redirects and CSRF checks)
-# "app_replicas":   number of replicas of the app container
-# "dev_services":   start mysql and smtp4dev for non-production use?
-# "service_password_secrets": do we need the ./secrets/ files with rabbitmq and elasticsearch passwords?
+# "data_location":   prefix for docker mounts: directory or "" for pure docker volumes
+# "uid":             the UID for the coursys user in containers: must match any external files that already exist, else is arbitrary.
+# "external_port":   the port where nginx should listen for HTTP requests
+# "selinux":         do we need the selinux "z" options for docker bind mounts?
+# "serve_hosts":     hostnames where we serve the actual site
+# "redirect_hosts":  old hostnames that forward to the canonical host
+# "canonical_name":  the canonical location to forward users to if they come from somewhere besides a serve_host
+# "user_protocol":   the protocol (http or https) that is visibile to users (for correct redirects)
+# "user_port":       the TCP port the user connects to (for correct redirects and CSRF checks)
+# "app_replicas":    number of replicas of the app container
+# "dev_services":    start mysql and smtp4dev for non-production use?
+# "service_secrets": do we use the ./secrets/ files with rabbitmq and elasticsearch passwords?
+
+# URLs that users go to must match f"{user_protocol}://{a_serve_host}:{user_port}/"
+# Used in nginx config to server/forward domains as relevant, and in Django config for ALLOWED_HOSTS
+# and CSRF_TRUSTED_ORIGINS.
 
 
 DEPLOYMENT_CONTEXTS = {
-    "proddev": {
+    "proddev": {  # config for devs to make things easy to set up but also very much like production
         "data_location": "",  # i.e. in docker volumes
         "uid": 888,
         "external_port": 8080,
@@ -32,9 +36,9 @@ DEPLOYMENT_CONTEXTS = {
         "user_port": 8080,
         "app_replicas": 1,
         "dev_services": True,
-        "service_password_secrets": False,
+        "service_secrets": False,  # don't bother, for simpler dev setup
     },
-    "demo": {
+    "demo": {  # config for a demo server, and also as close to prod as possible
         "data_location": "/data/",
         "uid": 888,
         "external_port": 80,
@@ -46,9 +50,9 @@ DEPLOYMENT_CONTEXTS = {
         "user_port": 80,
         "app_replicas": 2,
         "dev_services": True,
-        "service_password_secrets": True,
+        "service_secrets": True,
     },
-    "production": {
+    "production": {  # true prodution setup
         "data_location": "/data/",
         "uid": 6501,
         "external_port": 80,
@@ -60,7 +64,7 @@ DEPLOYMENT_CONTEXTS = {
         "user_port": 443,
         "app_replicas": 2,
         "dev_services": False,
-        "service_password_secrets": True,
+        "service_secrets": True,
     },
 }
 

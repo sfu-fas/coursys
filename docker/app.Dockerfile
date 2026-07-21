@@ -48,8 +48,18 @@ ENV LANG=en_CA.UTF-8
 ENV IN_DOCKER=yes
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+
+# our various hostnames and server config in this deploy
+ARG SERVE_HOSTS
+ARG USER_PROTOCOL
+ARG USER_PORT
+ENV SERVE_HOSTS=${SERVE_HOSTS}
+ENV USER_PROTOCOL=${USER_PROTOCOL}
+ENV USER_PORT=${USER_PORT}
+
 # Host header for healthcheck requests:
-ARG HEALTHCHECK_HOSTNAME=coursys.sfu.ca
+ARG CANONICAL_NAME
+ARG HEALTHCHECK_HOSTNAME=${CANONICAL_NAME}
 ENV HEALTHCHECK_HOSTNAME=${HEALTHCHECK_HOSTNAME}
 
 RUN mkdir -p /coursys
@@ -63,7 +73,7 @@ COPY --from=builder /build/node_modules /build/node_modules
 COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=docker --exclude=*.yml --exclude=instructions \
+COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py

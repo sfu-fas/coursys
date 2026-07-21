@@ -127,16 +127,15 @@ if IN_TESTING:
     for m in INSTALLED_APPS:
         MIGRATION_MODULES[m] = None
 
-# security-related settings
-CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
-SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
-SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
-REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
-if DEPLOY_MODE != 'production':
-    ALLOWED_HOSTS.append('localhost')
-ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
+# domain names and server config here
+USER_PROTOCOL = getattr(localsettings, 'USER_PROTOCOL', 'http')
+USER_PORT = getattr(localsettings, 'USER_PORT', '80')
+SERVE_HOSTS = getattr(localsettings, 'SERVE_HOSTS', ['localhost'])
+# URLs that users go to must match f"{USER_PROTOCOL}://{A_SERVE_HOST}:{USER_PORT}/"
+# for both the nginx container config (see nginx.Dockerfile) and for ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS here.
 
+# security-related settings
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 14*24*3600  # 14 days
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -145,7 +144,7 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'https://{h}' for h in SERVE_HOSTS])
+CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'{USER_PROTOCOL}://{h}:{USER_PORT}' for h in SERVE_HOSTS])
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:

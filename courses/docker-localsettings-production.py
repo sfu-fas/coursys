@@ -20,15 +20,16 @@ RABBITMQ_VHOST = config['rabbitmq']['vhost']
 ELASTICSEARCH_PASSWORD = config['elasticsearch']['password']
 NPM_ROOT_PATH = '/build'
 
+SERVE_HOSTS = os.environ['SERVE_HOSTS'].split()
+USER_PROTOCOL = os.environ['USER_PROTOCOL']
+USER_PORT = os.environ['USER_PORT']
+
 assert DEPLOY_MODE == 'production'
 SIMS_DB_SERVER = config['external']['csrpt_server']
 DO_IMPORTING_HERE = True
 FORCE_CAS = True
 EMPLID_API_SECRET = config['external']['emplid_api_secret']
 # AMAINT_DB_PASSWORD = config['external']['amaint_password']  # unused with current API?
-
-# MORE_ALLOWED_HOSTS = os.environ.get('MORE_ALLOWED_HOSTS', '').strip().split()
-# CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').strip().split()
 
 # SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i> Info on the index page.</p>''')
 # SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclamation-triangle"></i> Warning on every page</p>''')
