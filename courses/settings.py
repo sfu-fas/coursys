@@ -129,7 +129,7 @@ if IN_TESTING:
 
 # domain names and server config here
 USER_PROTOCOL = getattr(localsettings, 'USER_PROTOCOL', 'http')
-USER_PORT = getattr(localsettings, 'USER_PORT', '80')
+USER_PORT = int(getattr(localsettings, 'USER_PORT', '80'))
 SERVE_HOSTS = getattr(localsettings, 'SERVE_HOSTS', ['localhost'])
 # URLs that users go to must match f"{USER_PROTOCOL}://{A_SERVE_HOST}:{USER_PORT}/"
 # for both the nginx container config (see nginx.Dockerfile) and for ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS here.
@@ -144,7 +144,11 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'{USER_PROTOCOL}://{h}:{USER_PORT}' for h in SERVE_HOSTS])
+if (USER_PROTOCOL == 'https' and USER_PORT == 443) or (USER_PROTOCOL == 'http' and USER_PORT == 80):
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}' for h in SERVE_HOSTS]
+else:
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}:{USER_PORT}' for h in SERVE_HOSTS]
+CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', CSRF_TRUSTED_ORIGINS)
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
