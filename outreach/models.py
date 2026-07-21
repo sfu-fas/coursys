@@ -12,6 +12,7 @@ import uuid
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField, config_property
+from courselib.uuid import UUIDField
 
 
 def timezone_today():
@@ -170,7 +171,7 @@ class OutreachEventRegistration(models.Model):
     should only ever have to fill in these once, but we'll add a UUID in case we need to send them back to them.
     """
     # Don't make the UUID the primary key.  We need a primary key that can be cast to an int for our logger.
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, null=False)
+    uuid = UUIDField(default=uuid.uuid4, editable=False, unique=True, null=False)
     last_name = models.CharField("Participant Last Name", max_length=32)
     first_name = models.CharField("Participant First Name", max_length=32)
     age = models.DecimalField("Participant Age", null=True, blank=True, max_digits=2, decimal_places=0)
