@@ -2,7 +2,7 @@
 ' sudo apt install plantuml
 ' plantuml arch.puml 
 
-' https://github.com/plantuml/plantuml-stdlib/tree/master/logos
+' https://github.com/plantuml/plantuml-stdlib/tree/master/stdlib/logos
 
 @startuml
 
@@ -23,66 +23,73 @@ agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
 
 users <-> lb : HTTPS
 
-package "CourSys Server" {
-    agent "<$nginx>\nNginx" as nginx
-    agent "<$gunicorn>\nGunicorn\nlocalhost:8000" as gunicorn
-    artifact "<$django>\nApplication Code" as django
-    
-    agent "<$python>\nCelery" as celery
-    agent "Celerybeat" as celerybeat
-    
-    control "Daily Import\nTask" as import
-    storage "/opt/static" as static
-    control "manage.py\ncollectstatic" as collectstatic
-    
-    package "Docker Containers" {
+package "Production Server" {
+    folder "nginx_logs\ncelery_logs" as nginx_logs
+
+    package "Docker" {    
+        folder "static" as static
+        control "Daily Import\nTask" as import
+        
+        agent "<$python>\nCelery\nworkers" as celery
+        agent "Celerybeat" as celerybeat
+        agent "<$nginx>\nNginx" as nginx
+        agent "<$python>\nGunicorn" as gunicorn
+
         queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
-        'agent "<$ruby>\nMarkdown Converter" as markdown
         database "<$memcached>\nMemcached" as memcached
         database "<$elasticsearch>\nElasticsearch" as elasticsearch
+        agent "Logrotate" as logrotate
+
+        static <-- gunicorn  : "compressor"
+        nginx <-- static : "static\nfiles"
+        nginx <---> gunicorn : "dynamic\npages"
+        
+        gunicorn ..> rabbitmq : tasks
+        celery <.. rabbitmq : tasks
+        gunicorn <--> memcached : cache
+        gunicorn <--> elasticsearch : search
+        rabbitmq <.. celerybeat : periodic\ntasks
+        import <... celery : runs
+
+        control "manage\ncollectstatic" as collectstatic
     }
 
-    nginx <--> gunicorn : dynamic pages
-    static <-- collectstatic : "writes"
-    nginx <-- static : static files
-    django -> collectstatic : files
+    nginx_logs <. nginx
+    nginx_logs <. celery
+    nginx_logs <. logrotate : rotates
 
-    gunicorn ..> django : runs
-    django <.. celery : "runs\n~*/tasks.py"
+    folder "submitted_files\ndb_backups" as files
+    gunicorn <--> files
+    celery <--> files
 
-    'celery .> import : task
-    django <.. import : runs
-    
-    django ..> rabbitmq : tasks
-    'django <--> rabbitmq : markdown\nconversions
-    celery <.. rabbitmq : tasks
-    django <--> memcached : cache
-    'rabbitmq <-> markdown : markdown\nconversions
-    django <--> elasticsearch : search/\nautocomplete
-    celerybeat ..> rabbitmq : periodic\ntasks
 }
 
 package "Onara" {
     database "<$mariadb>\nDatabase" as db
 }
 
-nginx <-> lb : HTTP
-django <-> db
-celery <--> db
+lb <--> nginx : HTTP
+db <--> gunicorn
+db <--> celery
 import --> db
 
-package "External APIs" {
-    database "CSRPT" as csrpt
-    agent "CAS" as cas
-    database "Photo API" as photo
-    database "AMAINT" as amaint
-}
+database "CSRPT" as csrpt
+agent "CAS" as cas
+database "Photo API" as photo
+database "AMAINT" as amaint
+cloud "smtpserver.sfu.ca" as email
 
 import <-- csrpt
-django <-- csrpt : On-Demand\nQueries
-django <..> cas : verifies\nauth
-django <-- photo : ID Photos
-import <-- amaint
+csrpt --> celery
+csrpt --> gunicorn
+gunicorn <..> cas : auth
+celery <-- photo : photos
+email <- celery : "outgoing email"
+import <- amaint
 
+collectstatic -> static : "writes"
+
+storage "ITS file\nserver" as nfs
+nfs <-> files : NFS
 
 @enduml

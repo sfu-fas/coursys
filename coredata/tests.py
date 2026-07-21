@@ -548,3 +548,15 @@ class DependencyTest(TestCase):
 
         n = 100
         self.assertEqual(f('乐' * n), n)
+
+
+class ComposeFilesTest(TestCase):
+    """
+    Test that the compose-*.yml files are as expected.
+    """
+    def test_docker_compose_files_coherence(self):
+        from docker.build_compose import DEPLOYMENT_CONTEXTS, build_from_template
+        for deploy_mode in DEPLOYMENT_CONTEXTS.keys():
+            from_template = build_from_template(deploy_mode)
+            from_file = open(f"compose-{deploy_mode}.yml", "rt", encoding="utf-8").read()
+            self.assertEqual(from_file, from_template, f"Contents of compose-{deploy_mode}.yml don't match template. Consider running: ./manage.py build_compose_yml ALL")

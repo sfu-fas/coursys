@@ -1,0 +1,294 @@
+# This file is generated from docker/compose-template.yml and "manage.py build_compose_yml".
+# Edit the template, not this file. Definitely don't check in any edits.
+
+services:
+  
+  mysql:
+    image: 'mariadb:11.8'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql:/var/lib/mysql:rw
+    environment:
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=dbpass
+      - MYSQL_DATABASE=dbname
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    restart: unless-stopped
+    healthcheck: # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      timeout: 5s
+      interval: 10s
+      start_period: 5s
+    networks:
+      - backend
+      - web
+
+  smtp4dev:
+    image: 'rnwood/smtp4dev'
+    ports:
+      - "8025:80"
+    restart: unless-stopped
+    healthcheck:
+      test: curl --fail http://localhost:80/ || exit 1
+      timeout: 5s
+      interval: 60s
+      start_period: 10s
+    networks:
+      - backend
+  
+
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: docker/rabbitmq.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
+    volumes:
+      - /data/rabbitmq4:/var/lib/rabbitmq:rw,Z
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmquser
+      - RABBITMQ_DEFAULT_PASS=rmqpass
+      - RABBITMQ_DEFAULT_PASS_SECRET=/run/secrets/rabbitmq-default-password # the secret wins if both are present
+      - RABBITMQ_DEFAULT_VHOST=vhost
+    restart: unless-stopped
+    networks:
+      - backend
+      - web
+    
+    secrets:
+      - rabbitmq-default-password
+    
+
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: docker/elasticsearch.Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
+    volumes:
+      - /data/elasticsearch7:/usr/share/elasticsearch/data:rw,Z
+    environment:
+      - ELASTIC_PASSWORD=espass # the secret wins if both are present
+      - ELASTIC_PASSWORD_SECRET=/run/secrets/elastic-initial-password
+    restart: unless-stopped
+    networks:
+      - backend
+      - web
+    
+    secrets:
+      - elastic-initial-password
+    
+
+  memcached:
+    image: 'memcached:1-alpine'
+    restart: unless-stopped
+    healthcheck:
+      test: echo "version" | nc -vn -w 1 127.0.0.1 11211
+      timeout: 5s
+      interval: 60s
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    networks:
+      - backend
+      - web
+    command: ["--memory-limit=768"]
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+      args:
+        - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
+        - REDIRECT_HOSTS=olddomain
+        - CANONICAL_NAME=coursys-demo.selfip.net
+        - USER_PROTOCOL=http
+        - USER_PORT=80
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    volumes:
+      - static:/static:ro
+      - /data/nginx_logs:/nginx_logs:rw,z
+      - /data/dynamic_config:/dynamic_config:ro,z
+    networks:
+      - web
+
+  logrotate:
+    build:
+      context: .
+      dockerfile: docker/logrotate.Dockerfile
+    pid: host  # give the container access to signal nginx to re-open log files
+    deploy:
+      resources:
+        limits:
+          memory: 10mb
+    volumes:
+      - status:/status:rw
+      - /data/nginx_logs:/nginx_logs:rw,z
+      - /data/celery_logs:/celery_logs:rw,z
+
+  base:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: base
+      args:
+        - UID=888
+        - DEPLOY_MODE=demo
+        - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
+        - CANONICAL_NAME=coursys-demo.selfip.net
+        - USER_PROTOCOL=http
+        - USER_PORT=80
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 1.5gb
+      replicas: 0
+    restart: no
+    volumes:
+      - static:/static:rw
+      - /data/submitted_files:/submitted_files:rw,z
+      - /data/dynamic_config:/dynamic_config:ro,z
+    secrets:
+      - app-config
+
+  app:
+    extends:
+      service: base
+    build:
+      target: app
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+    networks:
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,z
+
+  manage:
+    extends:
+      service: base
+    build:
+      target: manage
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,z
+
+  admin:
+    extends:
+      service: base
+    build:
+      target: admin
+    restart: no
+    deploy:
+      replicas: 0
+    networks:
+      - backend
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,z
+      - /data/dynamic_config:/dynamic_config:rw,z
+
+  celery-fast:
+    extends:
+      service: base
+    build:
+      target: celery
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+    environment:
+      - QUEUE=fast
+      - CONCURRENCY=2
+    networks:
+      - backend
+    volumes:
+      - /data/celery_logs:/celery_logs:rw,z
+  # celery-fast was chosen as the base for the other workers, because it has no custom config, but some others do.
+  celery-batch:
+    extends: celery-fast
+    volumes:
+      - /data/db_backups:/db_backups:rw,z
+    environment:
+      - QUEUE=batch
+      - CONCURRENCY=2
+  celery-email:
+    extends: celery-fast
+    environment:
+      - QUEUE=email
+      - CONCURRENCY=2
+  celery-photo:
+    extends: celery-fast
+    environment:
+      - QUEUE=photo
+      - CONCURRENCY=5
+  celery-sims:
+    extends: celery-fast
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,z
+    environment:
+      - QUEUE=sims
+      - CONCURRENCY=3
+
+  beat:
+    extends:
+      service: base
+    build:
+      target: beat
+    deploy:
+      replicas: 1
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - status:/status:rw
+      - /data/celery_logs:/celery_logs:rw,z
+
+
+volumes:
+  static:
+  status:
+  mysql:
+  
+
+networks:
+  web:
+  backend:
+
+
+secrets:
+  app-config:
+    file: ./secrets/app-config.toml
+  
+  rabbitmq-default-password:
+    file: ./secrets/rabbitmq-default-password
+  elastic-initial-password:
+    file: ./secrets/elastic-initial-password
+  

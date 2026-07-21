@@ -43,7 +43,6 @@ INSTALLED_APPS = (
     'compressor',
     'haystack',
     'djcelery_email',
-    # 'django_celery_beat',
     'formtools',
     'coredata',
     'dashboard',
@@ -128,16 +127,15 @@ if IN_TESTING:
     for m in INSTALLED_APPS:
         MIGRATION_MODULES[m] = None
 
-# security-related settings
-CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
-SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
-SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
-REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
-if DEPLOY_MODE != 'production':
-    ALLOWED_HOSTS.append('localhost')
-ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
+# domain names and server config here
+USER_PROTOCOL = getattr(localsettings, 'USER_PROTOCOL', 'http')
+USER_PORT = int(getattr(localsettings, 'USER_PORT', '80'))
+SERVE_HOSTS = getattr(localsettings, 'SERVE_HOSTS', ['localhost'])
+# URLs that users go to must match f"{USER_PROTOCOL}://{A_SERVE_HOST}:{USER_PORT}/"
+# for both the nginx container config (see nginx.Dockerfile) and for ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS here.
 
+# security-related settings
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 14*24*3600  # 14 days
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -146,7 +144,13 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'https://{h}' for h in SERVE_HOSTS])
+
+# Here be dragons. Django's CSRF checks are different in https vs http, which makes them very hard to test outside of the production environment. Make sure POST requests work as expected (e.g. test email send in admin panel) if anything changes here.
+if (USER_PROTOCOL == 'https' and USER_PORT == 443) or (USER_PROTOCOL == 'http' and USER_PORT == 80):
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}' for h in SERVE_HOSTS]
+else:
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}:{USER_PORT}' for h in SERVE_HOSTS]
+CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', CSRF_TRUSTED_ORIGINS)
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -217,14 +221,17 @@ NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': '127.0.0.1:11211',
+        'LOCATION': 'memcached:11211',
     } }
-    if getattr(localsettings, 'MEMCACHED_HOST', None):
-        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
+    if getattr(localsettings, 'MEMCACHED_LOCATION', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_LOCATION
+    ELASTICSEARCH_HOST = getattr(localsettings, 'ELASTICSEARCH_HOST', 'elasticsearch')
+    ELASTICSEARCH_PASSWORD = getattr(localsettings, 'ELASTICSEARCH_PASSWORD', 'espass')
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine',
-            'URL': 'http://127.0.0.1:9200/',
+            'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+            'URL': f'http://{ELASTICSEARCH_HOST}:9200/',
+            'KWARGS': {'http_auth': ("elastic", ELASTICSEARCH_PASSWORD)},
             'INDEX_NAME': 'haystack',
             'TIMEOUT': 60,
         },
@@ -254,7 +261,7 @@ if DEPLOY_MODE == 'production':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/filestore/prod/submitted_files')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
 
@@ -263,9 +270,9 @@ elif DEPLOY_MODE == 'proddev':
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
-    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
-    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost")
+    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 
 else:
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
@@ -278,7 +285,7 @@ USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel') and no
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
     RABBITMQ_PASSWORD = getattr(localsettings, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
-    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
+    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'rabbitmq:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
@@ -294,7 +301,6 @@ if USE_CELERY:
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    #CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     from courses import celery_schedule
     CELERY_BEAT_SCHEDULE = celery_schedule.CELERY_BEAT_SCHEDULE
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
@@ -333,7 +339,7 @@ DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'coursys-help@sfu.ca'
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
-CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/tmp/csrpt_auth')
+CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/csrpt_auth')
 
 EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', '/coursys/moss')
