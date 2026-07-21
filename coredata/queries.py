@@ -1588,7 +1588,7 @@ def import_person(p, commit=True, grad_data=False):
         ## but freak out if a userid changes
         if p.userid and p.userid != userid:
             #raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
-            mail_admins('userid change', "Somebody's userid changed: %s became %s." % (p.userid, userid))
+            mail_admins(subject='userid change', message="Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
 
     if grad_data:

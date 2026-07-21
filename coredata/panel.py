@@ -483,8 +483,8 @@ def cache_check():
 
 def send_test_email(email):
     try:
-        send_mail('check_things test message', "This is a test message to make sure they're getting through.",
-                  settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+        send_mail(subject='check_things test message', message="This is a test message to make sure they're getting through.",
+                  from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=[email], fail_silently=False)
         return True, "Message sent to %s." % (email)
     except socket.error:
         return False, "socket error: maybe can't communicate with AMPQ for celery sending?"

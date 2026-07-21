@@ -169,7 +169,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
             c2.save()
             c1.class_nbr = c2_nbr
             c1.save()
-        mail_admins('class_nbr re-use', 'Conflict between unique keys on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
+        mail_admins(subject='class_nbr re-use', message='Conflict between unique keys on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
         return  # update it properly on the next import when things are hopefully coherent
     elif len(c_old)==1:
         # already in DB: update things that might have changed
@@ -761,7 +761,7 @@ def import_admin_email(source, message, subject='data import: intervention requi
     """
     Message the admins about an import problem. Assumes we're in a context where stdout does us no good.
     """
-    mail_admins(subject, '[%s checking in.]\n\n%s' % (source, message))
+    mail_admins(subject=subject, message='[%s checking in.]\n\n%s' % (source, message))
 
 @transaction.atomic
 def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, bootstrap=False):
