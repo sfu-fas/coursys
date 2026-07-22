@@ -6,7 +6,10 @@ And how do we validate that things are okay after the update?
 ## Python Pip
 
 The Python packages mentioned in [requirements.txt](../requirements.txt) should be periodically brought up to date.
-The easiest thing seems to be scanning requirements and checking current versions in (PyPI)(https://pypi.org/).
+The easiest thing seems to be scanning requirements and checking current versions in (PyPI)(https://pypi.org/). Also consider:
+```shell
+pip list --outdated
+```
 
 Generally, I update a few packages at a time (not Django and Celery, which are discussed below) and test to make sure basic things work with them:
 ```shell
