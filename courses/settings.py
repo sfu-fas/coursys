@@ -26,9 +26,9 @@ if os.path.exists(os.path.join(BASE_DIR, 'this_is_production.txt')) and DEPLOY_M
     raise ValueError('Refusing to start in non-production mode')
 
 ADMINS = (
-    ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('FAS Software Developer', 'fas_developer@sfu.ca'),
-    ('Renee Chong', 'renee_chong@sfu.ca'),
+    'Greg Baker <ggbaker@sfu.ca>',
+    'FAS Software Developer <fas_developer@sfu.ca>',
+    'Renee Chong <renee_chong@sfu.ca>',
 )
 SERVER_EMAIL = 'noreply@coursys.sfu.ca'
 

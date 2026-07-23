@@ -1,4 +1,4 @@
-ARG PYTHON_MINOR_VERSION=3.13
+ARG PYTHON_MINOR_VERSION=3.14
 
 # builder that can collect the python and node dependencies
 
@@ -6,7 +6,7 @@ FROM python:${PYTHON_MINOR_VERSION}-slim AS builder
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    git locales-all npm libfreetype-dev \
+    git locales-all npm libfreetype-dev unixodbc-dev \
     pkg-config default-libmysqlclient-dev build-essential \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

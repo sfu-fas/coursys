@@ -6,7 +6,10 @@ And how do we validate that things are okay after the update?
 ## Python Pip
 
 The Python packages mentioned in [requirements.txt](../requirements.txt) should be periodically brought up to date.
-The easiest thing seems to be scanning requirements and checking current versions in (PyPI)(https://pypi.org/).
+The easiest thing seems to be scanning requirements and checking current versions in (PyPI)(https://pypi.org/). Also consider:
+```shell
+pip list --outdated
+```
 
 Generally, I update a few packages at a time (not Django and Celery, which are discussed below) and test to make sure basic things work with them:
 ```shell
@@ -79,9 +82,12 @@ Be sure to add changes to both `package.json` and `package-lock.json`: the conta
 
 ## Docker Images
 
-The final source of stale code: `compose-*.yml` and the Dockerfiles in `docker/`.
-
-Have a look at the `FROM` lines in the Dockerfiles and the versions of images in `compose-base.yml`. Inspect the system running in Docker and make sure tests past, functionality we use works as best you can see, etc.
+The final source of stale code: `compose-template.yml` and the Dockerfiles in `docker/`. Have a look at the `FROM` lines in the Dockerfiles and the
+versions of images referenced in `compose-template.yml`. After updating the template:
+```shell
+./manage.py build_compose_yml ALL
+```
+Inspect the system running in Docker and make sure tests past, functionality we use works as best you can see, etc.
 
 In general, there's no guarantee that the on-disk formats will be compatible across versions. Perhaps check data compatibility and plan an upgrade/migration in production. The persistent data stored by Docker services isn't critical:
 

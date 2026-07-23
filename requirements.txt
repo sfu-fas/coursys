@@ -1,43 +1,41 @@
-#django==5.2.5
-# TODO possibly need to update .save overrides with : https://docs.djangoproject.com/en/5.2/topics/db/models/#overriding-predefined-model-methods
-# https://docs.djangoproject.com/en/5.2/releases/5.0/#migrating-existing-uuidfield-on-mariadb-10-7
-# https://www.albertyw.com/note/django-5-mariadb-uuidfield
-django==4.2.30  # Django 5.0 and later requires Python 3.10: prod is 3.8
+django==6.0.7
 
 Creoleparser==0.7.5
-Genshi==0.7.9
+Genshi==0.7.11
 Unidecode>=1.4.0
 
 django-autoslug==1.9.9
-django-formtools==2.5.1
-django-dirtyfields==1.9.3  # 1.9.7 requires python 3.10
-jsonfield==3.1.0  # 3.2.0 requires python 3.10
-pyparsing==3.1.4  # 3.2.3 requires python 3.10
-pytz>=2025.2
-textile==4.0.3
+django-formtools==2.7
+django-dirtyfields==1.9.9
+jsonfield==3.2.0
+pyparsing==3.3.2
+pytz>=2026.2
+textile==4.0.4
 html5lib==1.1
-beautifulsoup4==4.13.5
+beautifulsoup4==4.15.0
 bleach==6.4.0
-reportlab==4.3.1  # reportlab 4.4.3 fails on Python 3.8
-pillow>=10
-icalendar==6.3.1
+reportlab==5.0.0
+pillow==12.3.0
+icalendar==7.2.2
 xlwt==1.3.0
 django-datatables-view==1.20.0
-django-bitfield==2.2.0
-django-compressor==4.5.1
+#django-bitfield==2.2.0  # release for Python 3.14 compat pending
+git+https://github.com/disqus/django-bitfield@17fbf76f8b331f89fd2f0bb2e4c3a4fd12c07484
+django-compressor==4.6.0
 django-npm==1.0.1
 #django-cache-utils==0.7.2
 git+https://github.com/gregbaker/django-cache-utils@e6a04c4
 celery==5.6.3
 kombu  # let celery choose the version
-django-celery-email==3.0.0
+#django-celery-email==3.0.0
+git+https://github.com/gregbaker/django-celery-email@62d593b0a4b62e38708a15994c73c1cf0e83355f
 celery-healthcheck==0.2.0
 django-haystack==3.4.0
 whoosh==2.7.4
-cmarkgfm==2024.11.20
+cmarkgfm==2025.10.22
 django-ipware==7.0.1
-psutil==7.0.0
-intervaltree==3.1.0
+psutil==7.2.2
+intervaltree==3.2.1
 requests
 ntplib==0.4.0
 
@@ -49,8 +47,7 @@ pymemcache==4.0.0
 #django-dbdump==1.1  # TODO: could probably replace with basic CLI call
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=7.0.0,<8.0.0
-gunicorn==23.0.0
-mysqlclient==2.2.7
-pyodbc==5.2.0
+gunicorn==26.0.0
+mysqlclient==2.2.8
+pyodbc==5.3.0
 django-cas-ng==5.1.1
-
