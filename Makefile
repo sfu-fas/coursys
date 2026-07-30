@@ -42,6 +42,7 @@ new-code-pull: pull-build deploy
 new-code-no-rollout: build-code-containers deploy-no-rollout
 
 migrate-safe:
+	${DOCKERCOMPOSE} up -d celery-batch  # make sure the relevant worker is up (so this can be done in 503 mode)
 	${DOCKERCOMPOSE} run manage backup_db_task
 	${DOCKERCOMPOSE} run manage migrate
 	${DOCKERCOMPOSE} run manage backup_db_task
