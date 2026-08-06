@@ -44,10 +44,10 @@ MODE_CHOICES_DICT = dict(MODE_CHOICES)
 
 INCIDENT_TYPE_MUST_ANSWER = (  # values that can be selected on the form
     ('PLAG', 'Plagiarism: presenting the ideas/work of another as your own without proper attribution'),
-    ('EXAM', 'Exam cheating: unauthorized access, sharing information/resources pertaining to the exam)'),
+    ('EXAM', 'Exam cheating: unauthorized access, sharing information/resources pertaining to the exam'),
     ('ASSI', 'Cheating in assignments/projects: working together on assignments, copying from old assignments'),
     ('CNTR', 'Contract cheating: purchasing the services of a third party to complete assignments/exams'),
-    ('FRAD', 'Fraud: misrepresenting one\'s position to gain an academic advantage'),
+    ('FRAD', 'Fraud: misrepresentation of information to gain academic advantage (e.g. falsified doctor\'s note)'),
     ('OTHR', 'Other: not in above categories'),
 )
 INCIDENT_TYPE = INCIDENT_TYPE_MUST_ANSWER + (  # additional values that might be displayed (including historical)
