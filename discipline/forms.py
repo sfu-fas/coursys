@@ -177,7 +177,7 @@ class NotifyEmailForm(CaseEditForm):
 class FactsForm(CaseEditForm):
     weight = forms.CharField(label="Weight of work", required=False, widget=forms.TextInput(attrs={'size': '60'}),
          help_text='The work in question and its weight in the course. (e.g. "two assignments worth 5% each", "40% final exam")')
-    mode = forms.ChoiceField(choices=MODE_CHOICES_MUST_ANSWER, widget=forms.RadioSelect(), required=True,
+    mode = forms.ChoiceField(choices=MODE_CHOICES_MUST_ANSWER, label="Mode of Assessment", widget=forms.RadioSelect(), required=True,
          help_text='Type of work in this case. Used for statistics of cases: not included in the incident report.')
     ai = forms.ChoiceField(choices=AI_CHOICES_MUST_ANSWER, label='AI Use', widget=forms.RadioSelect(), required=True,
          help_text='Was generative AI use a factor in this incident? Used for statistics of cases: not included in the incident report.')
