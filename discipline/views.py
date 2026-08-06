@@ -631,7 +631,7 @@ def chair_csv(request):
             c.owner.email(),
             c.offering.get_mode_display(),
             c.get_mode_display(),
-            c.get_ai_use().lower(),
+            c.get_ai_use_short(),
             c.get_incident_type_display(),
         ])
 

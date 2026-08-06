@@ -269,6 +269,10 @@ class DisciplineCaseBase(models.Model):
     def get_ai_use(self):
         return self.config.get('ai', 'NOAN')
 
+    def get_ai_use_short(self):
+        ai = self.config.get('ai', 'NOAN')
+        return '—' if ai == 'NOAN' else ai.lower()
+
     def get_ai_use_display(self):
         return AI_CHOICES_DICT[self.config.get('ai', 'NOAN')]
 
