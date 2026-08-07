@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "postdoc:post_doctoral_fellow" %}">Post Doctoral Fellow</a></li>
+<li><a href="{% url "postdoc:view_postdoc_appointment" postdoc_slug=appt.slug %}">{{ appt.person.sortname_pref }}</a></li>
+<li>Update Admin Notes</li>
+{% endblock %}
+
+{% block title %}Update Admin Notes for {{ appt.person.sortname_pref }}{% endblock %}
+{% block h1 %}Update Admin Notes for {{ appt.person.sortname_pref }}{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="{% url "postdoc:edit_postdoc_notes" postdoc_slug=appt.slug %}" method="POST">{% csrf_token %}
+    <fieldset>
+      {{ noteform|as_dl_includefields:"admin_notes" }}
+      <p><input id="done" type="submit" class="submit" value="Submit" /></p>
+    </fieldset>
+  </form>
+</div>
+{% endblock %}
