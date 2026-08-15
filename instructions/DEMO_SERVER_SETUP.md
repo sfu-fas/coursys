@@ -76,7 +76,6 @@ docker compose run manage loaddata fixtures/*
 ```
 
 
-
 ## Purging Data
 
 If we'd like to refresh with a new `demodata.json`, the database must be purged:

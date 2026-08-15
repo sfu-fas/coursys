@@ -1812,5 +1812,5 @@ def demo_data(request):
     data.append(people)
     data.append(instructors)
 
-    content = serializers.serialize('json', itertools.chain.from_iterable(data), indent=2)
+    content = serializers.serialize('json', itertools.chain.from_iterable(data))
     return HttpResponse(content, content_type='application/json')
