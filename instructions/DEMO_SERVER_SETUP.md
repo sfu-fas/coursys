@@ -50,8 +50,9 @@ docker compose run manage collectstatic --no-input
 docker compose up --remove-orphans -d
 ```
 
+## Loading Data
 
-## Demo Data
+### Demo Data
 
 Demo data can be fetched from the production server, giving a secret key that is the first 6
 characters of the server secret (technically, `urllib.parse.quote(settings.SECRET_KEY[:6])`).
@@ -66,6 +67,14 @@ sudo chmod 0644 /data/dynamic_config/demodata.json
 docker compose run manage load_demo_data /dynamic_config/demodata.json
 docker compose run manage rebuild_index --noinput
 ```
+
+### Developer Data
+
+If you don't need the user-facing demo data, you can load the developer data instead:
+```shell
+docker compose run manage loaddata fixtures/*
+```
+
 
 
 ## Purging Data
