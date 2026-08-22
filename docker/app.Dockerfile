@@ -28,11 +28,12 @@ RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
-# packages groups here: basics; csrpt connection; admin helpers
+# packages groups here: basics; csrpt connection; sattus monitoring; admin helpers
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     locales-all default-mysql-client \
     unixodbc-dev krb5-user tdsodbc \
+    docker-cli procps \
     curl wget freetds-bin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -64,7 +65,11 @@ RUN mkdir -p /coursys
 WORKDIR /coursys
 
 ARG UID=888
+ARG HOST_DOCKER_GID=140
 RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
+  && groupadd --gid=${HOST_DOCKER_GID} hostdocker \
+  && gpasswd -a coursys hostdocker \
+  && install -o ${UID} -d /home/coursys \
   && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config /celery_logs /status
 
 COPY --from=builder /build/node_modules /build/node_modules
@@ -113,6 +118,8 @@ CMD ["/celery-worker.sh"]
 # celery beat image
 
 FROM base AS beat
+HEALTHCHECK --interval=60s --timeout=5s --start-period=30s --start-interval=5s \
+  CMD pgrep -f beat || exit 1
 CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO", "--logfile", "/celery_logs/beat.log", "-s", "/status/celerybeat-schedule"]
 
 
@@ -128,7 +135,4 @@ CMD ["shell"]
 # sysadmin helper
 
 FROM base AS admin
-USER root
-RUN install -o coursys -d /home/coursys
-USER coursys
 CMD ["bash"]

@@ -236,6 +236,7 @@ services:
     extends: celery-fast
     volumes:
       - /data/db_backups:/db_backups:rw,z
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
