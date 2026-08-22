@@ -267,6 +267,14 @@ services:
       - status:/status:rw
       - celery_logs:/celery_logs:rw
 
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 
 volumes:
   static:
