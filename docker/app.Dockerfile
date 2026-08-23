@@ -28,7 +28,7 @@ RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
-# packages groups here: basics; csrpt connection; sattus monitoring; admin helpers
+# packages groups here: basics; csrpt connection; status monitoring; admin helpers
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     locales-all default-mysql-client \

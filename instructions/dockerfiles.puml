@@ -121,7 +121,7 @@ cloud memcached [
     cache framework
 ]
 
-agent "server\ncontainers" as server
+node "server\ncontainers" as server
 
 app --> server
 app --> server
