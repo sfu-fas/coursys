@@ -114,6 +114,7 @@ services:
       target: base
       args:
         - UID=6501
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=production
         - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
         - CANONICAL_NAME=coursys.sfu.ca

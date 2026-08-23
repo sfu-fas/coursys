@@ -65,7 +65,7 @@ RUN mkdir -p /coursys
 WORKDIR /coursys
 
 ARG UID=888
-ARG HOST_DOCKER_GID=140
+ARG HOST_DOCKER_GID=130
 RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
   && groupadd --gid=${HOST_DOCKER_GID} hostdocker \
   && gpasswd -a coursys hostdocker \

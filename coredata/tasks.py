@@ -145,11 +145,13 @@ def get_docker_output(cmd: str) -> str:
     (only) it has been given access to /var/run/docker.sock for this purpose
     """
     if cmd == 'ps':
-        p = subprocess.Popen(['docker', 'ps'], stdout=subprocess.PIPE)
+        c = ['docker', 'ps']
     elif cmd == 'stats':
-        p = subprocess.Popen(['docker', 'stats', '--no-stream'], stdout=subprocess.PIPE)
+        c = ['docker', 'stats', '--no-stream']
     else:
         raise NotImplementedError()
+
+    p = subprocess.Popen(c, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate(timeout=8)
     return (out if out else err).decode('utf-8')
 

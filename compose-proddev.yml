@@ -141,6 +141,7 @@ services:
       target: base
       args:
         - UID=888
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=proddev
         - SERVE_HOSTS=localhost
         - CANONICAL_NAME=localhost

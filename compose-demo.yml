@@ -147,6 +147,7 @@ services:
       target: base
       args:
         - UID=888
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=demo
         - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
         - CANONICAL_NAME=coursys-demo.selfip.net

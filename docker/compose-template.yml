@@ -145,6 +145,7 @@ services:
       target: base
       args:
         - UID={{ uid }}
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE={{ deploy_mode }}
         - SERVE_HOSTS={{ serve_hosts }}
         - CANONICAL_NAME={{ canonical_name }}
