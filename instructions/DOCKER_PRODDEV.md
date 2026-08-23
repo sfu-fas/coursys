@@ -54,3 +54,16 @@ endings of the source files and I had to do this to stop it:
 ```shell
 git config --global core.autocrlf false
 ```
+
+## Docker Monitoring
+
+The admin panel "docker ps" and "docker stats" tabs rely on passing `/var/run/docker.sock` through
+to the celery-batch container so it can inspect the outside host's Docker world. In order to do
+that, it needs to be able to read that file, which (on most Linux distros) requires being in the
+`docker` group. There is an environment variable to pass the necessary GID in if you want those
+tabs working:
+```sh
+export HOST_DOCKER_GID=`getent group docker | cut -d: -f3`
+docker compose build
+docker compose up -d
+```
