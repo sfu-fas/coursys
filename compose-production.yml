@@ -244,6 +244,10 @@ services:
     restart: unless-stopped
     environment:
       - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
