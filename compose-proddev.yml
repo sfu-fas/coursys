@@ -104,6 +104,7 @@ services:
         - CANONICAL_NAME=localhost
         - USER_PROTOCOL=http
         - USER_PORT=8080
+        - UID=888
     ports:
       - "8080:80"
     depends_on:
@@ -117,7 +118,7 @@ services:
     volumes:
       - static:/static:ro
       - nginx_logs:/nginx_logs:rw
-      - dynamic_config:/dynamic_config:ro
+      - dynamic_config:/dynamic_config:rw
     networks:
       - web
 
@@ -177,7 +178,7 @@ services:
       target: app
     restart: unless-stopped
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - web
     volumes:
@@ -189,7 +190,7 @@ services:
       target: app
     restart: unless-stopped
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - web
     volumes:

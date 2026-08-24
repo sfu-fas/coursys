@@ -110,6 +110,7 @@ services:
         - CANONICAL_NAME=coursys-demo.selfip.net
         - USER_PROTOCOL=http
         - USER_PORT=80
+        - UID=888
     ports:
       - "80:80"
     depends_on:
@@ -123,7 +124,7 @@ services:
     volumes:
       - static:/static:ro
       - /data/nginx_logs:/nginx_logs:rw,z
-      - /data/dynamic_config:/dynamic_config:ro,z
+      - /data/dynamic_config:/dynamic_config:rw,z
     networks:
       - web
 
@@ -183,7 +184,7 @@ services:
       target: app
     restart: unless-stopped
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - web
     volumes:
@@ -195,7 +196,7 @@ services:
       target: app
     restart: unless-stopped
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - web
     volumes:

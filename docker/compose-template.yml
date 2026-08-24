@@ -108,6 +108,7 @@ services:
         - CANONICAL_NAME={{ canonical_name }}
         - USER_PROTOCOL={{ user_protocol }}
         - USER_PORT={{ user_port }}
+        - UID={{ uid }}
     ports:
       - "{{ external_port }}:80"
     depends_on:
@@ -121,7 +122,7 @@ services:
     volumes:
       - static:/static:ro
       - {{ data_location }}nginx_logs:/nginx_logs:rw{% if selinux %},z{% endif %}
-      - {{ data_location }}dynamic_config:/dynamic_config:ro{% if selinux %},z{% endif %}
+      - {{ data_location }}dynamic_config:/dynamic_config:rw{% if selinux %},z{% endif %}
     networks:
       - web
 
