@@ -22,6 +22,7 @@ The services running in production are either docker containers (configured in `
 * ElasticSearch: used for the site search and autocomplete (through the Django haystack library).
 * Memcached: temporary caching (through the Django caching framework).
 * Logrotate: a little container rotating the nginx logs.
+* Autoheal: a tool that watches other Docker containers. If they become "unhealthy" they are restarted. It's *probably* completely unnecssary.
 
 See `arch.png` for that in diagram form. Or `dockerfiles.png` for an overview of how the containers get built.
 

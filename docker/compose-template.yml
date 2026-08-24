@@ -145,6 +145,7 @@ services:
       target: base
       args:
         - UID={{ uid }}
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE={{ deploy_mode }}
         - SERVE_HOSTS={{ serve_hosts }}
         - CANONICAL_NAME={{ canonical_name }}
@@ -234,6 +235,7 @@ services:
     extends: celery-fast
     volumes:
       - {{ data_location }}db_backups:/db_backups:rw{% if selinux %},z{% endif %}
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -268,6 +270,18 @@ services:
     volumes:
       - status:/status:rw
       - {{ data_location }}celery_logs:/celery_logs:rw{% if selinux %},z{% endif %}
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:

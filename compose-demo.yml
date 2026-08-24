@@ -147,6 +147,7 @@ services:
       target: base
       args:
         - UID=888
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=demo
         - SERVE_HOSTS=coursys-demo.selfip.net coursys-test.selfip.net localhost
         - CANONICAL_NAME=coursys-demo.selfip.net
@@ -236,6 +237,7 @@ services:
     extends: celery-fast
     volumes:
       - /data/db_backups:/db_backups:rw,z
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -270,6 +272,18 @@ services:
     volumes:
       - status:/status:rw
       - /data/celery_logs:/celery_logs:rw,z
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:
