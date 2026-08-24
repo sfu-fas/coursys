@@ -23,9 +23,7 @@ COPY docker/nginx/serve-host.conf /etc/nginx/
 COPY docker/nginx/redirect-host.conf /etc/nginx/
 COPY docker/nginx/default-host.conf /etc/nginx/
 COPY docker/nginx/configure-hosts.sh /etc/nginx/
-
 COPY docker/nginx/start-nginx.sh /
-COPY docker/nginx/backend-configs /etc/nginx/backend-configs
 
 # The configure-hosts.sh script is responsible for appending server{} blocks to the nginx
 # config for whatever hostnames we're dealing with, either by serving directly, or forwarding to

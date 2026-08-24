@@ -157,16 +157,7 @@ services:
       - /data/csrpt_auth:/csrpt_auth:rw,z
   app-b:
     extends:
-      service: base
-    build:
-      target: app
-    restart: unless-stopped
-    deploy:
-      replicas: 1
-    networks:
-      - web
-    volumes:
-      - /data/csrpt_auth:/csrpt_auth:rw,z
+      service: app-a
 
   manage:
     extends:

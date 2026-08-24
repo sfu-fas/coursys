@@ -189,16 +189,7 @@ services:
       - {{ data_location }}csrpt_auth:/csrpt_auth:rw{% if selinux %},z{% endif %}
   app-b:
     extends:
-      service: base
-    build:
-      target: app
-    restart: unless-stopped
-    deploy:
-      replicas: {{ app_replicas }}
-    networks:
-      - web
-    volumes:
-      - {{ data_location }}csrpt_auth:/csrpt_auth:rw{% if selinux %},z{% endif %}
+      service: app-a
 
   manage:
     extends:
