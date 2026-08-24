@@ -2,9 +2,8 @@ COURSYS_USER=coursys
 
 GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
-DOCKERROLLOUT=docker rollout
 # containers where our code runs, which are usually all that need to be rebuilt:
-CODE_CONTAINERS=app beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+CODE_CONTAINERS=app-a app-b beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
 
 
 start-all:
@@ -24,13 +23,29 @@ build:
 build-code-containers:  # we almost never need containers without our code rebuilt, so don't by default.
 	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
 
+rollout:  # a zero-downtime switchover from old to new container images rollinw between app-a and app-b
+	# drain requests to app-a
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-a.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	# restart app-a
+	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-a
+	# drain app-b
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-b.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	# restart app-b
+	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-b
+	# restore default config (using both app-a and app-b)
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/default.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	# restart anything else that needs it
+	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans
+
 deploy:
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERROLLOUT} --timeout 60 --wait-after-healthy 5 app        # zero-downtime rollout of app service
-	${DOCKERCOMPOSE} up -d --remove-orphans                         # restart celery and anything else changed
+	make rollout
 
-deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
+deploy-no-rollout:  # skips the smooth "rollout" in favour of a faster "up -d" with a few seconds of downtime
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	${DOCKERCOMPOSE} up -d --remove-orphans
@@ -79,8 +94,3 @@ dbshell:
 	${DOCKERCOMPOSE} run manage dbshell
 admin:
 	${DOCKERCOMPOSE} run admin bash
-
-get-docker-rollout:  # should be installed globally in prod, but for dev environments, a handy fetcher...
-	mkdir -p ~/.docker/cli-plugins
-	wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O ~/.docker/cli-plugins/docker-rollout
-	chmod +x ~/.docker/cli-plugins/docker-rollout
