@@ -2,6 +2,7 @@
 import os
 import datetime
 from celery import Celery
+import celery_healthcheck
 
 import sys
 assert sys.version_info >= (3, 5)
@@ -16,6 +17,7 @@ app = Celery('courses')
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings', namespace='CELERY')
+celery_healthcheck.register(app)
 app.autodiscover_tasks()
 
 

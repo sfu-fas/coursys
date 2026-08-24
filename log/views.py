@@ -187,6 +187,14 @@ class CeleryTaskDataJson(BaseDatatableView):
             elif exception == 'NO':
                 qs = qs.exclude(data__has_key='exception')
 
+        exclude_ping = GET.get('exclude_ping[]', False)
+        if exclude_ping:
+            qs = qs.exclude(task='coredata.tasks.ping')
+
+        exclude_beat_test = GET.get('exclude_beat_test[]', False)
+        if exclude_beat_test:
+            qs = qs.exclude(task='coredata.tasks.beat_test')
+
         return qs
 
 

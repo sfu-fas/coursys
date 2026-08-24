@@ -1,8 +1,11 @@
+import itertools
+
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
-from coredata.forms import RoleForm, SystemVariableForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
+from coredata.csrpt import initial_csrpt_auth
+from coredata.forms import CSRPTAuthForm, RoleForm, SystemVariableForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
         TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm, \
         OffboardForm, EditPersonForm
@@ -439,14 +442,11 @@ def add_combined_offering(request, pk):
 def admin_panel(request):
     if 'content' in request.GET:
         if request.GET['content'] == 'deploy_checks':
-            passed, failed = panel.deploy_checks(request=request)
+            passed, failed = panel.deploy_checks()
             return render(request, 'coredata/admin_panel_tab.html', {'passed': passed, 'failed': failed})
         elif request.GET['content'] == 'settings_info':
             data = panel.settings_info()
             return render(request, 'coredata/admin_panel_tab.html', {'settings_data': data})
-        elif request.GET['content'] == 'psinfo':
-            data = panel.ps_info()
-            return render(request, 'coredata/admin_panel_tab.html', {'psinfo': data})
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
@@ -458,11 +458,6 @@ def admin_panel(request):
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'the_request': pprint.pformat(request.__dict__)})
-        elif request.GET['content'] == 'git':
-            git = {}
-            git['branch'] = panel.git_branch().decode('utf8')
-            git['revision'] = panel.git_revision().decode('utf8')
-            return render(request, 'coredata/admin_panel_tab.html', {'git':git})
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
             return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
@@ -470,9 +465,13 @@ def admin_panel(request):
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
         elif request.GET['content'] == 'environ':
-            environ = [(k,v) for k,v in os.environ.items()]
+            environ = [(k,v) for k,v in os.environ.items() if 'PASS' not in k]
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
+        elif request.GET['content'] == 'docker-ps':
+            return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose ps\n" + panel.get_docker_status('ps')})
+        elif request.GET['content'] == 'docker-stats':
+            return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose stats\n" + panel.get_docker_status('stats')})
         elif request.GET['content'] == 'throw':
             raise RuntimeError(
                 'This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
@@ -498,8 +497,8 @@ def admin_panel(request):
                 messages.error(request, res)
         elif 'tasks' in request.POST:
             if 'daily' in request.POST:
-                from coredata.tasks import import_task
-                import_task.apply_async()
+                from coredata.tasks import daily_import
+                daily_import.apply_async()
                 messages.success(request, 'Daily import task started.')
             elif 'visits' in request.POST:
                 from advisornotes.tasks import program_info_for_advisorvisits
@@ -1732,6 +1731,93 @@ def course_enrolment(request, course_slug):
         'enrolment_end': enrolment_end
     }
     return render(request, 'coredata/course_enrolment.html', context)
+
+
+@requires_global_role("SYSA")
+def csrpt_auth(request):
+    """
+    Manage reporting database authentication
+    """
+    if request.method == 'POST':
+        form = CSRPTAuthForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            result = initial_csrpt_auth(username, password, get_cert=True)
+
+            if result is None:
+                messages.success(request, 'CSRPT auth successful')
+                l = LogEntry(userid=request.user.username,
+                      description=f'Did CSRPT auth for {username}', related_object=request.user)
+                l.save()
+                return HttpResponseRedirect(reverse('sysadmin:csrpt_auth', kwargs={}))
+            else:
+                messages.error(request, f'CSRPT auth failed: {result}')
+
+    else:
+        form = CSRPTAuthForm(initial={'username': request.user.username})
+
+    context = {
+        'form': form
+    }
+    return render(request, 'coredata/csrpt_auth.html', context)
+
+
+def _clear_config(objects):
+    for o in objects:
+        o.config = {}
+
+
+def demo_data(request):
+    """
+    Export privacy-safe demo data for import on a demo server
+    
+    Requires first few characters of the server secret as ?key=abc123, so we can easily access with
+    curl or similar, but still not broadcast this too publicly (even though it's all public data).
+    """
+    from django.core import serializers
+
+    key = settings.SECRET_KEY[:6]
+    if 'key' not in request.GET or request.GET['key'] != key:
+        return HttpResponse('Unauthorized', status=401)
+
+    data = []
+    the_past = datetime.date.today() - datetime.timedelta(days=365)
+
+    semesters = Semester.objects.all()
+    data.append(semesters)
+
+    all_units = Unit.objects.all()
+    # Get units in dependency order, so .parent is there when inserting
+    units = [u for u in all_units if u.parent is None]
+    last_len = 0
+    while len(units) != last_len:
+        last_len = len(units)
+        units.extend([u for u in all_units if u.parent in units and u not in units])
+    _clear_config(units)
+    data.append(units)
+
+    offerings = CourseOffering.objects.filter(semester__start__gte=the_past).exclude(component="CAN").select_related('course')
+    _clear_config(offerings)
+
+    courses = {o.course for o in offerings}
+    data.append(courses)
+    data.append(offerings)
+
+    instructors = Member.objects.filter(offering__in=offerings, role='INST', added_reason='AUTO').select_related('person')
+    _clear_config(instructors)
+
+    people = {m.person for m in instructors}
+    _clear_config(people)
+    for i, p in enumerate(people):
+        p.emplid = str(400000000 + i)
+        p.title = 'M'
+    data.append(people)
+    data.append(instructors)
+
+    content = serializers.serialize('json', itertools.chain.from_iterable(data))
+    return HttpResponse(content, content_type='application/json')
 
 
 @requires_global_role("SYSA")

@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponseForbidden
 from django.urls import reverse
@@ -1059,3 +1061,24 @@ def frontend_check(request):
 
     context = {}
     return render(request, "dashboard/frontend_check.html", context)
+
+
+def healthcheck(request):
+    from coredata.panel import health_check
+    try:
+        res = health_check()
+        status = 200
+    except Exception as e:
+        if os.path.isfile('/dynamic_config/healthcheck_errors'):
+            raise
+        else:
+            res = {'exception': str(e)}
+            # any status code >=500 triggers admin email, which is generally a little aggressive
+            status = 404
+
+    # render it in an HTML template, as an implicit check that our static media, etc is okay
+    context = {
+        'res': res,
+        'status': status,
+    }
+    return render(request, "dashboard/healthcheck.html", context, status=status)

@@ -18,6 +18,9 @@ from submission.models import SubmissionInfo
 import bs4
 import io, os.path, tempfile, subprocess, re
 
+# Our moss.pl has been modified to use more sane temp locations:
+# $errfile = "/tmp/mosserrors$$";
+# $TMP = "/tmp/mosstmp$$";
 
 # MOSS language choices. Incomplete: included ones I imagine we might use.
 # See @languages in the moss.pl source.

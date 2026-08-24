@@ -1,7 +1,5 @@
-from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
-import socket, sys, os
-hostname = socket.gethostname()
+import sys, os
 assert sys.version_info >= (3, 7)  # some logic assumes the insertion-ordered dicts from Python 3.7+
 
 try:
@@ -10,41 +8,29 @@ except ImportError:
     # not there? Assume the defaults are okay
     localsettings = None
 
-try:
-    from . import secrets
-except ImportError:
-    # not there? Hope we're not in production and continue
-    secrets = None
-
 # set overall deployment personality
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
     DEPLOY_MODE = localsettings.DEPLOY_MODE
-elif hostname == 'courses':  # TODO: this is no longer the correct condition
-    # full production mode
-    DEPLOY_MODE = 'production'
-elif False:
-    # production-like development environment
-    DEPLOY_MODE = 'proddev'
 else:
     # standard development environment
     DEPLOY_MODE = 'devel'
 
-#print "DEPLOY_MODE: ", DEPLOY_MODE
-
-DEBUG = DEPLOY_MODE != 'production'
+DEBUG = DEPLOY_MODE != 'production' and getattr(localsettings, 'DEBUG', True)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
-sys.path.append( os.path.join(BASE_DIR, 'external') )
+
+if os.path.exists(os.path.join(BASE_DIR, 'this_is_production.txt')) and DEPLOY_MODE != 'production':
+    # we take the existence of this file to indicate we have access to production data, so *must* be in production mode
+    raise ValueError('Refusing to start in non-production mode')
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
     ('Renee Chong', 'renee_chong@sfu.ca'),
 )
-SERVER_EMAIL = 'ggbaker@sfu.ca'
+SERVER_EMAIL = 'noreply@coursys.sfu.ca'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -57,7 +43,6 @@ INSTALLED_APPS = (
     'compressor',
     'haystack',
     'djcelery_email',
-    'django_celery_beat',
     'formtools',
     'coredata',
     'dashboard',
@@ -134,21 +119,23 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Disable migrations only when running tests.
-if 'test' in sys.argv[1:]:
+IN_TESTING = 'test' in sys.argv[1:]
+if IN_TESTING:
+    if DEPLOY_MODE == 'production':
+        raise ValueError
     MIGRATION_MODULES = {}
     for m in INSTALLED_APPS:
         MIGRATION_MODULES[m] = None
 
-# security-related settings
-CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
-SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
-SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
-REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
-if DEBUG:
-    ALLOWED_HOSTS.append('localhost')
-ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
+# domain names and server config here
+USER_PROTOCOL = getattr(localsettings, 'USER_PROTOCOL', 'http')
+USER_PORT = int(getattr(localsettings, 'USER_PORT', '80'))
+SERVE_HOSTS = getattr(localsettings, 'SERVE_HOSTS', ['localhost'])
+# URLs that users go to must match f"{USER_PROTOCOL}://{A_SERVE_HOST}:{USER_PORT}/"
+# for both the nginx container config (see nginx.Dockerfile) and for ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS here.
 
+# security-related settings
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 14*24*3600  # 14 days
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -157,14 +144,20 @@ PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE 
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [f'https://{h}' for h in SERVE_HOSTS])
+
+# Here be dragons. Django's CSRF checks are different in https vs http, which makes them very hard to test outside of the production environment. Make sure POST requests work as expected (e.g. test email send in admin panel) if anything changes here.
+if (USER_PROTOCOL == 'https' and USER_PORT == 443) or (USER_PROTOCOL == 'http' and USER_PORT == 80):
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}' for h in SERVE_HOSTS]
+else:
+    CSRF_TRUSTED_ORIGINS = [f'{USER_PROTOCOL}://{h}:{USER_PORT}' for h in SERVE_HOSTS]
+CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', CSRF_TRUSTED_ORIGINS)
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            #'CONN_MAX_AGE': 360,
+            'PORT': 3306,
             'OPTIONS': {
                 "init_command": "SET default_storage_engine=INNODB, character_set_client=utf8mb4, character_set_connection=utf8mb4, character_set_results=utf8mb4, collation_connection=utf8mb4_unicode_ci, collation_server=utf8mb4_unicode_ci;",
                 'charset': 'utf8mb4',
@@ -178,21 +171,15 @@ if DEPLOY_MODE in ['production', 'proddev']:
     if gunicorn_process:
         DATABASES['default']['CONN_MAX_AGE'] = 3600
 
-    if DEPLOY_MODE == 'proddev':
-        DATABASES['default'].update({
-            'NAME': 'coursys',
-            'USER': 'coursysuser',
-            'PASSWORD': 'coursyspassword',
-            'HOST': '127.0.0.1',
-            'PORT': 3306,
-        })
-
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
-    DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
-    if getattr(localsettings, 'MORE_DATABASES', None):
-        DATABASES.update(localsettings.MORE_DATABASES)
-
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
+
+    if IN_TESTING:
+        DATABASES['default'].update({
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite',
+            'OPTIONS': {},
+        })
 
 else:
     DATABASES = {
@@ -203,18 +190,14 @@ else:
     }
 
 if DEPLOY_MODE == 'production':
-    SECRET_KEY = secrets.SECRET_KEY
+    SECRET_KEY = localsettings.SECRET_KEY
 else:
-    SECRET_KEY = 'a'*50
-
+    SECRET_KEY = getattr(localsettings, 'SECRET_KEY', 'a'*50)
 
 
 # static file settings
 STATIC_URL = '/static/'
-if 'COURSYS_STATIC_DIR' in os.environ:
-    STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+STATIC_ROOT = getattr(localsettings, 'STATIC_ROOT', os.path.join(BASE_DIR, '..', 'static', 'static'))
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -238,29 +221,29 @@ NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': '127.0.0.1:11211',
+        'LOCATION': 'memcached:11211',
     } }
-    if getattr(localsettings, 'MEMCACHED_HOST', None):
-        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
+    if getattr(localsettings, 'MEMCACHED_LOCATION', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_LOCATION
+    ELASTICSEARCH_HOST = getattr(localsettings, 'ELASTICSEARCH_HOST', 'elasticsearch')
+    ELASTICSEARCH_PASSWORD = getattr(localsettings, 'ELASTICSEARCH_PASSWORD', 'espass')
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
-            'URL': 'http://127.0.0.1:9200/',
+            'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+            'URL': f'http://{ELASTICSEARCH_HOST}:9200/',
+            'KWARGS': {'http_auth': ("elastic", ELASTICSEARCH_PASSWORD)},
             'INDEX_NAME': 'haystack',
             'TIMEOUT': 60,
         },
     }
-    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
+    if IN_TESTING:
+        HAYSTACK_CONNECTIONS['default']['INDEX_NAME'] = 'haystack-testing'
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', '/db_backups')
 
 else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
-    if getattr(localsettings, 'FORCE_MEMCACHED', False):
-        CACHES = { 'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-            'LOCATION': '127.0.0.1:11211',
-        } }
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
@@ -278,7 +261,7 @@ if DEPLOY_MODE == 'production':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/filestore/prod/submitted_files')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
 
@@ -287,9 +270,9 @@ elif DEPLOY_MODE == 'proddev':
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
-    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
-    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/submitted_files')
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost")
+    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 
 else:
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
@@ -298,15 +281,15 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel') and not IN_TESTING
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
-    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
-    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
+    RABBITMQ_PASSWORD = getattr(localsettings, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
+    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'rabbitmq:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
-    CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
+    CELERY_BROKER_URL = getattr(localsettings, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
     CELERY_RESULT_BACKEND = 'rpc://'
     CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
@@ -318,13 +301,12 @@ if USE_CELERY:
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     from courses import celery_schedule
     CELERY_BEAT_SCHEDULE = celery_schedule.CELERY_BEAT_SCHEDULE
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
-    CELERY_ENABLE_UTC = False
-    CELERY_TIMEZONE = TIME_ZONE
+    CELERY_ENABLE_UTC = True
+    CELERY_TIMEZONE = 'UTC'
     CELERY_TASK_ALWAYS_EAGER = False
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'
@@ -354,13 +336,13 @@ EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'smtpserver.sfu.ca')
 EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 25)
 EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', False)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
-DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
-SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
+DEFAULT_SENDER_EMAIL = 'coursys-help@sfu.ca'
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
+CSRPT_AUTH_FILES = getattr(localsettings, 'CSRPT_AUTH_FILES', '/csrpt_auth')
 
-EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
-MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
+EMPLID_API_SECRET = getattr(localsettings, 'EMPLID_API_SECRET', '')
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', '/coursys/moss')
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 
@@ -384,7 +366,7 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
-if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
+if not FORCE_CAS and DEPLOY_MODE != 'production':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     LOGIN_URL = "/fake_login"

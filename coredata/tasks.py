@@ -1,4 +1,5 @@
 import os
+import subprocess
 from typing import Optional, Iterable, Type
 
 from django.conf import settings
@@ -7,14 +8,16 @@ from haystack.exceptions import NotHandled
 from haystack.utils import loading
 from haystack.utils.app_loading import haystack_get_models, haystack_load_apps
 
+from coredata.csrpt import refresh_csrpt_auth
 from coredata.queries import SIMSConn, SIMSProblem
 from django.core.management import call_command
 from courselib.celerytasks import task
 from coredata.models import Role, Unit, EnrolmentHistory
 import celery
 
-app = celery.Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
-
+if settings.USE_CELERY:
+    # Periodic tasks don't fire without app constructed... 
+    app = celery.Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)
 
 # the maximum beat test age we'd be happy with
 BEAT_FILE_MAX_AGE = 1200
@@ -79,17 +82,25 @@ def set_beat_time() -> None:
     u.save()
 
 
-@task()
-def regular_backup():
-    backup_database.si().apply_async()
-
-
-@task()
+@task(queue='batch')
 def backup_database():
-    call_command('backup_db', clean_old=True)
+    if settings.DO_IMPORTING_HERE:
+        call_command('backup_db', clean_old=True)
 
 
-@task()
+@task(queue='batch')
+def check_db_backup_create(backup_dir):
+    from coredata.panel import check_file_create
+    return check_file_create(backup_dir)
+
+
+@task(queue='batch')
+def check_db_backup_free(backup_dir):
+    from coredata.panel import check_free_space
+    return check_free_space(backup_dir, 'DB backup dir', 50)
+
+
+@task(queue='sims')
 def check_sims_connection():
     if settings.DISABLE_REPORTING_DB:
         return
@@ -125,6 +136,24 @@ def check_sims_task() -> Optional[str]:
         return "couldn't import pyodbc module"
     except Exception as e:
         return 'Generic exception, %s' % (str(e))
+
+
+@task(queue='batch')
+def get_docker_output(cmd: str) -> str:
+    """
+    Get docker info for admin panel display. Done in the celery-batch container because
+    (only) it has been given access to /var/run/docker.sock for this purpose
+    """
+    if cmd == 'ps':
+        c = ['docker', 'ps']
+    elif cmd == 'stats':
+        c = ['docker', 'stats', '--no-stream']
+    else:
+        raise NotImplementedError()
+
+    p = subprocess.Popen(c, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate(timeout=8)
+    return (out if out else err).decode('utf-8')
 
 
 @task()
@@ -183,21 +212,8 @@ def grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@task()
+@task(queue='sims', max_retries=3)  # allow a few retries in case csrpt isn't up when we start
 def daily_import():
-    """
-    Start the daily import work.
-    """
-    # This is a separate task because periodic tasks run in the worker queue. We want all SIMS access running in the
-    # sims queue. This task essentially starts and bounces the work into the other queue.
-    if not settings.DO_IMPORTING_HERE:
-        return
-
-    import_task.apply_async()
-
-
-@task(queue='sims')
-def import_task():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
@@ -347,6 +363,20 @@ def import_active_grad_gpas():
     importer.import_active_grads_gpas()
 
 
+
+###################################################################################################
+# CSRPT auth
+
+@task(queue='sims', max_retries=3, default_retry_delay=300)
+def csrpt_refresh_periodic():
+    if settings.DISABLE_REPORTING_DB:
+        return
+    res = refresh_csrpt_auth()
+    if res is not None:
+        raise RuntimeError(res)
+
+
+
 ###################################################################################################
 # Search-related tasks
 
@@ -357,7 +387,7 @@ def haystack_update():
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@task(queue='sims')
+@task(queue='batch')
 def haystack_rebuild():
     our_clear_index()
     our_update_index.delay(update_only=False)
@@ -407,7 +437,7 @@ def our_update_index(group_size: int = 2500, update_only: bool = True):
                 chain.delay()
 
 
-@task(queue='batch', serializer='pickle')
+@task(queue='batch', serializer='pickle', max_retries=3)
 def update_index_chunk(using: str, model: Type[models.Model], pks: Iterable[int], commit: bool = True) -> None:
     """
     Index these instances (type model, primary keys in pks) with Haystack.

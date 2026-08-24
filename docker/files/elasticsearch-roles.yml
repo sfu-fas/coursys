@@ -1,0 +1,4 @@
+health_monitor_role:
+  cluster:
+    - monitor
+  indices: []

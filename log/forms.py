@@ -45,6 +45,8 @@ class RequestLogForm(EventLogFilterForm):
 class CeleryTaskForm(EventLogFilterForm):
     task = forms.CharField(label='Task contains')
     exception = forms.ChoiceField(choices=BOOLEAN_FILTER_CHOICES)
+    exclude_ping = forms.BooleanField(required=False, initial=True)
+    exclude_beat_test = forms.BooleanField(required=False, initial=True)
 
     task.widget.attrs.update(size="15")
 

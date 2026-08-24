@@ -5,7 +5,7 @@ import datetime
 from collections import defaultdict
 
 
-@task()
+@task(queue='sims', max_retries=3)
 def update_program_info(advisor_visit_ids):
     visits = AdvisorVisit.objects.filter(id__in=advisor_visit_ids) \
             .exclude(student__isnull=True).select_related('student')
@@ -28,7 +28,7 @@ def update_program_info(advisor_visit_ids):
         v.save()
 
 
-@task()
+@task(max_retries=3)
 def program_info_for_advisorvisits():
     """
     Find any AdvisorVisits that need their sims_programs filled in; start a task to do that.

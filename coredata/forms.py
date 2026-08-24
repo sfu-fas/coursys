@@ -681,6 +681,12 @@ class RoleAccountForm(forms.ModelForm):
         super(RoleAccountForm, self).__init__(*args, **kwargs)
         self.fields['userid'].widget.attrs.update({'autofocus': 'autofocus'})
 
+
+class CSRPTAuthForm(forms.Form):
+    username = forms.CharField(required=True, label="Username", max_length=25)
+    password = forms.CharField(required=True, label="Password", max_length=25,
+                            widget=forms.PasswordInput())
+
 class SystemVariableForm(forms.ModelForm):
     class Meta:
         model = SystemVariable

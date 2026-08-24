@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}CSRPT Auth{% endblock %}
+{% block h1 %}CSRPT Auth{% endblock %}
+
+{% block headextra %}{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>CSRPT Auth</li>{% endblock %}
+
+
+{% block content %}
+
+<form action="" method="post">{% csrf_token %}
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</form>
+
+{% endblock %}

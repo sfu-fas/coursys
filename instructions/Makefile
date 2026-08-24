@@ -1,5 +1,7 @@
-arch.png: arch.puml
-	plantuml arch.puml 
-	pngquant -q 50 arch.png
-	mv arch-fs8.png arch.png
-	optipng -q arch.png
+ALL: arch.png docker-arch.png
+
+%.png: %.puml
+	plantuml $< 
+	pngquant -q 50 $@
+	mv $*-fs8.png $@
+	optipng -q $@

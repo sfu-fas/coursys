@@ -18,17 +18,18 @@ else:
     docker_compose = ["docker", "compose", "-f", "./docker-compose.yml"]
 
 
-@task(queue="batch")
+@task(queue="fast")
 def log_regular():
     """
     Logging we want to do regularly: every ~15 minutes.
     """
     log_system_usage()
-    log_process_usage()
-    log_container_usage()
+    # these fail inside a docker container: would have to be done outside and piped in if we need them.
+    #log_process_usage()
+    #log_container_usage()
 
 
-@task(queue="batch")
+@task(queue="fast")
 def log_system_usage():
     """
     Log system load and memory usage.
@@ -115,7 +116,7 @@ def log_container(name: str):
     ).save()
 
 
-@task(queue="batch")
+@task(queue="fast")
 def log_container_usage():
     """
     Log resources used by each of our Docker containers.
@@ -192,7 +193,7 @@ def log_celery():
         log_process(f"celery_{name}", pid)
 
 
-@task(queue="batch")
+@task(queue="fast")
 def log_process_usage():
     service_info("gunicorn")
     service_info("nginx")
@@ -201,7 +202,7 @@ def log_process_usage():
     # log_celery()
 
 
-@task(queue="batch")
+@task(queue="fast")
 def log_avg_request_duration():
     """
     Log average time needed to respond to HTTP requests (by Django, over the last hour).

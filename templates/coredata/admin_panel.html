@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -29,7 +29,6 @@ $(document).ready(function() {
 <div id="tabs">
   <ul>
   <li><a href="#welcome">Welcome</a></li>
-  <li><a href="{% url 'sysadmin:admin_panel' %}?content=psinfo">Process Info</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=settings_info">Settings Info</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=deploy_checks">Deployment Checks</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=email">Email Check</a></li>
@@ -37,12 +36,20 @@ $(document).ready(function() {
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=tasks">Celery Tasks</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=request">Request Details</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=environ">Environment Vars</a></li>
-  <li><a href="{% url 'sysadmin:admin_panel' %}?content=git">Git Status</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=pip">PIP Status</a></li>
   <li><a href="{% url 'sysadmin:admin_panel' %}?content=csrpt">Reporting DB</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=docker-ps">docker ps</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=docker-stats">docker stats</a></li>
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>
+  <p><a href="{% url 'sysadmin:frontend_check' %}">Frontend Check</a>: check that JS libraries are working as expected.</p>
+  <!--
+  <ul>
+    <li><a href="{% url 'sysadmin:admin_panel' %}?content=throw">Throw an exception</a></li>
+    <li><a href="{% url 'sysadmin:admin_panel' %}?content=failing_task">Throw an exception in Celery</a></li>
+  </ul>
+  -->
   </div>
 </div>
 

@@ -9,12 +9,12 @@
 {% endcompress %}
 {% compress js %}
 <script type="text/javascript" src="{% static "js/grad.js" %}"></script>
+{% endcompress %}
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
 	prep_content();
 });
 </script>
-{% endcompress %}
 
 {% block gradheadextra %}{% endblock %}
 {% endblock %}

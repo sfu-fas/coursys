@@ -560,8 +560,10 @@ def _edit_tug(request, course_slug, userid, tug=None):
     if not tug:
         tug = TUG(member=member)
         draft = True
+        description = 'Create'
     else:
         draft = tug.draft        
+        description = 'Edit'
 
     if course.semester.name >= TUG_FORMAT_CUTOFF:
         new_format = True
@@ -576,14 +578,21 @@ def _edit_tug(request, course_slug, userid, tug=None):
             if 'save_draft' in request.POST:
                 tug.draft = True
                 tug.save(newsitem=False)
+                description += " draft TUG for TA %s "  % userid
             else:
                 tug.draft = False
                 tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
+                description += " TUG for TA %s "  % userid
 
             if not tug.draft: 
                 contract_info = __get_contract_info(tug.member)               
                 tug = get_object_or_404(TUG, member=member)
                 _email_tug(tug, contract_info)
+
+            l = LogEntry(userid=request.user.username,
+                description=description,
+                related_object=tug)
+            l.save()
             return HttpResponseRedirect(reverse('offering:view_tug', args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug, offering=course, userid=userid, enforced_prep_min=prep_min, initial={
