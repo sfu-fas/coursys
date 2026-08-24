@@ -39,8 +39,3 @@ SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclama
     This demo server is publicly available and unauthenticated: no confidential or personally-identifying information
     should be entered anywhere here.
 </p>''')
-
-if os.path.isfile('/dynamic_config/server_message_index.html'):
-    SERVER_MESSAGE_INDEX = mark_safe(open('/dynamic_config/server_message_index.html', 'rt', encoding='utf-8').read())
-if os.path.isfile('/dynamic_config/server_message.html'):
-    SERVER_MESSAGE = mark_safe(open('/dynamic_config/server_message.html', 'rt', encoding='utf-8').read())
