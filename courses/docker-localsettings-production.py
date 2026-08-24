@@ -33,8 +33,3 @@ EMPLID_API_SECRET = config['external']['emplid_api_secret']
 
 # SERVER_MESSAGE_INDEX = mark_safe('''<p class="infomessage"><i class="fas fa-info-circle"></i> Info on the index page.</p>''')
 # SERVER_MESSAGE = mark_safe('''<p class="warningmessage"><i class="fas fa-exclamation-triangle"></i> Warning on every page</p>''')
-
-if os.path.isfile('/dynamic_config/server_message_index.html'):
-    SERVER_MESSAGE_INDEX = mark_safe(open('/dynamic_config/server_message_index.html', 'rt', encoding='utf-8').read())
-if os.path.isfile('/dynamic_config/server_message.html'):
-    SERVER_MESSAGE = mark_safe(open('/dynamic_config/server_message.html', 'rt', encoding='utf-8').read())
