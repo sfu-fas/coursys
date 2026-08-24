@@ -34,7 +34,7 @@ DEPLOYMENT_CONTEXTS = {
         "canonical_name": "localhost",
         "user_protocol": "http",
         "user_port": 8080,
-        "app_replicas": 1,
+        "app_replicas": 2,
         "dev_services": True,
         "service_secrets": False,  # don't bother, for simpler dev setup
     },

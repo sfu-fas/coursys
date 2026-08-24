@@ -113,7 +113,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -175,7 +176,19 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
+    extends:
+      service: base
+    build:
+      target: app
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+    networks:
+      - web
+    volumes:
+      - /data/csrpt_auth:/csrpt_auth:rw,z
+  app-b:
     extends:
       service: base
     build:
