@@ -8,13 +8,13 @@
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
-<li><a href="{% url "sysadmin:list_systemvariables" %}">System Variables</a></li>
+<li><a href="{% url "system:list_systemvariables" %}">System Variables</a></li>
 <li>Edit System Variable</li>
 {% endblock %}
 
 
 {% block content %}
-    <form action="{% url "sysadmin:edit_systemvariable" systemvariable_id=variable.id %}" method="post">
+    <form action="{% url "system:edit_systemvariable" systemvariable_id=variable.id %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

@@ -71,6 +71,7 @@ INSTALLED_APPS = (
     'space',
     'reminders',
     'forum',
+    'system',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',

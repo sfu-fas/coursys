@@ -86,11 +86,6 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^frontend-check$', dashboard_views.frontend_check, name='frontend_check'),
     url(r'^csrpt$', coredata_views.csrpt_auth, name='csrpt_auth'),
     url(r'^demo_data$', coredata_views.demo_data, name='demo_data'),
-    url(r'^variables/$', coredata_views.list_systemvariables, name='list_systemvariables'),
-    url(r'^variables/new/$', coredata_views.new_systemvariable, name='new_systemvariable'),
-    url(r'^variables/(?P<systemvariable_id>\d+)/edit/$', coredata_views.edit_systemvariable, name='edit_systemvariable'),
-    url(r'^variables/(?P<systemvariable_id>\d+)/delete/$', coredata_views.delete_systemvariable, name='delete_systemvariable'),
-
 ]
 
 browse_patterns = [ # prefix /browse/

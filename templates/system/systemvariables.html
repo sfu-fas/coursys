@@ -27,7 +27,7 @@ function confirmDelete(url) {
 
 {% block subbreadcrumbs %}
     <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
-    <li><a href="{% url "sysadmin:list_systemvariables" %}">System Variables</a></li>
+    <li><a href="{% url "system:list_systemvariables" %}">System Variables</a></li>
 {% endblock %}
 
 
@@ -36,7 +36,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url 'sysadmin:new_systemvariable' %}">New Variable</a></li>
+        <li><a href="{% url 'system:new_systemvariable' %}">New Variable</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -62,9 +62,9 @@ function confirmDelete(url) {
             <td>{% if variable.unit %}{{ variable.unit.label }}{% else %}Global{% endif %}</td>
             <td>{{ variable.created_at|date:"Y-m-d H:i" }}</td>
             <td>
-                <a href="{% url 'sysadmin:edit_systemvariable' variable.id %}">Edit</a>
+                <a href="{% url 'system:edit_systemvariable' variable.id %}">Edit</a>
                 |
-                <a href="#" onclick="confirmDelete('{% url 'sysadmin:delete_systemvariable' variable.id %}'); return false;">Delete</a>
+                <a href="#" onclick="confirmDelete('{% url 'system:delete_systemvariable' variable.id %}'); return false;">Delete</a>
             </td>
         </tr>
         {% endfor %}
