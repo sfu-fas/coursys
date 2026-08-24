@@ -141,6 +141,7 @@ services:
       target: base
       args:
         - UID=888
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=proddev
         - SERVE_HOSTS=localhost
         - CANONICAL_NAME=localhost
@@ -230,6 +231,7 @@ services:
     extends: celery-fast
     volumes:
       - db_backups:/db_backups:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -264,6 +266,18 @@ services:
     volumes:
       - status:/status:rw
       - celery_logs:/celery_logs:rw
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:

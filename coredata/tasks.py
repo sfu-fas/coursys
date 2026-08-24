@@ -1,4 +1,5 @@
 import os
+import subprocess
 from typing import Optional, Iterable, Type
 
 from django.conf import settings
@@ -135,6 +136,24 @@ def check_sims_task() -> Optional[str]:
         return "couldn't import pyodbc module"
     except Exception as e:
         return 'Generic exception, %s' % (str(e))
+
+
+@task(queue='batch')
+def get_docker_output(cmd: str) -> str:
+    """
+    Get docker info for admin panel display. Done in the celery-batch container because
+    (only) it has been given access to /var/run/docker.sock for this purpose
+    """
+    if cmd == 'ps':
+        c = ['docker', 'ps']
+    elif cmd == 'stats':
+        c = ['docker', 'stats', '--no-stream']
+    else:
+        raise NotImplementedError()
+
+    p = subprocess.Popen(c, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate(timeout=8)
+    return (out if out else err).decode('utf-8')
 
 
 @task()

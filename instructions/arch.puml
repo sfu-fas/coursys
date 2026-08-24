@@ -39,6 +39,7 @@ package "Production Server" {
         database "<$memcached>\nMemcached" as memcached
         database "<$elasticsearch>\nElasticsearch" as elasticsearch
         agent "Logrotate" as logrotate
+        agent "Autoheal" as autoheal
 
         static <-- gunicorn  : "compressor"
         nginx <-- static : "static\nfiles"
@@ -50,6 +51,8 @@ package "Production Server" {
         gunicorn <--> elasticsearch : search
         rabbitmq <.. celerybeat : periodic\ntasks
         import <... celery : runs
+        ' reposition autoheal:
+        memcached -[hidden]- autoheal
 
         control "manage\ncollectstatic" as collectstatic
     }

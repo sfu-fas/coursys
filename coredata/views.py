@@ -468,6 +468,10 @@ def admin_panel(request):
             environ = [(k,v) for k,v in os.environ.items() if 'PASS' not in k]
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
+        elif request.GET['content'] == 'docker-ps':
+            return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose ps\n" + panel.get_docker_status('ps')})
+        elif request.GET['content'] == 'docker-stats':
+            return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose stats\n" + panel.get_docker_status('stats')})
         elif request.GET['content'] == 'throw':
             raise RuntimeError(
                 'This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
