@@ -89,6 +89,8 @@ rm503:
 
 # admin helpers
 
+compose-yml:
+	python manage.py build_compose_yml ALL
 shell:
 	${DOCKERCOMPOSE} run manage shell
 dbshell:
