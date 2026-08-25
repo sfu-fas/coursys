@@ -147,7 +147,7 @@ docker compose kill -s SIGHUP app
 
 ## In Case of Problems
 
-The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` uses docker-rollout, which checks the health status of the main Django container (`app`) and waits to bring down the old containers until the new ones are healthy. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from taking over.
+The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` does a rolling retstart, draining requests to and restarting the main Django containers (`app-1`) in turn. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from taking over.
 
 If there's any confusion, it might be informative to run the Django container in various ways to see what's going on. Perhaps one of:
 ```shell

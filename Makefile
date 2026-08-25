@@ -3,7 +3,7 @@ COURSYS_USER=coursys
 GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
 # containers where our code runs, which are usually all that need to be rebuilt:
-CODE_CONTAINERS=app-a app-b beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+CODE_CONTAINERS=beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^app' -e '^celery'`
 
 
 start-all:
@@ -24,19 +24,21 @@ build-code-containers:  # we almost never need containers without our code rebui
 	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
 
 rollout:  # a zero-downtime switchover from old to new container images, rolling between app-a and app-b
+	# What's happening here: /dynamic_config/nginx-backends.conf is juggled to select app-* backend(s), and SIGHUP to nginx tells it to seamlessly reload its config.
+	# Then while each app-* container is being ignored by nginx, it's restarted.
 	# drain requests to app-a
 	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-a.conf /dynamic_config/nginx-backends.conf
-	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 2
 	# restart app-a
 	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-a
 	# drain app-b
 	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-b.conf /dynamic_config/nginx-backends.conf
-	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 2
 	# restart app-b
 	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-b
 	# restore default config (using both app-a and app-b)
 	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/default.conf /dynamic_config/nginx-backends.conf
-	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 1
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx
 
 deploy:
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them

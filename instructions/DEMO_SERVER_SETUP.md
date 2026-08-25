@@ -41,7 +41,6 @@ Log out and back in so the group membership takes effect.
 
 ```shell
 cd /coursys
-make get-docker-rollout
 docker compose pull
 docker compose build --pull
 docker compose up -d mysql elasticsearch rabbitmq memcached
