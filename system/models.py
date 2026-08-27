@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal, InvalidOperation
-
+from coredata.models import Unit
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator, URLValidator, validate_email
 from django.db import models
@@ -48,10 +48,13 @@ class SystemVariable(models.Model):
     label = models.CharField(max_length=200, help_text='e.g. "Minimum Wage"')
     value_type = models.CharField(max_length=20, choices=VALUE_TYPE_CHOICES, default=TYPE_STRING)
     value = models.TextField(default='', blank=True)
-    unit = models.ForeignKey('coredata.Unit', null=True, blank=True, on_delete=models.PROTECT, help_text='Leave blank for the global default value.')
+    unit = models.ForeignKey(Unit, null=True, blank=True, on_delete=models.PROTECT, help_text='Leave blank for the global default value.')
     notes = models.TextField(default='', blank=True, help_text='Any notes about this variable?')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (('key', 'unit'))
 
     def _default_typed_value(self):
         return self.DEFAULT_TYPED_VALUES.get(self.value_type, '')
@@ -70,9 +73,9 @@ class SystemVariable(models.Model):
 
         if self.value_type == self.TYPE_BOOLEAN:
             val = str(raw_value).strip().lower()
-            if val in {'true', '1', 'yes'}:
+            if val in {'true'}:
                 return True
-            if val in {'false', '0', 'no'}:
+            if val in {'false'}:
                 return False
             return self._default_typed_value()
 
