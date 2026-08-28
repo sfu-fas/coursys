@@ -33,6 +33,9 @@ sudo install -o 1000 -d ${DATA_PREFIX}elasticsearch7
 
 sudo apt-get install -y make docker-compose-v2 docker-buildx
 sudo gpasswd -a `whoami` docker
+echo 'export HOST_DOCKER_GID=`getent group docker | cut -d: -f3`' >> /etc/profile.d/coursys.sh
+chmod 0644 /etc/profile.d/coursys.sh
+. /etc/profile.d/coursys.sh
 ```
 Log out and back in so the group membership takes effect.
 
