@@ -15,15 +15,10 @@ else
 fi
 [ -f /etc/yum.repos.d/docker-ce.repo ] || ( ${DNF_ADD} https://download.docker.com/linux/${ID}/docker-ce.repo )
 
-# Get docker-rollout
-[ -f /usr/bin/docker ] || dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-install -o root -m 0755 -d /usr/local/lib/docker/cli-plugins
-[ -f /usr/local/lib/docker/cli-plugins/docker-rollout ] || curl -L https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout > /usr/local/lib/docker/cli-plugins/docker-rollout
-chmod 0755 /usr/local/lib/docker/cli-plugins/docker-rollout
-
 systemctl enable --now docker
 
 echo 'alias dc="docker compose"' > /etc/profile.d/coursys.sh
+echo 'export HOST_DOCKER_GID=`getent group docker | cut -d: -f3`' >> /etc/profile.d/coursys.sh
 chmod 0644 /etc/profile.d/coursys.sh
 
 # Put users into the docker group

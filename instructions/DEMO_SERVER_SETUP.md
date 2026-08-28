@@ -41,7 +41,6 @@ Log out and back in so the group membership takes effect.
 
 ```shell
 cd /coursys
-make get-docker-rollout
 docker compose pull
 docker compose build --pull
 docker compose up -d mysql elasticsearch rabbitmq memcached
@@ -74,7 +73,6 @@ If you don't need the user-facing demo data, you can load the developer data ins
 ```shell
 docker compose run manage loaddata fixtures/*
 ```
-
 
 
 ## Purging Data

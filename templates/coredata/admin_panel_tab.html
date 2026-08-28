@@ -53,6 +53,10 @@ Some guess about how fresh the reporting database is&hellip;
 <pre>{{ the_request }}</pre>
 {% endif %}
 
+{% if small_content %}
+<pre style="font-size: 70%; overflow: scroll">{{ small_content }}</pre>
+{% endif %}
+
 {% if environ %}
 {% for k,v in environ %}<pre>{{ k }}={{ v }}</pre>
 {% endfor %}

@@ -1,12 +1,12 @@
 ARG PYTHON_MINOR_VERSION=3.13
 
-# builder that can collect the python and node dependencies
+# builder that can collect the python dependencies
 
-FROM python:${PYTHON_MINOR_VERSION}-slim AS builder
+FROM python:${PYTHON_MINOR_VERSION}-slim AS pip_builder
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    git locales-all npm libfreetype-dev \
+    git locales-all libfreetype-dev \
     pkg-config default-libmysqlclient-dev build-essential \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -14,25 +14,32 @@ RUN apt-get update \
 RUN mkdir -p /coursys /build
 WORKDIR /build
 
-COPY package.json /build/package.json
-COPY package-lock.json /build/package-lock.json
-RUN npm ci
-
 RUN pip install --no-cache-dir --upgrade pip
 COPY requirements.txt /build/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /build/requirements.txt
 
+
+# builder that can collect the JS dependencies
+
+FROM node:26-alpine AS npm_builder
+
+RUN mkdir /build
+WORKDIR /build
+COPY package.json /build/package.json
+COPY package-lock.json /build/package-lock.json
+RUN npm ci
 
 
 # base image: common config to both the web app and celery workers (i.e. most config)
 
 FROM python:${PYTHON_MINOR_VERSION}-slim AS base
 
-# packages groups here: basics; csrpt connection; admin helpers
+# packages groups here: basics; csrpt connection; status monitoring; admin helpers
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     locales-all default-mysql-client \
     unixodbc-dev krb5-user tdsodbc \
+    docker-cli procps \
     curl wget freetds-bin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -64,12 +71,16 @@ RUN mkdir -p /coursys
 WORKDIR /coursys
 
 ARG UID=888
+ARG HOST_DOCKER_GID=130
 RUN useradd -l -s /bin/bash --uid ${UID} -d /home/coursys coursys \
+  && groupadd --gid=${HOST_DOCKER_GID} hostdocker \
+  && gpasswd -a coursys hostdocker \
+  && install -o ${UID} -d /home/coursys \
   && install -o ${UID} -d /static /csrpt_auth /db_backups /submitted_files /dynamic_config /celery_logs /status
 
-COPY --from=builder /build/node_modules /build/node_modules
-COPY --from=builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=npm_builder /build/node_modules /build/node_modules
+COPY --from=pip_builder /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_MINOR_VERSION}/site-packages/
+COPY --from=pip_builder /usr/local/bin/ /usr/local/bin/
 
 COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=instructions \
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy \
@@ -113,6 +124,8 @@ CMD ["/celery-worker.sh"]
 # celery beat image
 
 FROM base AS beat
+HEALTHCHECK --interval=60s --timeout=5s --start-period=30s --start-interval=5s \
+  CMD pgrep -f beat || exit 1
 CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO", "--logfile", "/celery_logs/beat.log", "-s", "/status/celerybeat-schedule"]
 
 
@@ -128,7 +141,4 @@ CMD ["shell"]
 # sysadmin helper
 
 FROM base AS admin
-USER root
-RUN install -o coursys -d /home/coursys
-USER coursys
 CMD ["bash"]

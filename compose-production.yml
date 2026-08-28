@@ -77,10 +77,12 @@ services:
         - CANONICAL_NAME=coursys.sfu.ca
         - USER_PROTOCOL=https
         - USER_PORT=443
+        - UID=6501
     ports:
       - "80:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -89,7 +91,7 @@ services:
     volumes:
       - static:/static:ro
       - /data/nginx_logs:/nginx_logs:rw,z
-      - /data/dynamic_config:/dynamic_config:ro,z
+      - /data/dynamic_config:/dynamic_config:rw,z
     networks:
       - web
 
@@ -114,6 +116,7 @@ services:
       target: base
       args:
         - UID=6501
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=production
         - SERVE_HOSTS=coursys.sfu.ca fasit.sfu.ca
         - CANONICAL_NAME=coursys.sfu.ca
@@ -140,18 +143,21 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
     extends:
       service: base
     build:
       target: app
     restart: unless-stopped
     deploy:
-      replicas: 2
+      replicas: 1
     networks:
       - web
     volumes:
       - /data/csrpt_auth:/csrpt_auth:rw,z
+  app-b:
+    extends:
+      service: app-a
 
   manage:
     extends:
@@ -202,6 +208,7 @@ services:
     extends: celery-fast
     volumes:
       - /data/db_backups:/db_backups:rw,z
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -236,6 +243,18 @@ services:
     volumes:
       - status:/status:rw
       - /data/celery_logs:/celery_logs:rw,z
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:
