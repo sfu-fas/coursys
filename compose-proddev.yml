@@ -104,10 +104,12 @@ services:
         - CANONICAL_NAME=localhost
         - USER_PROTOCOL=http
         - USER_PORT=8080
+        - UID=888
     ports:
       - "8080:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -116,7 +118,7 @@ services:
     volumes:
       - static:/static:ro
       - nginx_logs:/nginx_logs:rw
-      - dynamic_config:/dynamic_config:ro
+      - dynamic_config:/dynamic_config:rw
     networks:
       - web
 
@@ -141,6 +143,7 @@ services:
       target: base
       args:
         - UID=888
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE=proddev
         - SERVE_HOSTS=localhost
         - CANONICAL_NAME=localhost
@@ -168,7 +171,7 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
     extends:
       service: base
     build:
@@ -180,6 +183,9 @@ services:
       - web
     volumes:
       - csrpt_auth:/csrpt_auth:rw
+  app-b:
+    extends:
+      service: app-a
 
   manage:
     extends:
@@ -230,6 +236,7 @@ services:
     extends: celery-fast
     volumes:
       - db_backups:/db_backups:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -264,6 +271,18 @@ services:
     volumes:
       - status:/status:rw
       - celery_logs:/celery_logs:rw
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:

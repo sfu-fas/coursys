@@ -22,6 +22,7 @@ The services running in production are either docker containers (configured in `
 * ElasticSearch: used for the site search and autocomplete (through the Django haystack library).
 * Memcached: temporary caching (through the Django caching framework).
 * Logrotate: a little container rotating the nginx logs.
+* Autoheal: a tool that watches other Docker containers. If they become "unhealthy" they are restarted. It's *probably* completely unnecssary.
 
 See `arch.png` for that in diagram form. Or `dockerfiles.png` for an overview of how the containers get built.
 
@@ -146,7 +147,7 @@ docker compose kill -s SIGHUP app
 
 ## In Case of Problems
 
-The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` uses docker-rollout, which checks the health status of the main Django container (`app`) and waits to bring down the old containers until the new ones are healthy. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from taking over.
+The *hope* is that we have enough system checks that if the system comes up, it comes up correctly. Running `make new-code` does a rolling restart, draining requests to and restarting the main Django containers (`app-*`) in turn. If that fails, it also leaves the various Celery containers as-is. In theory, that should prevent broken deployments from taking over.
 
 If there's any confusion, it might be informative to run the Django container in various ways to see what's going on. Perhaps one of:
 ```shell

@@ -108,10 +108,22 @@ cloud elasticsearch as elasticsearch_base
 elasticsearch_base ..> elasticsearch
 
 
-cloud memcached
+cloud autoheal [
+    autoheal
+    ----
+    restarts unhealthy
+    containers
+]
+cloud memcached [
+    memcached
+    ----
+    caching for Django's
+    cache framework
+]
 
-agent "server\ncontainers" as server
+node "server\ncontainers" as server
 
+app --> server
 app --> server
 celery --> server
 celery --> server
@@ -123,6 +135,7 @@ nginx --> server
 logrotate --> server
 rabbitmq ----> server
 elasticsearch ----> server
+autoheal ---> server
 memcached ---> server
 
 @enduml

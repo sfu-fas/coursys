@@ -108,10 +108,12 @@ services:
         - CANONICAL_NAME={{ canonical_name }}
         - USER_PROTOCOL={{ user_protocol }}
         - USER_PORT={{ user_port }}
+        - UID={{ uid }}
     ports:
       - "{{ external_port }}:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -120,7 +122,7 @@ services:
     volumes:
       - static:/static:ro
       - {{ data_location }}nginx_logs:/nginx_logs:rw{% if selinux %},z{% endif %}
-      - {{ data_location }}dynamic_config:/dynamic_config:ro{% if selinux %},z{% endif %}
+      - {{ data_location }}dynamic_config:/dynamic_config:rw{% if selinux %},z{% endif %}
     networks:
       - web
 
@@ -145,6 +147,7 @@ services:
       target: base
       args:
         - UID={{ uid }}
+        - HOST_DOCKER_GID=${HOST_DOCKER_GID:-130}
         - DEPLOY_MODE={{ deploy_mode }}
         - SERVE_HOSTS={{ serve_hosts }}
         - CANONICAL_NAME={{ canonical_name }}
@@ -172,7 +175,7 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
     extends:
       service: base
     build:
@@ -184,6 +187,9 @@ services:
       - web
     volumes:
       - {{ data_location }}csrpt_auth:/csrpt_auth:rw{% if selinux %},z{% endif %}
+  app-b:
+    extends:
+      service: app-a
 
   manage:
     extends:
@@ -234,6 +240,7 @@ services:
     extends: celery-fast
     volumes:
       - {{ data_location }}db_backups:/db_backups:rw{% if selinux %},z{% endif %}
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for docker status in admin panel
     environment:
       - QUEUE=batch
       - CONCURRENCY=2
@@ -268,6 +275,18 @@ services:
     volumes:
       - status:/status:rw
       - {{ data_location }}celery_logs:/celery_logs:rw{% if selinux %},z{% endif %}
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    deploy:
+      resources:
+        limits:
+          memory: 20mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:

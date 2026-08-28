@@ -30,15 +30,16 @@ package "Production Server" {
         folder "static" as static
         control "Daily Import\nTask" as import
         
-        agent "<$python>\nCelery\nworkers" as celery
-        agent "Celerybeat" as celerybeat
+        agent "<$python>\nCelery workers\n(celery-*)" as celery
+        agent "Celerybeat\n(beat)" as celerybeat
         agent "<$nginx>\nNginx" as nginx
-        agent "<$python>\nGunicorn" as gunicorn
+        agent "<$python>\nGunicorn\n(app-*)" as gunicorn
 
         queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
         database "<$memcached>\nMemcached" as memcached
         database "<$elasticsearch>\nElasticsearch" as elasticsearch
         agent "Logrotate" as logrotate
+        agent "Autoheal" as autoheal
 
         static <-- gunicorn  : "compressor"
         nginx <-- static : "static\nfiles"
@@ -50,6 +51,8 @@ package "Production Server" {
         gunicorn <--> elasticsearch : search
         rabbitmq <.. celerybeat : periodic\ntasks
         import <... celery : runs
+        ' reposition autoheal:
+        memcached -[hidden]- autoheal
 
         control "manage\ncollectstatic" as collectstatic
     }

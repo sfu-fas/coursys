@@ -527,6 +527,18 @@ def csrpt_info():
         return [('SIMS problem', str(e))]
 
 
+def get_docker_status(page: str) -> str:
+    """
+    Call celery task for docker status report
+    """
+    from coredata.tasks import get_docker_output
+    try:
+        res = get_docker_output.delay(page)
+        return res.get(timeout=10)
+    except Exception as e:
+        return str(e)
+
+
 def health_check() -> Dict[str, Any]:
     """
     A minimal sanity check that can be used for a docker healthcheck (and dashboard.views.health_check).

@@ -19,4 +19,7 @@ VOLUME /status
 COPY --chmod=0644 docker/files/logrotate.conf /etc/logrotate.d/coursys
 RUN echo "0 5 * * * /usr/sbin/logrotate -v --state /status/logrotate.status /etc/logrotate.d/coursys" > /etc/crontabs/root
 
+HEALTHCHECK --interval=60s --timeout=5s --start-period=30s --start-interval=5s \
+  CMD pgrep -f crond || exit 1
+
 CMD ["crond", "-f", "-d", "8"]
