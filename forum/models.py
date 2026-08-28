@@ -188,7 +188,7 @@ class Identity(models.Model):
         return member.person.name_pref()
 
     @staticmethod
-    def identity_choices(offering_identity, member):
+    def identity_choices(offering_identity: str, member: Member):
         """
         Allowed identity.choices for an offering with this identity restrictions.
         """
@@ -197,6 +197,7 @@ class Identity(models.Model):
         choices = [
             ('NAME', 'Post with your real name (as “%s”)' % (real_name,))
         ]
+        # ANON has an extra option compared to INST.
         if member.role == 'STUD' and offering_identity == 'ANON':
             choices.append(('ANON', 'Anonymously (as “%s”)' % (anon_name,)))
         if member.role == 'STUD' and offering_identity in ['ANON', 'INST']:
