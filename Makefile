@@ -44,12 +44,12 @@ deploy:
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
 	make rollout
-	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans 	# restart anything else that needs it
+	${DOCKERCOMPOSE} up -d --timeout 30 --remove-orphans 	# restart anything else that needs it
 
 deploy-no-rollout:  # skips the smooth "rollout" in favour of a faster "up -d" with a few seconds of downtime
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERCOMPOSE} up -d --remove-orphans
+	${DOCKERCOMPOSE} up -d --timeout 30 --remove-orphans
 
 new-code: build-code-containers deploy
 
