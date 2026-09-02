@@ -2,6 +2,7 @@ import datetime
 import http.client
 import ssl
 from email.utils import parsedate_to_datetime
+import sys
 from typing import Any, Dict
 
 import psutil
@@ -517,7 +518,7 @@ def pip_info():
     pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
     output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
-    return [('PIP freeze', mark_safe(result))]
+    return [('Python Version', sys.version), ('PIP freeze', mark_safe(result))]
 
 
 def csrpt_info():
