@@ -1,6 +1,7 @@
 import re
 from django import forms
 from django.forms.utils import ErrorList
+from django.utils.safestring import mark_safe
 from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
@@ -27,7 +28,7 @@ class LabelledHidden(forms.HiddenInput):
         res = super(LabelledHidden, self).render(name, value, attrs=attrs, renderer=renderer)
         if value:
             res += str(value)
-        return res
+        return mark_safe(res)
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
