@@ -1,4 +1,4 @@
-ARG PYTHON_MINOR_VERSION=3.13
+ARG PYTHON_MINOR_VERSION=3.14
 
 # builder that can collect the python dependencies
 

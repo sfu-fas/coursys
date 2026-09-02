@@ -29,9 +29,9 @@ class ActivityForm(forms.Form):
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage',
                                  help_text='Percent of final mark',
                                  widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))
-    url = forms.URLField(required=False, label='URL',
+    url = forms.URLField(required=False, label='URL', assume_scheme='https',
                                  help_text='Page for more information, e.g. assignment description or exam info',
-                                 widget=forms.TextInput(attrs={'size':'60'})) # for Django 5.0: assume_scheme='https'
+                                 widget=forms.TextInput(attrs={'size':'60'}))
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
@@ -305,9 +305,9 @@ class StudentSearchForm(forms.Form):
 
 class CourseConfigForm(forms.Form):
     from forum.models import IDENTITY_CHOICES
-    url = forms.URLField(required=False, label='Course URL',
+    url = forms.URLField(required=False, label='Course URL', assume_scheme='https',
             help_text='Course home page address',
-            widget=forms.TextInput(attrs={'size':'60'})) # for Django 5.0: assume_scheme='https'
+            widget=forms.TextInput(attrs={'size':'60'}))
     taemail = forms.EmailField(required=False, label="TA Contact Email",
             help_text="Email address to contact the TAs: set if you have a central contact address/list and don't want to encourage use of TAs' individual emails",)
     #discussion = forms.BooleanField(required=False, label='Discussion',

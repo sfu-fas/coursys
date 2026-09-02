@@ -30,7 +30,7 @@ def create_parser():
     
     Parser throws ParseException if something goes wrong.
     """
-    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, CharsNotIn, Forward, nums, delimitedList, infix_notation, opAssoc
+    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, CharsNotIn, Forward, nums, DelimitedList, infix_notation, opAssoc
 
     def column_parse(toks):
         """
@@ -87,15 +87,15 @@ def create_parser():
             Optional( CaselessLiteral("E") + Optional(sign) + Word(nums) ) # scientific notation part
             )
     integer = Word(nums)
-    number = (real | integer).setParseAction(real_parse) # all numbers treated as floats to avoid integer arithmetic rounding
+    number = (real | integer).set_parse_action(real_parse) # all numbers treated as floats to avoid integer arithmetic rounding
 
     # Allow anything except ']' in column names.  Let the limitations on sane column names be enforced somewhere else.
-    actionflag = Group(Suppress('[[') + CharsNotIn('[]') + Suppress(']]') ).setParseAction(actionflag_parse)
-    column = Group(Suppress('[') + CharsNotIn('[]') + Suppress(']') ).setParseAction(column_parse)
+    actionflag = Group(Suppress('[[') + CharsNotIn('[]') + Suppress(']]') ).set_parse_action(actionflag_parse)
+    column = Group(Suppress('[') + CharsNotIn('[]') + Suppress(']') ).set_parse_action(column_parse)
     expr = Forward()
     function_name = ( CaselessLiteral("SUM") | CaselessLiteral("AVG") | CaselessLiteral("MAX")
             | CaselessLiteral("MIN") | CaselessLiteral("BEST") | CaselessLiteral("COUNT") )
-    function = Group(function_name + Suppress('(') + delimitedList(expr) + Suppress(')')).setParseAction(func_parse)
+    function = Group(function_name + Suppress('(') + DelimitedList(expr) + Suppress(')')).set_parse_action(func_parse)
     operand = number | column | function | actionflag
 
     signop = Literal("+") | Literal("-")
@@ -130,7 +130,7 @@ def parse(expr, course, activity):
     """
     Parse expression and return parse tree.
     """
-    parsed = parser.parseString(expr)[0]
+    parsed = parser.parse_string(expr)[0]
     fix_used_acts(parsed, course, activity)
     return parsed
 
