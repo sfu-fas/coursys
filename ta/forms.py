@@ -2,6 +2,7 @@ import re
 from django import forms
 from django.forms.utils import ErrorList
 from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
@@ -27,7 +28,7 @@ class LabelledHidden(forms.HiddenInput):
     def render(self, name, value, attrs=None, renderer=None):
         res = super(LabelledHidden, self).render(name, value, attrs=attrs, renderer=renderer)
         if value:
-            res += str(value)
+            res += conditional_escape(value)
         return mark_safe(res)
 
 @table_row__Form
