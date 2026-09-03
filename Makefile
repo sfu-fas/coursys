@@ -4,7 +4,7 @@ GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
 # containers where our code runs, which are usually all that need to be rebuilt:
 CODE_CONTAINERS=beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^app' -e '^celery'`
-GIT_COMMIT=`git rev-parse --short HEAD || echo unknown`
+GIT_COMMIT=`${GIT} rev-parse --short HEAD || git rev-parse --short HEAD || echo unknown`
 
 
 start-all:
@@ -29,12 +29,12 @@ rollout:  # a zero-downtime switchover from old to new container images, rolling
 	# Then while each app-* container is being ignored by nginx, it's restarted.
 	# drain requests to app-a
 	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-a.conf /dynamic_config/nginx-backends.conf
-	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 2
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 5
 	# restart app-a
 	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-a
 	# drain app-b
 	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-b.conf /dynamic_config/nginx-backends.conf
-	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 2
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 5
 	# restart app-b
 	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-b
 	# restore default config (using both app-a and app-b)
