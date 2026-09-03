@@ -361,7 +361,11 @@ class Post(models.Model):
         if self.status in ['HIDD', 'LOCK']:
             return
 
-        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
+        if self.id is None:
+            # not-yet saved, so can't have replies
+            replies = Reply.objects.none()
+        else:
+            replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
 
         if self.type != 'QUES':
             self.status = 'NOAN'
