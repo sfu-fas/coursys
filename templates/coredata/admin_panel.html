@@ -43,6 +43,7 @@ $(document).ready(function() {
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>
+  <p>Git commit: {{ gitcommit }}</p>
   <p><a href="{% url 'sysadmin:frontend_check' %}">Frontend Check</a>: check that JS libraries are working as expected.</p>
   <!--
   <ul>

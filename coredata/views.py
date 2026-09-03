@@ -511,7 +511,8 @@ def admin_panel(request):
                 messages.success(request, 'Grad update and import tasks started.')
 
     context = {
-        'loadavg': os.getloadavg()
+        'loadavg': os.getloadavg(),
+        'gitcommit': os.environ.get('GIT_COMMIT', 'unknown'),
     }
     return render(request, 'coredata/admin_panel.html', context)
 

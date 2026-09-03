@@ -4,6 +4,7 @@ GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
 # containers where our code runs, which are usually all that need to be rebuilt:
 CODE_CONTAINERS=beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^app' -e '^celery'`
+GIT_COMMIT=`git rev-parse --short HEAD || echo unknown`
 
 
 start-all:
@@ -15,13 +16,13 @@ pull:
 pull-build:
 	${GIT} pull
 	${DOCKERCOMPOSE} pull
-	${DOCKERCOMPOSE} build --pull --no-cache
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT} --pull --no-cache
 
 build:
-	${DOCKERCOMPOSE} build
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT}
 
 build-code-containers:  # we almost never need containers without our code rebuilt, so don't by default.
-	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT} ${CODE_CONTAINERS}
 
 rollout:  # a zero-downtime switchover from old to new container images, rolling between app-a and app-b
 	# What's happening here: /dynamic_config/nginx-backends.conf is juggled to select app-* backend(s), and SIGHUP to nginx tells it to seamlessly reload its config.
@@ -97,3 +98,5 @@ dbshell:
 	${DOCKERCOMPOSE} run manage dbshell
 admin:
 	${DOCKERCOMPOSE} run admin bash
+
+.PHONY: deploy start-all pull pull-build build build-code-containers rollout new-code new-code-pull new-code-no-rollout migrate-safe purge-cache purge-static drain-tasks 503 rm503 compose-yml shell dbshell admin

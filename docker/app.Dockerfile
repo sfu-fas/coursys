@@ -86,6 +86,8 @@ COPY --exclude=.git --exclude=node_modules --exclude=secrets --exclude=instructi
   --exclude=submitted_files --exclude=whoosh_index --exclude=deploy \
   . /coursys
 COPY courses/docker-localsettings-${DEPLOY_MODE}.py /coursys/courses/localsettings.py
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=${GIT_COMMIT}
 
 USER coursys
 RUN ln -sf /csrpt_auth/krb5cc /tmp/krb5cc_${UID}  # do this with coursys user ownership
