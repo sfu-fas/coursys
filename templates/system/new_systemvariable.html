@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}New System Variable{% endblock %}
+{% block h1 %}New System Variable{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "system:list_systemvariables" %}">System Variables</a></li>
+<li>New System Variable</li>
+{% endblock %}
+
+
+{% block content %}
+    <form action="{% url "system:new_systemvariable" %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Create" />
+    </p>
+</form>
+{% endblock %}
