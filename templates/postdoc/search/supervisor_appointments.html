@@ -1,0 +1,87 @@
+{% extends "base-wide.html" %}
+
+{% block title %}
+  Appointments that {{ person.first_name }} {{ person.last_name }} supervises
+{% endblock %}
+{% block h1 %}
+  Appointments that {{ person.first_name }} {{ person.last_name }} supervises
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "postdoc:post_doctoral_fellow" %}">Post Doctoral Fellow</a></li>
+<li>Appointments Supervised by {{ person.first_name }} {{ person.last_name }}</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#appointments').dataTable({
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    'bJQueryUI': true,
+    'aaSorting': [[3, 'desc']]
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+  <table class="info">
+    <tbody>
+      <tr><th scope="row">Last Name</th><td>{{ person.last_name }}</td></tr>
+      <tr><th scope="row">First Name</th><td>{{ person.first_name }}</td></tr>
+      <tr><th scope="row">Middle Name</th><td>{{ person.middle_name }}</td></tr>
+      <tr><th scope="row">ID</th><td>{{ person.emplid }}</td></tr>
+      <tr><th scope="row">Email Address</th><td>{{ person.email_mailto }}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+{% if appointments %}
+  <h2>Appointments</h2>
+  <div class="datatable_container">
+    <table id="appointments" class="display">
+      <thead>
+        <tr>
+          <th scope="col">PDF Name</th>
+          <th scope="col">Supervisor Name(s)</th>
+          <th scope="col">Unit</th>
+          <th scope="col">Start Date</th>
+          <th scope="col">End Date</th>
+          <th scope="col">Payment Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+          <tr>
+            <td>
+              <a href="{% url "postdoc:view_postdoc_appointment" postdoc_slug=appt.slug %}">
+                {{ appt.person.sortname_pref }}
+              </a>
+            </td>
+            <td>
+              {% for link in appt.supervisor_links.all %}
+                {{ link.supervisor.sortname_pref }}{% if not forloop.last %}; {% endif %}
+              {% endfor %}
+            </td>
+            <td>{{ appt.unit.label }}</td>
+            <td><span class="sort">{{ appt.start_date.isoformat }}</span>{{ appt.start_date }}</td>
+            <td><span class="sort">{{ appt.end_date.isoformat }}</span>{{ appt.end_date }}</td>
+            <td>
+              {% if appt.lump_sum_payment %}
+                ${{ appt.lump_sum_payment }} (Lump Sum)
+              {% else %}
+                ${{ appt.annual_salary_amount }} (Annual)
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  No appointments found.
+{% endif %}
+{% endblock %}

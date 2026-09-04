@@ -24,6 +24,7 @@ from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
 from space.urls import space_patterns
 from reminders.urls import reminders_patterns
+from postdoc.urls import postdoc_patterns
 
 import dashboard.views as dashboard_views
 import grad.views as grad_views
@@ -82,6 +83,7 @@ urlpatterns = [
     url(r'^inventory/', include((inventory_pattern, 'inventory'), namespace='inventory')),
     url(r'^space/', include((space_patterns, 'space'), namespace='space')),
     url(r'^reminders/', include((reminders_patterns, 'reminders'), namespace='reminders')),
+    url(r'^postdoc/', include((postdoc_patterns, 'postdoc'), namespace='postdoc')),
 
 
     # graduate student-related apps
