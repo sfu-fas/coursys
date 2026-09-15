@@ -16,6 +16,7 @@ from grades.urls import offering_patterns
 from ra.urls import ra_patterns
 from reports.urls import report_patterns
 from ta.urls import ta_patterns, tug_patterns
+from postdoc.urls import postdoc_patterns
 from tacontracts.urls import tacontract_patterns
 from visas.urls import visas_pattern
 from outreach.urls import outreach_pattern
@@ -90,6 +91,7 @@ urlpatterns = [
     url(r'^ta/', include((ta_patterns, 'ta'), namespace='ta')),
     url(r'^tacontracts/', include((tacontract_patterns, 'tacontracts'), namespace='tacontracts')),
     url(r'^tugs/', include((tug_patterns, 'tugs'), namespace='tugs')),
+    url(r'^postdoc/', include((postdoc_patterns, 'postdoc'), namespace='postdoc')),
 
 
     # redirect old mobile URLs to rightful locations
