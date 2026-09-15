@@ -99,4 +99,9 @@ dbshell:
 admin:
 	${DOCKERCOMPOSE} run admin bash
 
-.PHONY: deploy start-all pull pull-build build build-code-containers rollout new-code new-code-pull new-code-no-rollout migrate-safe purge-cache purge-static drain-tasks 503 rm503 compose-yml shell dbshell admin
+prod-setup:  # helper for individual user setup on the production server
+	sudo gpasswd -a `whoami` docker
+	mkdir -p ~/.docker
+	echo '{ "proxies": { "default": { "httpProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080", "httpsProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080", "noProxy": "cas.sfu.ca,.sfu.ca,localhost" } } }' > ~/.docker/config.json
+
+.PHONY: deploy start-all pull pull-build build build-code-containers rollout new-code new-code-pull new-code-no-rollout migrate-safe purge-cache purge-static drain-tasks 503 rm503 compose-yml shell dbshell admin prod-setup
