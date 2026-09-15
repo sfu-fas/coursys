@@ -1553,6 +1553,12 @@ def bulk_close(request, status=None):
                     can_admin = not is_advisor and (form_submission.status == 'PEND' or form_submission.status == 'WAIT')
                     if form_submission and can_admin:
                         admin = Person.objects.get(userid=request.user.username)
+                        waiting_sheets = SheetSubmission.objects.filter(form_submission=form_submission, status='WAIT')
+                        for ss in waiting_sheets:
+                            ss.status = 'REJE'
+                            ss.set_reject_reason('Withdrawn when form was bulk closed by %s.' % (admin.userid))
+                            ss.save()
+                        form_submission.set_notes('')
                         form_submission.set_closer(admin.id)
                         form_submission.status = 'DONE'
                         form_submission.save()
