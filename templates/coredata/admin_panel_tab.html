@@ -49,6 +49,11 @@ Some guess about how fresh the reporting database is&hellip;
 {{ csrpt|panel_info }}
 {% endif %}
 
+{% if photoapi %}
+<h2 id="photoapi">Photo API Info</h2>
+{{ photoapi|panel_info }}
+{% endif %}
+
 {% if the_request %}
 <pre>{{ the_request }}</pre>
 {% endif %}
