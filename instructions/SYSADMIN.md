@@ -88,6 +88,7 @@ make pull
 make new-code
 ```
 
+* `make prod-setup`: set up *your* user account for admin: add to the docker group, and create a docker config file. Requires sudo.
 * `make pull`: do a `git pull`, preserving the runlist file that likely contains local modifications. 
 * `make new-code`: rebuild containers and restart everything that's necessary when deploying modified code.
 * `make new-code-pull`: like `new-code` but pulls new base images for the containers.

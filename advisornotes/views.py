@@ -19,14 +19,14 @@ from django.db import transaction
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-from django.utils.html import mark_safe
+from django.utils.safestring import mark_safe
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 from django.template.loader import get_template
 from django.conf import settings
 import datetime
 import json
-from timeit import itertools
+import itertools
 import csv
 import urllib.parse
 import uuid
@@ -761,7 +761,6 @@ def student_courses(request, userid):
                'student': student,
                }
     resp = render(request, 'advisornotes/student_courses.html', context)
-    resp.has_inline_script = True # show/hide link
     return resp
 
 @requires_role(['ADVS', 'ADVM'])

@@ -669,6 +669,22 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     """
     Get course and GPA info for light transcript display
     """
+    if settings.DISABLE_REPORTING_DB and settings.DEPLOY_MODE != 'production':
+        # let us test *something* without full CSRPT access
+        return {
+            "transfers": [
+                { "crse_id": "001234", "grade": "A-", "units": 0.0, "repeat": "", "strm": "1227", "subject": "CHEM", "catalog_nbr": "X12", "descr": "BC High Chemistry 12", "crse_found": True, "req": "", "src": "Some high school" },
+                { "crse_id": "014952", "grade": "TR", "units": 0.0, "repeat": "", "strm": "1231", "subject": "FAL", "catalog_nbr": "X99", "descr": "Transfer Credit Only", "crse_found": True, "req": "", "src": "Some high school" },
+            ],
+            "semesters": [
+                { "semname": "2024 Fall", "strm": "1247", "career": "UGRD", "units_passed": 12.0, "tgpa": 3.33, "cgpa": 3.33, "standing": "GAS", "udgpa": 0.0, "courses": [
+                    { "strm": "1247", "class_nbr": 6206, "unit_taken": 3.0, "repeat": "", "grade": "B+", "subject": "CMPT", "number": "105W", "descr": "Soc. Issues & Cmns. Strategies", "req": "W" },
+                    { "strm": "1247", "class_nbr": 6210, "unit_taken": 3.0, "repeat": "", "grade": "B+",  "subject": "CMPT", "number": "125", "descr": "Intro.Cmpt.Sci/Programming II", "req": "Q" },
+                ]},
+            ],
+            "refresh": (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
+        }
+    
     data = {}
     emplid = str(emplid)
     req_map = get_reqmnt_designtn()
@@ -768,7 +784,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     db.execute("""SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO""", ())
     row = db.fetchone()
     if row:
-        data['refresh'] = str(row[0])
+        data['refresh'] = row[0].isoformat()
     else:
         data['refresh'] = 'unknown'
     
