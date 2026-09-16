@@ -768,7 +768,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     db.execute("""SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO""", ())
     row = db.fetchone()
     if row:
-        data['refresh'] = row[0]
+        data['refresh'] = str(row[0])
     else:
         data['refresh'] = 'unknown'
     
