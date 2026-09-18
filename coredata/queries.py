@@ -782,10 +782,12 @@ def course_data(emplid):
     # freshness
     db.execute("""SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO""", ())
     row = db.fetchone()
+    data['refresh'] = 'unknown'
     if row:
-        data['refresh'] = row[0].isoformat()
-    else:
-        data['refresh'] = 'unknown'
+        try:
+            data['refresh'] = row[0].isoformat()
+        except:
+            pass
     
     return data
 
