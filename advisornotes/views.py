@@ -774,7 +774,6 @@ def student_courses_data(request, userid):
     except SIMSProblem as e:
         data = {'error': str(e)}
 
-    #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, indent=1)
     return response
@@ -782,6 +781,8 @@ def student_courses_data(request, userid):
 
 @requires_role(['ADVS', 'ADVM'])
 def student_courses_download(request, userid):
+    from django.http import Http404
+    raise Http404  # disable this: probably nobody should use it. See if anybody complains
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     try:
         data = classes_data(student.emplid)

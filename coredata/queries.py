@@ -189,7 +189,7 @@ def _args_to_key(args, kwargs):
     return h.hexdigest()
 
 
-def cache_by_args(func, seconds=38800): # 8 hours by default
+def cache_by_args(func, seconds=3600): # 1 hour by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
     Requires arguments that can be converted to strings that uniquely identifies the results.
@@ -665,7 +665,7 @@ def get_semester_names():
     
 @cache_by_args
 @SIMS_problem_handler
-def course_data(emplid, needed=ALLFIELDS, exclude=[]):
+def course_data(emplid):
     """
     Get course and GPA info for light transcript display
     """
@@ -683,6 +683,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
                 ]},
             ],
             "refresh": (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
+            #"refresh": 'unknown'
         }
     
     data = {}
@@ -710,7 +711,6 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
         
         rdata.update(crse_id_info(crse_id))
         if not rdata['crse_found']:
-            #print rdata
             continue
 
         if rdata['reqdes']:
@@ -755,7 +755,6 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
         rdata['semname'] = sem_name[strm]
         semesters.append(rdata)
         semester_lookup[strm] = rdata
-        
     
     # courses
     enrl_query = "SELECT E.STRM, E.CLASS_NBR, E.UNT_TAKEN, " \
