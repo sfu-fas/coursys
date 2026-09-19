@@ -189,7 +189,7 @@ def _args_to_key(args, kwargs):
     return h.hexdigest()
 
 
-def cache_by_args(func, seconds=38800): # 8 hours by default
+def cache_by_args(func, seconds=3600): # 1 hour by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
     Requires arguments that can be converted to strings that uniquely identifies the results.
@@ -375,6 +375,20 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     needed is a list containing the values needed in the result (if available), or ALLFIELDS
     """
+    if settings.DISABLE_REPORTING_DB and settings.DEPLOY_MODE != 'production':
+        # let us test *something* without full CSRPT access
+        time.sleep(2)
+        return {
+            "phones": { "home": "778-555-5555", "cell": "778-555-5556" },
+            "addresses": { "home": "123 Fake St\nBurnaby, BC" },
+            "citizen": "probably",
+            "visa": "yup",
+            "gender": "U",
+            "programs": ["CMPTMAJ", "MATHMIN"],
+            "gpa": 3.67,
+            "ccredits": 45,
+        }
+    
     db = SIMSConn()
     data = {}
     
@@ -468,8 +482,6 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
             label = transcript or descr
             prog = "%s (%s subplan)" % (label, subplan)
             programs.append(prog)
-
-
 
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
@@ -665,10 +677,28 @@ def get_semester_names():
     
 @cache_by_args
 @SIMS_problem_handler
-def course_data(emplid, needed=ALLFIELDS, exclude=[]):
+def course_data(emplid):
     """
     Get course and GPA info for light transcript display
     """
+    if settings.DISABLE_REPORTING_DB and settings.DEPLOY_MODE != 'production':
+        # let us test *something* without full CSRPT access
+        time.sleep(2)
+        return {
+            "transfers": [
+                { "crse_id": "001234", "grade": "A-", "units": 0.0, "repeat": "", "strm": "1227", "subject": "CHEM", "catalog_nbr": "X12", "descr": "BC High Chemistry 12", "crse_found": True, "req": "", "src": "Some high school" },
+                { "crse_id": "014952", "grade": "TR", "units": 0.0, "repeat": "", "strm": "1231", "subject": "FAL", "catalog_nbr": "X99", "descr": "Transfer Credit Only", "crse_found": True, "req": "", "src": "Some high school" },
+            ],
+            "semesters": [
+                { "semname": "2024 Fall", "strm": "1247", "career": "UGRD", "units_passed": 12.0, "tgpa": 3.33, "cgpa": 3.33, "standing": "GAS", "udgpa": 0.0, "courses": [
+                    { "strm": "1247", "class_nbr": 6206, "unit_taken": 3.0, "repeat": "", "grade": "B+", "subject": "CMPT", "number": "105W", "descr": "Soc. Issues & Cmns. Strategies", "req": "W" },
+                    { "strm": "1247", "class_nbr": 6210, "unit_taken": 3.0, "repeat": "", "grade": "B+",  "subject": "CMPT", "number": "125", "descr": "Intro.Cmpt.Sci/Programming II", "req": "Q" },
+                ]},
+            ],
+            "refresh": (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
+            #"refresh": 'unknown'
+        }
+    
     data = {}
     emplid = str(emplid)
     req_map = get_reqmnt_designtn()
@@ -694,7 +724,6 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
         
         rdata.update(crse_id_info(crse_id))
         if not rdata['crse_found']:
-            #print rdata
             continue
 
         if rdata['reqdes']:
@@ -739,7 +768,6 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
         rdata['semname'] = sem_name[strm]
         semesters.append(rdata)
         semester_lookup[strm] = rdata
-        
     
     # courses
     enrl_query = "SELECT E.STRM, E.CLASS_NBR, E.UNT_TAKEN, " \
@@ -767,10 +795,12 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     # freshness
     db.execute("""SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO""", ())
     row = db.fetchone()
+    data['refresh'] = 'unknown'
     if row:
-        data['refresh'] = str(row[0])
-    else:
-        data['refresh'] = 'unknown'
+        try:
+            data['refresh'] = row[0].isoformat()
+        except:
+            pass
     
     return data
 

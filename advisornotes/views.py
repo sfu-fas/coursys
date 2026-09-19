@@ -19,14 +19,14 @@ from django.db import transaction
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-from django.utils.html import mark_safe
+from django.utils.safestring import mark_safe
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 from django.template.loader import get_template
 from django.conf import settings
 import datetime
 import json
-from timeit import itertools
+import itertools
 import csv
 import urllib.parse
 import uuid
@@ -685,17 +685,12 @@ def student_notes(request, userid):
             n.entry_type = 'NOTE'
         items = notes
         nonstudent = True
-    
-    show_transcript = False
-    # For demo purposes only.
-    # if 'UNIV' in [u.label for u in request.units]:
-    #    show_transcript = True
 
     advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
 
     template = 'advisornotes/student_notes.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
-               'show_transcript': show_transcript, 'units': request.units, 'visits': visits, 'advisor_admin': advisor_admin}
+               'units': request.units, 'visits': visits, 'advisor_admin': advisor_admin}
     return render(request, template, context)
 
 
@@ -761,7 +756,6 @@ def student_courses(request, userid):
                'student': student,
                }
     resp = render(request, 'advisornotes/student_courses.html', context)
-    resp.has_inline_script = True # show/hide link
     return resp
 
 @requires_role(['ADVS', 'ADVM'])
@@ -775,7 +769,6 @@ def student_courses_data(request, userid):
     except SIMSProblem as e:
         data = {'error': str(e)}
 
-    #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, indent=1)
     return response
@@ -783,6 +776,8 @@ def student_courses_data(request, userid):
 
 @requires_role(['ADVS', 'ADVM'])
 def student_courses_download(request, userid):
+    from django.http import Http404
+    raise Http404  # disable this: probably nobody should use it. See if anybody complains
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     try:
         data = classes_data(student.emplid)
