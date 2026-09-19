@@ -685,17 +685,12 @@ def student_notes(request, userid):
             n.entry_type = 'NOTE'
         items = notes
         nonstudent = True
-    
-    show_transcript = False
-    # For demo purposes only.
-    # if 'UNIV' in [u.label for u in request.units]:
-    #    show_transcript = True
 
     advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
 
     template = 'advisornotes/student_notes.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
-               'show_transcript': show_transcript, 'units': request.units, 'visits': visits, 'advisor_admin': advisor_admin}
+               'units': request.units, 'visits': visits, 'advisor_admin': advisor_admin}
     return render(request, template, context)
 
 

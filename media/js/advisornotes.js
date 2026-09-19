@@ -324,3 +324,54 @@ function course_data_ready(data_url) {
         });
     });
 }
+
+function student_notes_ready(student_notes_url, more_info_url, csrf_token) {
+    $('.delete').click(function(){
+        var id = $(this).data('id');
+        $("#note-whole-"+id ).addClass('deletednote');
+        $("#note-box-"+id+" .delete").hide();
+        $("#note-box-"+id+" .restore").show();
+        if( !show_deleted ){
+            $("#note-whole-"+id).hide();
+        }
+
+        $.post(student_notes_url,
+            {'csrfmiddlewaretoken': csrf_token, 'note_id': id, 'hide': 'yes'});
+    });
+    $('.restore').click(function(){
+        var id = $(this).data('id');
+        $("#note-whole-"+id ).removeClass('deletednote');
+        $("#note-box-"+id+" .delete").show();
+        $("#note-box-"+id+" .restore").hide();
+
+        $.post(student_notes_url,
+            {'csrfmiddlewaretoken': csrf_token, 'note_id': id, 'hide': 'no'});
+    });
+    $('.show_deleted').click(function(){
+        show_deleted = true;
+        $('.deletednote').show();
+        $('.show_deleted').hide();
+        $('.hide_deleted').show();
+        return false;
+    });
+    $('.hide_deleted').click(function(){
+        show_deleted = false;
+        $('.deletednote').hide();
+        $('.show_deleted').show();
+        $('.hide_deleted').hide();
+        return false;
+    });
+
+    $('#moreinfo>a').click(function() {
+        get_more_info(more_info_url);
+    });
+
+    $('#advisingvisits').dataTable( {
+        'bPaginate': true,
+        'bInfo': false,
+        'bLengthChange': true,
+        "bJQueryUI": true,
+        'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
+        'aaSorting': [[0, 'desc']]
+    } );
+}

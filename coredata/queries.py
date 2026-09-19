@@ -375,6 +375,20 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     needed is a list containing the values needed in the result (if available), or ALLFIELDS
     """
+    if settings.DISABLE_REPORTING_DB and settings.DEPLOY_MODE != 'production':
+        # let us test *something* without full CSRPT access
+        time.sleep(2)
+        return {
+            "phones": { "home": "778-555-5555", "cell": "778-555-5556" },
+            "addresses": { "home": "123 Fake St\nBurnaby, BC" },
+            "citizen": "probably",
+            "visa": "yup",
+            "gender": "U",
+            "programs": ["CMPTMAJ", "MATHMIN"],
+            "gpa": 3.67,
+            "ccredits": 45,
+        }
+    
     db = SIMSConn()
     data = {}
     
@@ -468,8 +482,6 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
             label = transcript or descr
             prog = "%s (%s subplan)" % (label, subplan)
             programs.append(prog)
-
-
 
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
@@ -671,6 +683,7 @@ def course_data(emplid):
     """
     if settings.DISABLE_REPORTING_DB and settings.DEPLOY_MODE != 'production':
         # let us test *something* without full CSRPT access
+        time.sleep(2)
         return {
             "transfers": [
                 { "crse_id": "001234", "grade": "A-", "units": 0.0, "repeat": "", "strm": "1227", "subject": "CHEM", "catalog_nbr": "X12", "descr": "BC High Chemistry 12", "crse_found": True, "req": "", "src": "Some high school" },
