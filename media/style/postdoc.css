@@ -1,0 +1,45 @@
+.form_section {
+    background-color: #eee;
+    padding: 10px 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.admin_info {
+    border: 12px solid #eee;
+    padding: 10px;
+}
+
+.directory_buttons input {
+    display: inline;
+    float: right;
+    margin-left: 12px;
+}
+
+
+.selection-table {
+  width: 100%;
+  table-layout: fixed; 
+}
+
+.selection-table th,
+.selection-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+.selection-table td select,
+.selection-table td input {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.selection-table th.delete-column,
+.selection-table td.delete-column {
+  width: 6%;
+  white-space: nowrap;
+}

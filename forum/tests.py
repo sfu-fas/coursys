@@ -1,6 +1,7 @@
 import datetime
 
 from django.test import TestCase
+from django.urls import reverse
 
 from coredata.models import CourseOffering, Member
 from courselib.markup import convert_forum_links, markup_to_html
@@ -144,3 +145,51 @@ class ForumTest(TestCase):
                    {'course_slug': self.offering.slug},
                    qs='q=sure')
 
+    def test_workflow(self):
+        """
+        Test form submissions to create/edit
+        """
+        c = Client()
+        
+        c.login_user('0aaa0')
+        # Create a thread
+        response = c.get(reverse('offering:forum:new_thread', kwargs={'course_slug': self.offering.slug}))
+        self.assertEqual(response.status_code, 200)
+        
+        thread_data = {
+            'title': 'Test Thread Title',
+            'type': 'DISC',
+            'identity': 'INST',
+            'privacy': 'ALL',
+            'content_0': 'This is the content of a test thread.',
+            'content_1': 'creole',
+            'content_2': False,
+        }
+        response = c.post(reverse('offering:forum:new_thread', kwargs={'course_slug': self.offering.slug}), thread_data)
+        new_post = Post.objects.order_by('-created_at').first()
+        self.assertRedirects(response, reverse('offering:forum:view_thread', kwargs={'course_slug': self.offering.slug, 'post_number': new_post.id}))
+        
+        response = c.get(reverse('offering:forum:view_thread', kwargs={
+            'course_slug': self.offering.slug, 
+            'post_number': new_post.number
+        }))
+        self.assertEqual(response.status_code, 200)
+        
+        # Submit a reply form
+        reply_data = {
+            'identity': 'INST',
+            'content_0': 'This is a test reply to the thread.',
+            'content_1': 'creole',
+            'content_2': False
+        }
+        response = c.post(reverse('offering:forum:view_thread', kwargs={
+            'course_slug': self.offering.slug, 
+            'post_number': new_post.number
+        }), reply_data)
+        self.assertRedirects(response, reverse('offering:forum:view_thread', kwargs={
+            'course_slug': self.offering.slug, 
+            'post_number': new_post.number
+        }))
+        
+        reply_post = Post.objects.order_by('-created_at').first()
+        self.assertEqual(reply_post.author.person.userid, '0aaa0')

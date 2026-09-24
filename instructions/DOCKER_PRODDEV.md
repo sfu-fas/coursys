@@ -9,7 +9,6 @@ Set up a proddev docker world:
 ```sh
 ln -s compose-proddev.yml compose.yml  # or otherwise copy/link compose-proddev.yml to compose.yml
 cp secrets/app-config-template.toml secrets/app-config.toml
-make get-docker-rollout
 ```
 
 Get things started:

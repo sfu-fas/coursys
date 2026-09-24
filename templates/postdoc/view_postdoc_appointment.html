@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}Post Doc Appointment for {{ appt.person.sortname_pref }}{% endblock %}
+{% block h1 %}Post Doc Appointment for {{ appt.person.sortname_pref }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "postdoc:post_doctoral_fellow" %}">Post Doctoral Fellow</a></li>
+<li>{{ appt.person.sortname_pref }}</li>
+{% endblock %}
+
+{% block actions %}
+{% if postdoc_admin %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{% url "postdoc:edit_postdoc_appointment" postdoc_slug=appt.slug %}">Edit this PDF</a></li>
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+  <table class="info">
+    <tr><th>Submission Date:</th><td>{{ appt.created_at }}</td></tr>
+    <tr><th>Last Update:</th><td>
+      {% if appt.last_updater and appt.last_updated_at %}
+        {{ appt.last_updated_at }} by {{ appt.last_updater }} ({{ appt.last_updater.email_mailto }})
+      {% else %}
+        Never updated.
+      {% endif %}
+    </td></tr>
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Appointee Information</h2>
+  <i>(Click <a href="{% url "postdoc:appointee_appointments" userid=appt.person.userid_or_emplid %}">here</a> to view all appointments for {{ appt.person.name }})</i>
+  <table class="info">
+    <tr><th>Name:</th><td>{{ appt.person.sortname_pref }}</td></tr>
+    <tr><th>ID:</th><td>{{ appt.person.emplid }}</td></tr>
+    <tr><th>Email:</th><td>{{ appt.person.email_mailto }}</td></tr>
+    <tr><th>Unit:</th><td>{{ appt.unit }}</td></tr>
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Supervisor Information</h2>
+  {% with links=appt.supervisor_links.all %}
+    {% if links %}
+      {% for link in links %}
+        {% with sup=link.supervisor %}
+          <h3>Supervisor #{{ forloop.counter }}</h3>
+          {% if sup and sup.userid_or_emplid %}
+            <i>(Click <a href="{% url 'postdoc:supervisor_appointments' userid=sup.userid_or_emplid %}">here</a> to view all appointments that {{ sup.name }} is supervisor for)</i>
+          {% endif %}
+          <table class="info">
+            <tr><th>Name:</th><td>{{ sup.sortname_pref }}</td></tr>
+            <tr><th>ID:</th><td>{{ sup.emplid }}</td></tr>
+            <tr><th>Email:</th><td>{{ sup.email_mailto }}</td></tr>
+          </table>
+        {% endwith %}
+      {% endfor %}
+    {% else %}
+      <i>No supervisors found.</i>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<div class="table_container">
+  <h2>Appointment Details</h2>
+  <table class="info">
+    <tr><th>Type:</th><td>{{ appt.get_type_display }}</td></tr>
+    <tr><th>Date Doctorate Completed:</th><td>{{ appt.doctorate_completed_date }}</td></tr>
+    <tr><th>Work Eligibility Status:</th><td>{{ appt.get_work_eligibility_status_display }}</td></tr>
+    <tr><th>Relocation Reimbursement:</th><td>{{ appt.relocation_reimbursement|yesno|capfirst }}</td></tr>
+    {% if appt.relocation_reimbursement %}
+    <tr><th>Relocation Reimbursement Amount:</th><td>${{ appt.relocation_reimbursement_amount }}</td></tr>
+    {% endif %}
+    <tr><th>Involved Teaching:</th><td>{{ appt.involved_teaching|yesno|capfirst }}</td></tr>
+    <tr><th>Other Information:</th><td>{{ appt.other_info|default:"None" }}</td></tr>
+    <tr><th>Start Date:</th><td>{{ appt.start_date }}</td></tr>
+    <tr><th>End Date:</th><td>{{ appt.end_date }}</td></tr>
+    <tr><th>Benefits Estimation %:</th><td>{{ appt.benefits_estimation }}</td></tr>
+    <tr><th>Work Hours:</th><td>{{ appt.get_work_hours_display }}</td></tr>
+    <tr><th>Hours of Work Per Week:</th><td>{% if appt.work_hours == 'EXT' or appt.work_hours == 'LS' %}Not applicable{% else %}{{ appt.hours_of_work }}{% endif %}</td></tr>
+    <tr><th>Vacation Entitlement Per Year (in Weeks):</th><td>{{ appt.vacation_entitlement_weeks }}</td></tr>
+    {% if appt.lump_sum_payment %}
+      <tr><th>Payment Type:</th><td>Lump Sum</td></tr>
+      <tr><th>Payment Amount:</th><td>${{ appt.lump_sum_payment }}</td></tr>
+    {% else %}
+      <tr><th>Payment Type:</th><td>Annual</td></tr>
+      <tr><th>Payment Amount:</th><td>${{ appt.annual_salary_amount }}</td></tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Funding Sources</h2>
+  {% with sources=appt.funding_sources.all %}
+    {% if sources %}
+      {% for fs in sources %}
+        <h3>Funding Source #{{ forloop.counter }}</h3>
+        <table class="info">
+          <tr><th>Department:</th><td>{{ fs.unit }}</td></tr>
+          <tr><th>Fund:</th><td>{{ fs.fund }}</td></tr>
+          <tr><th>Project:</th><td>{{ fs.project|default:"" }}</td></tr>
+          <tr><th>Amount:</th><td>${{ fs.amount }}</td></tr>
+          <tr><th>Start Date:</th><td>{{ fs.start_date }}</td></tr>
+          <tr><th>End Date:</th><td>{{ fs.end_date }}</td></tr>
+        </table>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<div class="table_container">
+  <h2>Notes</h2>
+  <ul>
+  {% if appt.admin_notes %}
+    {{ appt.admin_notes|linebreaks }}
+  {% else %}
+    Notes are empty.
+  {% endif %}
+  </ul>
+  <ul><b><a href="{% url "postdoc:edit_postdoc_notes" postdoc_slug=appt.slug %}">+ Edit Notes</a></b></ul>
+</div>
+
+<div class="table_container">
+  <h2>Attachments</h2>
+  {% with attachments=appt.attachments.visible %}
+  {% if attachments %}
+  {% for a in attachments %}
+  <ul>
+    <li><b><u>{{ a.title }}</u></b><br>
+      ({{ a.contents_filename }}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }}) by {{ a.created_by }}<br>
+      <a href="{% url 'postdoc:view_admin_attachment' postdoc_slug=appt.slug attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'postdoc:download_admin_attachment' postdoc_slug=appt.slug attach_slug=a.slug %}">Download</a>{% if postdoc_admin %} |
+      <a href="{% url 'postdoc:delete_admin_attachment' postdoc_slug=appt.slug attach_slug=a.slug %}">Delete</a>{% endif %}
+    </li>
+  </ul>
+  {% endfor %}
+  {% else %}
+  <ul>No attachments found.</ul>
+  {% endif %}
+  {% endwith %}
+  <ul style="margin-bottom: 1.5em;"><b><a href="{% url "postdoc:new_admin_attachment" postdoc_slug=appt.slug %}">+ Add Attachment</a></b></ul>
+</div>
+
+{% if postdoc_admin %}
+<div class="bottom_admin">
+  <h2>Delete</h2>
+  <form action="{% url "postdoc:delete_postdoc_appointment" postdoc_slug=appt.slug %}" class="subtle" method="post">
+    {% csrf_token %}
+    <p class="actionbutton">
+      <input type="submit" class="btn confirm-submit" value="Delete PDF" data-submit-action="delete this PDF" />
+    </p>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

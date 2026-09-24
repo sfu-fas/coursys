@@ -108,10 +108,12 @@ services:
         - CANONICAL_NAME={{ canonical_name }}
         - USER_PROTOCOL={{ user_protocol }}
         - USER_PORT={{ user_port }}
+        - UID={{ uid }}
     ports:
       - "{{ external_port }}:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -120,7 +122,7 @@ services:
     volumes:
       - static:/static:ro
       - {{ data_location }}nginx_logs:/nginx_logs:rw{% if selinux %},z{% endif %}
-      - {{ data_location }}dynamic_config:/dynamic_config:ro{% if selinux %},z{% endif %}
+      - {{ data_location }}dynamic_config:/dynamic_config:rw{% if selinux %},z{% endif %}
     networks:
       - web
 
@@ -173,7 +175,7 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
     extends:
       service: base
     build:
@@ -185,6 +187,9 @@ services:
       - web
     volumes:
       - {{ data_location }}csrpt_auth:/csrpt_auth:rw{% if selinux %},z{% endif %}
+  app-b:
+    extends:
+      service: app-a
 
   manage:
     extends:

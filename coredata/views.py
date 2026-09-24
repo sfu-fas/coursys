@@ -461,6 +461,9 @@ def admin_panel(request):
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
             return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
+        elif request.GET['content'] == 'photos':
+            from dashboard.photos import api_info
+            return render(request, 'coredata/admin_panel_tab.html', {'photoapi': api_info()})
         elif request.GET['content'] == 'csrpt':
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
@@ -511,7 +514,8 @@ def admin_panel(request):
                 messages.success(request, 'Grad update and import tasks started.')
 
     context = {
-        'loadavg': os.getloadavg()
+        'loadavg': os.getloadavg(),
+        'gitcommit': os.environ.get('GIT_COMMIT', 'unknown'),
     }
     return render(request, 'coredata/admin_panel.html', context)
 

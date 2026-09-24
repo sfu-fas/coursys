@@ -160,7 +160,7 @@ class PersonWidget(forms.TextInput):
             confirmwidget = ' Import %s %s (%s) from SIMS: ' % (self.sims_data['first_name'], self.sims_data['last_name'], self.sims_data['emplid'])
             confirmwidget += '<input type="checkbox" name="%s_confirm" />' % (name)
             confirmwidget += '<input type="hidden" name="%s_emplid" value="%s" />' % (name, self.sims_data['emplid'])
-            return textwidget + confirmwidget
+            return mark_safe(textwidget + confirmwidget)
         else:
             return super(PersonWidget, self).render(name, value, attrs=attrs, renderer=renderer)
 
@@ -431,7 +431,7 @@ class UnitAddressForm(forms.Form):
                             widget=forms.TextInput(attrs={'size': 12}))
     fax = CAPhoneNumberField(required=False, label="Fax Number", help_text='Fax number for the department',
                             widget=forms.TextInput(attrs={'size': 12}))
-    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site") # for Django 5.0: assume_scheme='https'
+    web = forms.URLField(required=True, label="Web", assume_scheme='https', help_text="URL of the department's web site")
     email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
@@ -647,7 +647,7 @@ class TemporaryPersonForm(forms.Form):
                     help_text='SIN number')
 
 class CourseHomePageForm(forms.Form):
-    url = forms.URLField(required=True, label="URL", help_text="URL of the course's main web page") # for Django 5.0: assume_scheme='https'
+    url = forms.URLField(required=True, label="URL", assume_scheme='https', help_text="URL of the course's main web page")
     maillist = forms.CharField(required=False, label="Mailing List", help_text="The course mailing list. Leave blank for the default. e.g. \"cmpt-100-bby\".")
 
 

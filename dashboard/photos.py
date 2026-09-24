@@ -161,7 +161,7 @@ def do_photo_fetch(emplids, timeout=20):
 # functions that actually get photos
 
 @cached(45) # tokens should last for 60 seconds
-def _get_photo_token():
+def _get_photo_token(allow_fail=False):
     """
     Get auth token from photo service
     """
@@ -169,6 +169,8 @@ def _get_photo_token():
     try:
         token_request = url_opener.open(TOKEN_URL, data=token_data)
     except IOError:
+        if allow_fail:
+            raise
         return ''
     else:
         token_response = json.loads(token_request.read().decode('utf8'))
@@ -304,3 +306,23 @@ def change_photo_password():
     resp_text = resp.read()
     set_photo_password(newpw)
     return resp_text
+
+
+def api_info():
+    """
+    Info about the photo API requests, for diagnosis.
+    """
+    data = []
+    pw = get_photo_password()
+    if pw:
+        data.append(('Photo password', 'exists'))
+    else:
+        data.append(('Photo password', 'missing'))
+    
+    try:
+        token = _get_photo_token(allow_fail=True)
+        data.append(('Token fetch', f'Retrieved {token!r}'))
+    except Exception as e:
+        data.append(('Token fetch', f'Failed: {e}'))
+
+    return data

@@ -104,10 +104,12 @@ services:
         - CANONICAL_NAME=localhost
         - USER_PROTOCOL=http
         - USER_PORT=8080
+        - UID=888
     ports:
       - "8080:80"
     depends_on:
-      - app
+      - app-a
+      - app-b
     restart: unless-stopped
     deploy:
       resources:
@@ -116,7 +118,7 @@ services:
     volumes:
       - static:/static:ro
       - nginx_logs:/nginx_logs:rw
-      - dynamic_config:/dynamic_config:ro
+      - dynamic_config:/dynamic_config:rw
     networks:
       - web
 
@@ -169,7 +171,7 @@ services:
     secrets:
       - app-config
 
-  app:
+  app-a:
     extends:
       service: base
     build:
@@ -181,6 +183,9 @@ services:
       - web
     volumes:
       - csrpt_auth:/csrpt_auth:rw
+  app-b:
+    extends:
+      service: app-a
 
   manage:
     extends:

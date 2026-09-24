@@ -48,7 +48,7 @@ DEPLOYMENT_CONTEXTS = {
         "canonical_name": "coursys-demo.selfip.net",
         "user_protocol": "http",
         "user_port": 80,
-        "app_replicas": 2,
+        "app_replicas": 1,
         "dev_services": True,
         "service_secrets": True,
     },
@@ -62,7 +62,7 @@ DEPLOYMENT_CONTEXTS = {
         "canonical_name": "coursys.sfu.ca",
         "user_protocol": "https",
         "user_port": 443,
-        "app_replicas": 2,
+        "app_replicas": 1,
         "dev_services": False,
         "service_secrets": True,
     },
@@ -91,6 +91,7 @@ def build_from_template(deploy_mode: str) -> str:
     )
 
     context = Context(ctx)
-    template = Template(open(template_location, "rt", encoding="utf-8").read())
-    content = template.render(context)
+    with open(template_location, "rt", encoding="utf-8") as templ:
+        template = Template(templ.read())
+        content = template.render(context)
     return PREFIX + content

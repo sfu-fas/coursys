@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}{% if edit %}Edit Post Doc Appointment{% else %}New Post Doc Appointment{% endif %}{% endblock %}
+{% block h1 %}{% if edit %}Edit Post Doc Appointment{% else %}New Post Doc Appointment{% endif %}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "postdoc:post_doctoral_fellow" %}">Post Doctoral Fellow</a></li>
+{% if edit %}
+<li><a href="{% url "postdoc:view_postdoc_appointment" postdoc_slug=appt.slug %}">{{ appt.person.sortname_pref }}</a></li>
+<li>Edit Post Doc Appointment</li>
+{% else %}
+<li>New Post Doc Appointment</li>
+{% endif %}
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/postdoc.css' %}" />
+<script type="text/javascript" src="{% static 'js/postdoc.js' %}"></script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <div class="admin_info">
+    <p>Postdoctoral Fellows (PDF) appointment records in Faculty of Applied Sciences</p>
+    <p>For inquiries or questions, please contact <b>fas_postdoc_support@sfu.ca</b></p>
+  </div>
+  {% if edit %}
+  <form action="{% url "postdoc:edit_postdoc_appointment" postdoc_slug=appt.slug %}" method="post" class="subtle">
+  {% else %}
+  <form action="{% url "postdoc:new_postdoc_appointment" %}" method="post" class="subtle">
+  {% endif %}
+    {% csrf_token %}
+    <fieldset>
+      <div class="form_section">
+        <h2><strong>Appointment Information</strong></h2>
+        {{ form.non_field_errors }}
+        {{ form|as_dl_includefields:"person,unit,type,doctorate_completed_date,work_eligibility_status,relocation_reimbursement,relocation_reimbursement_amount,involved_teaching,other_info,start_date,end_date,benefits_estimation,work_hours,hours_of_work,vacation_entitlement_weeks,annual_salary_amount,has_lump_sum_payment,lump_sum_payment" }}
+      </div>
+
+      <div class="form_section">
+        <h2><strong>Supervisors</strong></h2>
+        <i>Enter at least one supervisor.</i>
+
+        {{ supervisor_formset.management_form }}
+        {{ supervisor_formset.non_form_errors }}
+
+        <div class="selection-table-wrap">
+          <table class="form_table selection-table">
+            <thead>
+              <tr>
+                <th>Supervisor</th>
+                <th class="delete-column">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s_form in supervisor_formset %}
+                {{ s_form.non_field_errors }}
+                <tr>
+                  <td>
+                    {% for hidden in s_form.hidden_fields %}
+                      <div style="display:none">{{ hidden }}</div>
+                    {% endfor %}
+                    {{ s_form.supervisor.errors }}{{ s_form.supervisor }}
+                  </td>
+                  <td class="delete-column">{{ s_form.DELETE }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form_section">
+        <h2><strong>Funding Sources</strong></h2>
+        <i>Enter at least one funding source.</i>
+
+        {{ funding_formset.management_form }}
+        {{ funding_formset.non_form_errors }}
+
+        <div class="selection-table-wrap">
+          <table class="form_table selection-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Fund</th>
+                <th>Project</th>
+                <th>Amount</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th class="delete-column">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fs_form in funding_formset %}
+                {{ fs_form.non_field_errors }}
+                <tr>
+                  <td>
+                    {% for hidden in fs_form.hidden_fields %}
+                      <div style="display:none">{{ hidden }}</div>
+                    {% endfor %}
+                    {{ fs_form.unit.errors }}{{ fs_form.unit }}
+                  </td>
+                  <td>{{ fs_form.fund.errors }}{{ fs_form.fund }}</td>
+                  <td>{{ fs_form.project.errors }}{{ fs_form.project }}</td>
+                  <td>{{ fs_form.amount.errors }}{{ fs_form.amount }}</td>
+                  <td>{{ fs_form.start_date.errors }}{{ fs_form.start_date }}</td>
+                  <td>{{ fs_form.end_date.errors }}{{ fs_form.end_date }}</td>
+                  <td class="delete-column">{{ fs_form.DELETE }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </fieldset>
+    <div class="directory_buttons">
+      <input type="submit" class="submit" value="Save" />
+    </div>
+  </form>
+</div>
+{% endblock %}

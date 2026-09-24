@@ -1,6 +1,8 @@
 import re
 from django import forms
 from django.forms.utils import ErrorList
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
@@ -26,8 +28,8 @@ class LabelledHidden(forms.HiddenInput):
     def render(self, name, value, attrs=None, renderer=None):
         res = super(LabelledHidden, self).render(name, value, attrs=attrs, renderer=renderer)
         if value:
-            res += str(value)
-        return res
+            res += conditional_escape(value)
+        return mark_safe(res)
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -576,8 +578,8 @@ class TAPostingForm(forms.ModelForm):
         help_text='Do not prompt students for their Campus choice.')
     offer_text = WikiField(label="Offer Text", required=False, 
         help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
-    tssu_link = forms.URLField(required=True, label="TSSU URL", help_text="URL showing on TUG for TSSU collective agreement",
-                               widget=forms.TextInput(attrs={'size': 120})) # for Django 5.0: assume_scheme='https'
+    tssu_link = forms.URLField(required=True, label="TSSU URL", assume_scheme='https', help_text="URL showing on TUG for TSSU collective agreement",
+                               widget=forms.TextInput(attrs={'size': 120}))
     
     # TODO: sanity-check the dates against semester start/end
     
@@ -793,7 +795,7 @@ class TAContactForm(forms.Form):
     statuses = forms.MultipleChoiceField(choices=APPLICANT_STATUSES+STATUS_CHOICES, help_text="TAs to contact (according to contract status)")
     subject = forms.CharField()
     text = forms.CharField(widget=forms.Textarea(), help_text='Message body. <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed.')
-    url = forms.URLField(label="URL", required=False, help_text='Link to include in the message. (optional)') # for Django 5.0: assume_scheme='https'
+    url = forms.URLField(label="URL", required=False, assume_scheme='https', help_text='Link to include in the message. (optional)')
 
 
 class CourseDescriptionForm(forms.ModelForm):

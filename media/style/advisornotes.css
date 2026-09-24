@@ -80,3 +80,13 @@
 .needsimprovement {
    color: #c02b2b;
 }
+
+table.courses, table.courses td, table.courses th {
+	border: none;
+}
+table.courses td {
+	padding-left: 2em;
+}
+.coursetitle {
+	display: none;
+}

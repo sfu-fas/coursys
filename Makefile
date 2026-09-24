@@ -2,9 +2,9 @@ COURSYS_USER=coursys
 
 GIT=sudo -u ${COURSYS_USER} git
 DOCKERCOMPOSE=docker compose
-DOCKERROLLOUT=docker rollout
 # containers where our code runs, which are usually all that need to be rebuilt:
-CODE_CONTAINERS=app beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^celery'`
+CODE_CONTAINERS=beat admin manage `${DOCKERCOMPOSE} config --services | grep -e '^app' -e '^celery'`
+GIT_COMMIT=`${GIT} rev-parse --short HEAD || git rev-parse --short HEAD || echo unknown`
 
 
 start-all:
@@ -16,24 +16,41 @@ pull:
 pull-build:
 	${GIT} pull
 	${DOCKERCOMPOSE} pull
-	${DOCKERCOMPOSE} build --pull --no-cache
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT} --pull --no-cache
 
 build:
-	${DOCKERCOMPOSE} build
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT}
 
 build-code-containers:  # we almost never need containers without our code rebuilt, so don't by default.
-	${DOCKERCOMPOSE} build ${CODE_CONTAINERS}
+	${DOCKERCOMPOSE} build --build-arg GIT_COMMIT=${GIT_COMMIT} ${CODE_CONTAINERS}
+
+rollout:  # a zero-downtime switchover from old to new container images, rolling between app-a and app-b
+	# What's happening here: /dynamic_config/nginx-backends.conf is juggled to select app-* backend(s), and SIGHUP to nginx tells it to seamlessly reload its config.
+	# Then while each app-* container is being ignored by nginx, it's restarted.
+	# drain requests to app-a
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-a.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 5
+	# restart app-a
+	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-a
+	# drain app-b
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/drain-b.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx && sleep 5
+	# restart app-b
+	${DOCKERCOMPOSE} up -d --wait --timeout 30 --remove-orphans app-b
+	# restore default config (using both app-a and app-b)
+	${DOCKERCOMPOSE} run -q --remove-orphans admin cp docker/nginx/backend-configs/default.conf /dynamic_config/nginx-backends.conf
+	${DOCKERCOMPOSE} kill --remove-orphans -s SIGHUP nginx
 
 deploy:
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERROLLOUT} --timeout 60 --wait-after-healthy 5 app        # zero-downtime rollout of app service
-	${DOCKERCOMPOSE} up -d --remove-orphans                         # restart celery and anything else changed
+	make rollout
+	${DOCKERCOMPOSE} up -d --timeout 30 --remove-orphans 	# restart anything else that needs it
 
-deploy-no-rollout:  # skips the "docker rollout" in favour of a faster "up -d" with a few seconds of downtime
+deploy-no-rollout:  # skips the smooth "rollout" in favour of a faster "up -d" with a few seconds of downtime
 	${DOCKERCOMPOSE} up -d --wait elasticsearch rabbitmq memcached  # get these (re)started first since other containers depend on them
 	${DOCKERCOMPOSE} run manage collectstatic --no-input
-	${DOCKERCOMPOSE} up -d --remove-orphans
+	${DOCKERCOMPOSE} up -d --timeout 30 --remove-orphans
 
 new-code: build-code-containers deploy
 
@@ -73,6 +90,8 @@ rm503:
 
 # admin helpers
 
+compose-yml:
+	python manage.py build_compose_yml ALL
 shell:
 	${DOCKERCOMPOSE} run manage shell
 dbshell:
@@ -80,7 +99,9 @@ dbshell:
 admin:
 	${DOCKERCOMPOSE} run admin bash
 
-get-docker-rollout:  # should be installed globally in prod, but for dev environments, a handy fetcher...
-	mkdir -p ~/.docker/cli-plugins
-	wget https://github.com/wowu/docker-rollout/releases/download/v0.13/docker-rollout -O ~/.docker/cli-plugins/docker-rollout
-	chmod +x ~/.docker/cli-plugins/docker-rollout
+prod-setup:  # helper for individual user setup on the production server
+	sudo gpasswd -a `whoami` docker
+	mkdir -p ~/.docker
+	echo '{ "proxies": { "default": { "httpProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080", "httpsProxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080", "noProxy": "cas.sfu.ca,.sfu.ca,localhost" } } }' > ~/.docker/config.json
+
+.PHONY: deploy start-all pull pull-build build build-code-containers rollout new-code new-code-pull new-code-no-rollout migrate-safe purge-cache purge-static drain-tasks 503 rm503 compose-yml shell dbshell admin prod-setup
