@@ -31,6 +31,8 @@ def build_program_map():
         'CPMC': GradProgram.objects.get(label="Prof Msc Cybersec", unit=cmptunit),
         'CPMVC': GradProgram.objects.get(label="Prof Msc Visual Comp", unit=cmptunit),
         'CPPMS': GradProgram.objects.get(label="Prof MSc", unit=cmptunit),
+        'CCSGD': GradProgram.objects.get(label="Cybersec Grad Diplom", unit=cmptunit),
+        'CBDGD': GradProgram.objects.get(label="Big Data Grad Diplom", unit=cmptunit),
     }
     engunit = Unit.objects.get(label="ENSC")
     mechunit = Unit.objects.get(label="MSE")
