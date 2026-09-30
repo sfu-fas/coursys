@@ -312,6 +312,8 @@ def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string
     
     Used both in _calendar_event_data and by the course browser (coredata.views.browse_courses_info)
     """
+    start = local_tz.localize(start)
+    end = local_tz.localize(end)
 
     # holidays and cancellations
     cancellations = set() # days when classes cancelled
