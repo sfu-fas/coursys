@@ -15,7 +15,7 @@ tl;dr `docker compose` with the `compose-production.yml` Compose file.
 The services running in production are either docker containers (configured in `docker-compose.yml`) or systemd services.
 
 * Nginx: the frontend web server.
-* Gunicorn (container "app"): the backend server actually running CourSys. (Proxied by nginx to the outside world.)
+* Gunicorn (containers "app-a" and "app-b"): the backend server actually running CourSys. (Proxied by nginx to the outside world.)
 * Celery workers (5 of them, one for each queue): a task queue running asynchronous and periodic tasks (anything in `*/tasks.py`).
 * Celerybeat: a service responsible dispatching Celery periodic tasks.
 * RabbitMQ: message queue used by Celery.
@@ -101,7 +101,7 @@ make new-code
 
 Most logs are left to Docker, so you can check what has been happening with Docker's log tools:
 ```shell
-docker compose logs app
+docker compose logs app-a
 ```
 
 The outliers is Nginx which has logs stored outside of Docker in `/data/nginx_logs`, and the Celery workers in `/data/celery_logs`.
@@ -142,7 +142,7 @@ These can be controlled in the container images' `courses/localsettings.py` (cop
 
 If present, they are also read from the `dynamic_config` volume: `/data/dynamic_config/server_message_index.html` and `/data/dynamic_config/server_message.html` on the server. You can create/edit/delete those files (with some reasonably-valid HTML) and tell the gunicorn process to gracefully restart its workers:
 ```shell
-docker compose kill -s SIGHUP app
+docker compose kill -s SIGHUP app-a app-b
 ```
 
 
@@ -152,10 +152,10 @@ The *hope* is that we have enough system checks that if the system comes up, it 
 
 If there's any confusion, it might be informative to run the Django container in various ways to see what's going on. Perhaps one of:
 ```shell
-docker compose run app ./manage.py shell
-docker compose run app ./manage.py dbshell
-docker compose run app ./manage.py check_things
-docker compose run app bash
+docker compose run app-a ./manage.py shell
+docker compose run app-a ./manage.py dbshell
+docker compose run app-a ./manage.py check_things
+docker compose run app-a bash
 ```
 
 Just running any `manage` command will often trigger whatever error is happening, in a more helpful environment.

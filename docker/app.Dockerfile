@@ -127,7 +127,7 @@ CMD ["/celery-worker.sh"]
 
 FROM base AS beat
 HEALTHCHECK --interval=60s --timeout=5s --start-period=30s --start-interval=5s \
-  CMD pgrep -f beat || exit 1
+  CMD curl --fail http://localhost:9001/ || exit 1
 CMD ["celery", "-A", "courses", "beat", "--loglevel", "INFO", "--logfile", "/celery_logs/beat.log", "-s", "/status/celerybeat-schedule"]
 
 
