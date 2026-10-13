@@ -475,6 +475,8 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose ps\n" + panel.get_docker_status('ps')})
         elif request.GET['content'] == 'docker-stats':
             return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose stats\n" + panel.get_docker_status('stats')})
+        elif request.GET['content'] == 'csp':
+            return HttpResponse('<script>alert()</script>This should trigger a content-security-policy report for an inline script tag')
         elif request.GET['content'] == 'throw':
             raise RuntimeError(
                 'This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')

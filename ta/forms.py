@@ -605,7 +605,11 @@ class TAPostingForm(forms.ModelForm):
         self.initial['contact'] = self.instance.contact().id
         self.initial['send_notify'] = self.instance.send_notify()
         self.initial['offer_text'] = self.instance.offer_text()
-        skills = Skill.objects.filter(posting=self.instance)
+        #skills = Skill.objects.filter(posting=self.instance)
+        if self.instance.pk:
+            skills = Skill.objects.filter(posting=self.instance)
+        else:
+            skills = Skill.objects.none()
         self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions())
         self.initial['skills'] = '\n'.join((s.name for s in skills))
         self.initial['instructions'] = self.instance.instructions()
