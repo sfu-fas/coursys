@@ -4,7 +4,7 @@ from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
 from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
-from ra.utils import get_ra_intro_html
+from ra.utils import get_min_wage, get_new_min_wage, get_new_min_wage_date, get_ishf_fee, get_new_ra_wage_date, get_new_ra_wage
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
@@ -41,15 +41,14 @@ OBJECT_CHOICES = (
     (5844, '5844 - Invited Speakers Honoraria')
 )
 
-# deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2026, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 18.25 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 17.85 # Update to new minimum wage once another upcoming minimum wage is known 
-ISHF_FEE = 75
+NEW_MIN_WAGE_DATE = get_new_min_wage_date()
+NEW_MIN_WAGE = get_new_min_wage()
+MIN_WAGE = get_min_wage()
+ISHF_FEE = get_ishf_fee()
 
 # deal with upcoming ra wage requirements
-NEW_RA_WAGE_DATE = datetime.date(2026, 3, 31)
-NEW_RA_WAGE = 24.74
+NEW_RA_WAGE_DATE = get_new_ra_wage_date()
+NEW_RA_WAGE = get_new_ra_wage()
 
 RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
 

@@ -176,7 +176,7 @@ def _email_request_notification(req, url):
 
     if email:
         content_text = req.author.name() + " has submitted a new Research Personnel Appointment Request Form. You can view it here: " + url
-        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email], cc=cc)
+        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email], cc=[cc])
         mail.send()
 
 @method_decorator([requires_role(["FUND", "FDRE", "FDMA"]), never_cache], name='dispatch')
