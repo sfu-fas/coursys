@@ -64,41 +64,7 @@
     <!-- Would like this intro to be editable -->
     <div class="bottom_admin">
       <!-- Begin intro -->
-      <p>Thank you for submitting an appointment request. Please allow 5 to 10 business days for your request to be processed and returned to you for signature.</p>
-      <p><strong> Do not use this form for:</strong></p>
-      <ul>
-        <li>University Research Associates (contact <u>{{ ura_contact }}</u> instead)</li>
-        <li>Post-Doctoral Fellows (contact <u>{{ pd_contact }}</u> instead)</li>
-        <li>Work-Study appointments (contact your School Manager)</li>
-      </ul>
-      <p>If you have questions about your grant and project number please contact your school's representative at:</p>
-      <table><tr>
-      <td><strong>School/Office</strong></td>
-      <td></td>
-      <td><strong>Contact Email</strong></td>
-      <tr> 
-      <td>CS</td>
-      <td>Financial and Administrative Assistant</td>
-      <td><u>{{ cs_contact }}</u></td>
-      </tr><tr> 
-      <td>MSE</td>
-      <td>Administrative Assistant</td>
-      <td><u>{{  mse_contact }}</u></td>
-      </tr><tr>
-      <td>ENSC</td>
-      <td>Finance and Administration</td>
-      <td><u>{{ ensc_contact }}</u></td>
-      </tr><tr>
-      <td>SEE</td>
-      <td>Administrative & Financial Assistant</td>
-      <td><u>{{ see_contact }}</u></td>
-      </tr><tr>
-      <td>Dean's Office</td>
-      <td>Manager, Budget and Financial Analysis</td>
-      <td><u>{{ deans_contact }}</u></td>
-      </tr></table>
-      <p>For all other questions, please contact <u>{{ fas_contact }}</u></p>
-      <p>Please review the information carefully before submitting. Complete and accurate information will reduce the processing time.</p>
+        {{ ra_intro_html|safe }}
       <!-- End intro -->
     </div>
   {% endif %}
