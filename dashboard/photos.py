@@ -17,7 +17,8 @@ logger = logging.getLogger('photo-backend')
 
 ACCOUNT_NAME = 'cs'
 
-URL_BASE = 'https://photos-api.its.sfu.ca/'
+#URL_BASE = 'https://photos-api.its.sfu.ca/'
+URL_BASE = 'https://at-web72.dc.sfu.ca/'
 TOKEN_URL = URL_BASE + 'Account/Token'
 PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
 PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
