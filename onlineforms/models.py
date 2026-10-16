@@ -356,6 +356,10 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
+    def revive(self, *args, **kwargs):
+        self.active = True
+        self.save()    
+
     def save(self, *args, **kwargs):
         with django.db.transaction.atomic():
             instance = super(Form, self).save(*args, **kwargs)
