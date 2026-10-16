@@ -22,7 +22,7 @@ class DBConn(object):
     Should only be created on-demand (in function) to minimize startup for other processes.
     """
     _instance = None
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(DBConn, cls).__new__(cls)
         return cls._instance
