@@ -27,11 +27,11 @@ class DBConn(object):
             cls._instance = super(DBConn, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, verbose=False):
-        self.conn, self.db = self.get_connection()
+    def __init__(self, verbose: bool = False, throw_raw: bool = False):
+        self.conn, self.db = self.get_connection(throw_raw=throw_raw)
         self.verbose = verbose
 
-    def get_connection(self):
+    def get_connection(self, throw_raw: bool = False):
         raise NotImplementedError
     def escape_arg(self, a):
         raise NotImplementedError
@@ -1429,7 +1429,11 @@ def csrpt_update():
     """
     import pyodbc
     data = []
-    db = SIMSConn()
+    try:
+        db = SIMSConn(throw_raw=True)
+    except Exception as e:
+        return [('Unable to connect', str(e))]
+
     this_sem = Semester.current()
 
     try:
