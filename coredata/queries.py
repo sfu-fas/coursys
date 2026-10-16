@@ -69,7 +69,7 @@ class DBConn(object):
 
 
 class SIMSConnMSSQL(DBConn):
-    def get_connection(self):
+    def get_connection(self, throw_raw: bool = False):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
 
@@ -78,7 +78,10 @@ class SIMSConnMSSQL(DBConn):
             dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
                                     % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
         except (pyodbc.ProgrammingError, pyodbc.OperationalError):
-            raise SIMSProblem("Unable to connect to reporting database.")
+            if throw_raw:
+                raise
+            else:
+                raise SIMSProblem("Unable to connect to reporting database.")
         cursor = dbconn.cursor()
         return dbconn, cursor
 
