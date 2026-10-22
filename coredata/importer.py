@@ -69,29 +69,13 @@ def get_unit(acad_org, create=False):
     acad_org_map = cache.get(cache_key)
     if acad_org_map is None:
         units = Unit.objects.all()
+        # the additional acad_org values from .config['other_acad_orgs'] that we normalize:
+        acad_org_map = dict(itertools.chain.from_iterable(((ao, u.pk) for ao in u.other_acad_orgs()) for u in units))
         # the "real" acad_org values for each unit:
-        acad_org_map = {u.acad_org: u.pk for u in units if u.acad_org}
-        # the additional acad_org values from .config['other_acad_orgs'] that we normalize
-        more = dict(itertools.chain.from_iterable(((ao, u.pk) for ao in u.other_acad_orgs()) for u in units))
-        acad_org_map.update(more)
-        
+        canonical = {u.acad_org: u.pk for u in units if u.acad_org}
+        acad_org_map.update(canonical)
+
         cache.set(cache_key, acad_org_map, 12*3600)
-    
-    # there are some inconsistent acad_org values: normalize.
-    if acad_org == 'GERON':
-        acad_org = 'GERONTOL'
-    elif acad_org == 'GEOG':
-        acad_org = 'GEOGRAPH'
-    elif acad_org == 'BUS':
-        acad_org = 'BUS ADMIN'
-    elif acad_org == 'HUM':
-        acad_org = 'HUMANITIES'
-    elif acad_org == 'EVSC':
-        acad_org = 'ENVIRO SCI'
-    elif acad_org == 'WOMENS ST':
-        acad_org = 'GSWS'
-    elif acad_org == 'DEAN FCAT':
-        acad_org = 'CMNSARTTEC'
 
     try:
         unit = Unit.objects.get(pk=acad_org_map[acad_org])
@@ -116,7 +100,7 @@ def get_unit(acad_org, create=False):
             unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
             unit.save()
         else:
-            raise KeyError("Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name))
+            raise KeyError(f"Unknown unit: acad_org={acad_org!r}, label~={label!r}, name~={name!r}. Either create Unit or add to another unit's config \"other_acad_orgs\": [{acad_org!r}].")
 
     return unit
 
