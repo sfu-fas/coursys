@@ -77,6 +77,8 @@ def get_unit(acad_org, create=False):
         acad_org = 'ENVIRO SCI'
     elif acad_org == 'WOMENS ST':
         acad_org = 'GSWS'
+    elif acad_org == 'DEAN FCAT':
+        acad_org = 'CMNSARTTEC'
 
     try:
         unit = Unit.objects.get(acad_org=acad_org)
