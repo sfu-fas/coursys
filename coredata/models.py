@@ -1592,16 +1592,18 @@ class Unit(models.Model):
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
         # 'card_account':  Account code for card access forms
         # 'card_rooms': Rooms all grads have access to; separate lines with "|" and buildings/rooms with ":", e.g. "AQ:1234|AQ:5678"
+        # 'other_acad_orgs': list of other acad_org strings that should map to this unit on import, e.g. ["DEANSOFFICE", "WHYSOMANY"]
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
-                'deptid': ''}
+                'deptid': '', 'other_acad_orgs': []}
     address, set_address = getter_setter('address')
     email, set_email = getter_setter('email')
     tel, set_tel = getter_setter('tel')
     fax, set_fax = getter_setter('fax')
     web, set_web = getter_setter('web')
     deptid, set_deptid = getter_setter('deptid')
+    other_acad_orgs, set_other_acad_orgs = getter_setter('other_acad_orgs')
     _, set_informal_name = getter_setter('informal_name')
 
     class Meta:

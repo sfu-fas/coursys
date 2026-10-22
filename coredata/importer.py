@@ -64,6 +64,19 @@ def get_unit(acad_org, create=False):
     """
     Get the corresponding Unit
     """
+    # build map of acad_org to Unit.pk values and cache it.
+    cache_key = 'acad_org_map'
+    acad_org_map = cache.get(cache_key)
+    if acad_org_map is None:
+        units = Unit.objects.all()
+        # the "real" acad_org values for each unit:
+        acad_org_map = {u.acad_org: u.pk for u in units if u.acad_org}
+        # the additional acad_org values from .config['other_acad_orgs'] that we normalize
+        more = dict(itertools.chain.from_iterable(((ao, u.pk) for ao in u.other_acad_orgs()) for u in units))
+        acad_org_map.update(more)
+        
+        cache.set(cache_key, acad_org_map, 12*3600)
+    
     # there are some inconsistent acad_org values: normalize.
     if acad_org == 'GERON':
         acad_org = 'GERONTOL'
@@ -81,8 +94,8 @@ def get_unit(acad_org, create=False):
         acad_org = 'CMNSARTTEC'
 
     try:
-        unit = Unit.objects.get(acad_org=acad_org)
-    except Unit.DoesNotExist:
+        unit = Unit.objects.get(pk=acad_org_map[acad_org])
+    except (Unit.DoesNotExist, KeyError):
         db = SIMSConn()
         db.execute("SELECT DESCRFORMAL FROM PS_ACAD_ORG_TBL "
                    "WHERE EFF_STATUS='A' AND ACAD_ORG=%s", (acad_org,))
