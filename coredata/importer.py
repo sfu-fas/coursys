@@ -19,6 +19,7 @@ import itertools, random
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=150)
+ACAD_ORG_MAP_KEY = 'acad_org_map'
 
 
 @transaction.atomic
@@ -65,8 +66,7 @@ def get_unit(acad_org, create=False):
     Get the corresponding Unit
     """
     # build map of acad_org to Unit.pk values and cache it.
-    cache_key = 'acad_org_map'
-    acad_org_map = cache.get(cache_key)
+    acad_org_map = cache.get(ACAD_ORG_MAP_KEY)
     if acad_org_map is None:
         units = Unit.objects.all()
         # the additional acad_org values from .config['other_acad_orgs'] that we normalize:
@@ -75,7 +75,7 @@ def get_unit(acad_org, create=False):
         canonical = {u.acad_org: u.pk for u in units if u.acad_org}
         acad_org_map.update(canonical)
 
-        cache.set(cache_key, acad_org_map, 12*3600)
+        cache.set(ACAD_ORG_MAP_KEY, acad_org_map, 12*3600)
 
     try:
         unit = Unit.objects.get(pk=acad_org_map[acad_org])
