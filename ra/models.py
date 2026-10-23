@@ -12,10 +12,9 @@ from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from ra.utils import get_contact_email
 import datetime, os, uuid, math
 
-# general ra contact
-FAS_CONTACT = "fasra@sfu.ca"
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -1135,7 +1134,7 @@ class RARequest(models.Model):
 
             if hiring_category == "RA":
                 subject = "Research Assistant Appointment Expiry Reminder"
-                cc = [FAS_CONTACT]
+                cc = [get_contact_email()]
             elif hiring_category == "GRAS":
                 cc = None
                 subject = "Graduate RA Scholarship Appointment Expiry Reminder"

@@ -9,8 +9,9 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterFor
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
     RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestISHFForm, ISHF_FEE,\
-    CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT, PD_CONTACT, URA_CONTACT, DEANS_CONTACT, AppointeeSearchForm, SupervisorSearchForm, \
+    PD_CONTACT, URA_CONTACT, AppointeeSearchForm, SupervisorSearchForm, \
     RA_ONLY_FUNDS
+from ra.utils import get_ra_intro_html, get_contact_email
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -164,24 +165,18 @@ def _email_request_notification(req, url):
     email = None
     cc = None
     if req.hiring_category == "GRAS":
-        if req.unit.label == "CMPT":
-            email = CS_CONTACT
-        elif req.unit.label == "MSE":
-            email = MSE_CONTACT
-        elif req.unit.label == "ENSC":
-            email = ENSC_CONTACT
-        elif req.unit.label == "SEE":
-            email = SEE_CONTACT
+        if req.unit.label in ["CMPT", "MSE", "ENSC", "SEE"]:
+            email = get_contact_email(req.unit)
         else:
-            email = FAS_CONTACT
+            email = get_contact_email()
     elif req.hiring_category == "RA" or req.hiring_category == "NC":
-        email = FAS_CONTACT
+        email = get_contact_email()
         if req.unit.label == "CMPT":
-            cc = [CS_CONTACT]
+            cc = get_contact_email(req.unit)
 
     if email:
         content_text = req.author.name() + " has submitted a new Research Personnel Appointment Request Form. You can view it here: " + url
-        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email], cc=cc)
+        mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email], cc=[cc])
         mail.send()
 
 @method_decorator([requires_role(["FUND", "FDRE", "FDMA"]), never_cache], name='dispatch')
@@ -207,15 +202,11 @@ class RANewRequestWizard(SessionWizardView):
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         reappoint = 'ra_slug' in self.kwargs
-        context.update({'fas_contact': FAS_CONTACT})
+        context.update({'fas_contact': get_contact_email()})
         if self.steps.current == 'intro':
             context.update({'ura_contact': URA_CONTACT, 
                             'pd_contact': PD_CONTACT, 
-                            'cs_contact': CS_CONTACT, 
-                            'mse_contact': MSE_CONTACT, 
-                            'see_contact': SEE_CONTACT, 
-                            'ensc_contact': ENSC_CONTACT, 
-                            'deans_contact': DEANS_CONTACT})
+                            'ra_intro_html': get_ra_intro_html()})
         if self.steps.current == 'funding_sources':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
@@ -459,15 +450,11 @@ class RAEditRequestWizard(SessionWizardView):
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
-        context.update({'fas_contact': FAS_CONTACT})
+        context.update({'fas_contact': get_contact_email()})
         if self.steps.current == 'intro':
             context.update({'ura_contact': URA_CONTACT, 
                             'pd_contact': PD_CONTACT, 
-                            'cs_contact': CS_CONTACT, 
-                            'mse_contact': MSE_CONTACT, 
-                            'see_contact': SEE_CONTACT, 
-                            'ensc_contact': ENSC_CONTACT, 
-                            'deans_contact': DEANS_CONTACT})
+                            'ra_intro_html': get_ra_intro_html()})
         if self.steps.current == 'funding_sources':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
