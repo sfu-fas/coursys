@@ -22,16 +22,16 @@ class DBConn(object):
     Should only be created on-demand (in function) to minimize startup for other processes.
     """
     _instance = None
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(DBConn, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, verbose=False):
-        self.conn, self.db = self.get_connection()
+    def __init__(self, verbose: bool = False, throw_raw: bool = False):
+        self.conn, self.db = self.get_connection(throw_raw=throw_raw)
         self.verbose = verbose
 
-    def get_connection(self):
+    def get_connection(self, throw_raw: bool = False):
         raise NotImplementedError
     def escape_arg(self, a):
         raise NotImplementedError
@@ -69,7 +69,7 @@ class DBConn(object):
 
 
 class SIMSConnMSSQL(DBConn):
-    def get_connection(self):
+    def get_connection(self, throw_raw: bool = False):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
 
@@ -78,7 +78,10 @@ class SIMSConnMSSQL(DBConn):
             dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
                                     % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
         except (pyodbc.ProgrammingError, pyodbc.OperationalError):
-            raise SIMSProblem("Unable to connect to reporting database.")
+            if throw_raw:
+                raise
+            else:
+                raise SIMSProblem("Unable to connect to reporting database.")
         cursor = dbconn.cursor()
         return dbconn, cursor
 
@@ -1426,7 +1429,11 @@ def csrpt_update():
     """
     import pyodbc
     data = []
-    db = SIMSConn()
+    try:
+        db = SIMSConn(throw_raw=True)
+    except Exception as e:
+        return [('Unable to connect', str(e))]
+
     this_sem = Semester.current()
 
     try:

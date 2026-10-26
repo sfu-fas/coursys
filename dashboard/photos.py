@@ -321,7 +321,7 @@ def api_info():
     
     try:
         token = _get_photo_token(allow_fail=True)
-        data.append(('Token fetch', f'Retrieved {token!r}'))
+        data.append(('Token fetch', f'Retrieved {token[:10]!r}'))
     except Exception as e:
         data.append(('Token fetch', f'Failed: {e}'))
 
