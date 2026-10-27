@@ -10,6 +10,7 @@ import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error
 import socket, decimal
 
 
+EMAIL_IMPORT_THRESHOLD = 3600*24*30 # import preferred email even more infrequently than name
 multiple_breaks = re.compile(r'\n\n+')
 
 
@@ -292,9 +293,9 @@ def add_person(emplid, commit=True, external_email=False):
     return p
 
 
-@cache_by_args
-def get_person_by_userid(userid):
-    return ensure_person_from_userid(userid)
+# @cache_by_args
+# def get_person_by_userid(userid):
+#     return ensure_person_from_userid(userid)
 
 
 @cache_by_args
@@ -1635,11 +1636,21 @@ def import_person(p, commit=True, grad_data=False):
 
     # don't deactivate userids that have been deactivated by the University
     if userid:
-        ## but freak out if a userid changes
+        # but warn if a userid changes
         if p.userid and p.userid != userid:
-            #raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
             mail_admins(subject='userid change', message="Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
+
+    email_import_age = time.time() - p.config.get('lastemailimport', 0)
+    
+    if userid and email_import_age > EMAIL_IMPORT_THRESHOLD:
+        emplid, email = userid_to_emplid_and_email(userid)
+        if emplid and email:
+            assert str(emplid) == str(p.emplid)
+            p.config['email_tmp'] = email
+            p.config['lastemailimport'] = time.time()
+            # if 'email_tmp' in p.config:
+            #     del p.config['email_tmp']
 
     if grad_data:
         data = grad_student_info(p.emplid)

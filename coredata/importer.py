@@ -274,9 +274,12 @@ def _person_save(p):
         # try again now
         #p.save()
 
+
 imported_people = {}
 IMPORT_THRESHOLD = 3600*24*7 # import personal info infrequently
 NO_USERID_IMPORT_THRESHOLD = 3600*24*2 # import if we don't know their userid yet
+
+
 def get_person(emplid, commit=True, force=False, grad_data=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
