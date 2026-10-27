@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from coredata.models import Person, Semester, SemesterWeek, CourseOffering
 from django.conf import settings
 from django.core.mail import mail_admins
@@ -1509,16 +1511,16 @@ def outlines_data_json(offering):
 
 ##############################################################################
 # Emplid -> Userid APIs
+# Help for the API: the "Identity" team in ITS.
 
 EMPLID_SECRET = settings.EMPLID_API_SECRET
-EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
+EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global/accountInfo.json?'
 USERID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/amaint/username/username.json?'
 
-def userid_to_emplid(userid):
-    """
-    Fetch emplid from ITS API for userid -> emplid mapping.
 
-    Admin contact for the API is George Lee in the Learning & Community Platforms Group
+def userid_to_emplid_and_email(userid: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Fetch emplid and preferred email address from ITS API for userid -> emplid mapping.
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
@@ -1529,21 +1531,24 @@ def userid_to_emplid(userid):
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
-        return None
+        return None, None
     except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
-        return None
+        return None, None
 
-    if 'sfuid' not in data:
-        return None
+    return data.get('sfuid'), data.get('preferredEmail')
 
-    return data['sfuid']
+
+def userid_to_emplid(userid):
+    """
+    Fetch emplid from ITS API for userid -> emplid mapping.
+    """
+    return userid_to_emplid_and_email(userid)[0]
+
 
 def emplid_to_userid(emplid):
     """
     Fetch userid from ITS API for emplid -> userid mapping.
-
-    Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
