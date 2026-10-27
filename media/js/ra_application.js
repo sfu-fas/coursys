@@ -6,7 +6,7 @@ var studentFields = ['intro-coop', 'intro-thesis', 'intro-research', 'intro-usra
 var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
 var rabw_fields = ['research_assistant-total_gross', 'research_assistant-weeks_vacation', 'research_assistant-biweekly_hours']
-var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacation_pay', 'research_assistant-biweekly_hours']
+var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacation_pay', 'research_assistant-biweekly_hours', 'research_assistant-timesheet_required']
 var ncbw_fields = ['non_continuing-total_gross', 'non_continuing-weeks_vacation', 'non_continuing-biweekly_hours']
 var nch_fields = ['non_continuing-gross_hourly', 'non_continuing-vacation_pay', 'non_continuing-biweekly_hours']
 var ncls_fields = ['non_continuing-total_gross', 'non_continuing-lump_sum_hours', 'non_continuing-lump_sum_reason']

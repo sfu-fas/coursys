@@ -303,7 +303,7 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 
 RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
-    ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time. Timesheet must be submitted biweekly for the Appointee to be paid.)')
+    ('H', 'No (Hourly - Hourly - The Appointee will receive vacation pay in lieu of vacation time.)')
 )
 
 RA_PAYMENT_METHOD_CHOICES_USRA = (
@@ -317,6 +317,11 @@ NC_PAYMENT_METHOD_CHOICES = (
     ('H', 'Hourly (Vacation pay % will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
     ' timesheets in order for the Appointee to be paid.)'),
     ('LS', 'Lump Sum Amount')
+)
+
+TIMESHEET_CHOICES = (
+    (True, 'Yes (Must be submitted biweekly for the Appointee to be paid.)'),
+    (False, 'No (The Appointee will receive the bi-weekly amount indicated on the PAF, plus vacation pay, regardless of actual hours worked.)')
 )
 
 RA_VACATION_DAYS_CHOICES = (
@@ -613,6 +618,7 @@ class RARequest(models.Model):
     ra_other_duties = config_property('ra_other_duties', default='')
     ishf_total = config_property('ishf_total', default=0)
     ishf_subscribers = config_property('subscribers', default=0)
+    timesheet_required = config_property('timesheet_required', default=True)
 
     # nc only options
     nc_duties = config_property('ra_other_duties', default='')

@@ -3,7 +3,7 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, TIMESHEET_CHOICES, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
@@ -705,6 +705,8 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE and not edit:
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
+                elif vacation_pay not in [4,5,6,7,8] and not edit:
+                    self.add_error('vacation_pay', ('Vacation Pay must be one of the following whole percentages: 4, 5, 6, 7, 8'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
@@ -762,6 +764,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Vacation Time")
+    timesheet_required = forms.ChoiceField(required=False, label="Is timesheet submission required?", choices=TIMESHEET_CHOICES, widget=forms.RadioSelect)
     total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
     weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
@@ -802,7 +805,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+                'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'timesheet_required']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -814,7 +817,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
-                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties', 'backdate_reason']
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties', 'backdate_reason', 'timesheet_required']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data.get(field, None))
@@ -843,11 +846,20 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         ra_duties_su = cleaned_data.get('ra_duties_su')
         ra_duties_wr = cleaned_data.get('ra_duties_wr')
         ra_duties_pm = cleaned_data.get('ra_duties_pm')
+
+        timesheet_required = cleaned_data.get('timesheet_required')
+        if timesheet_required == "True":
+            self.cleaned_data['timesheet_required'] = True
+        else:
+            self.cleaned_data['timesheet_required'] = False
         
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
         edit = self.initial['edit']
         usra = self.initial['usra']
+
+        if usra and ra_payment_method == "H":
+            self.cleaned_data['timesheet_required'] = True
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -874,6 +886,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
             elif ra_payment_method == "H":
+                if not usra:
+                    if timesheet_required == None or timesheet_required == "":
+                        self.add_error('timesheet_required', error_message)
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
                 elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra and not edit:
@@ -885,6 +900,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE and not edit:
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
+                elif vacation_pay not in [4,5,6,7,8] and not edit:
+                    self.add_error('vacation_pay', ('Vacation Pay must be one of the following whole percentages: 4, 5, 6, 7, 8'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
