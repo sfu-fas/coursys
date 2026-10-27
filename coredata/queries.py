@@ -1607,7 +1607,7 @@ def build_person(emplid, userid=None, commit=True):
     return import_person(p, commit=commit)
 
 
-def import_person(p, commit=True, grad_data=False):
+def import_person(p: Person, commit=True, grad_data=False) -> Optional[Person]:
     """
     Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
@@ -1641,16 +1641,25 @@ def import_person(p, commit=True, grad_data=False):
             mail_admins(subject='userid change', message="Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
 
-    email_import_age = time.time() - p.config.get('lastemailimport', 0)
-    
+    now = time.time()
+    email_import_age = now - p.config.get('lastemailimport', 0)
+
     if userid and email_import_age > EMAIL_IMPORT_THRESHOLD:
         emplid, email = userid_to_emplid_and_email(userid)
         if emplid and email:
             assert str(emplid) == str(p.emplid)
-            p.config['email_tmp'] = email
-            p.config['lastemailimport'] = time.time()
-            # if 'email_tmp' in p.config:
-            #     del p.config['email_tmp']
+            if email != f'{p.userid}@sfu.ca':
+                p.config['email_tmp'] = email
+            elif 'email_tmp' in p.config:
+                del p.config['email_tmp']
+            p.config['lastemailimport'] = now
+        elif 'email_tmp' in p.config:
+            # no response on their email: revert to the safe userid@sfu.ca option
+            del p.config['email_tmp']
+
+        # TODO: when switching this on, purge the temp import values
+        # if 'email_tmp' in p.config:
+        #     del p.config['email_tmp']
 
     if grad_data:
         data = grad_student_info(p.emplid)
