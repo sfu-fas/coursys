@@ -11,6 +11,7 @@ import socket, decimal
 
 
 EMAIL_IMPORT_THRESHOLD = 3600*24*30 # import preferred email even more infrequently than name
+VALID_EMAIL = re.compile(r'[^@]+@[^@]+\.[^@]+')  # reasonably email-like string, from https://stackoverflow.com/a/8022584
 multiple_breaks = re.compile(r'\n\n+')
 
 
@@ -1646,7 +1647,7 @@ def import_person(p: Person, commit=True, grad_data=False) -> Optional[Person]:
 
     if userid and email_import_age > EMAIL_IMPORT_THRESHOLD:
         emplid, email = userid_to_emplid_and_email(userid)
-        if emplid and email:
+        if emplid and email and VALID_EMAIL.fullmatch(email):
             assert str(emplid) == str(p.emplid)
             if email != f'{p.userid}@sfu.ca':
                 p.config['email_tmp'] = email
