@@ -1647,13 +1647,15 @@ def import_person(p: Person, commit=True, grad_data=False) -> Optional[Person]:
 
     if userid and email_import_age > EMAIL_IMPORT_THRESHOLD:
         emplid, email = userid_to_emplid_and_email(userid)
-        if emplid and email and VALID_EMAIL.fullmatch(email):
+        if emplid and email and VALID_EMAIL.fullmatch(email) and email.endswith('sfu.ca'):
             assert str(emplid) == str(p.emplid)
             if email != f'{p.userid}@sfu.ca':
                 p.config['email_tmp'] = email
             elif 'email_tmp' in p.config:
+                # we default to userid@sfu.ca, so don't store that
                 del p.config['email_tmp']
-            p.config['lastemailimport'] = now
+            p.config['lastemailimport'] = int(now)
+
         elif 'email_tmp' in p.config:
             # no response on their email: revert to the safe userid@sfu.ca option
             del p.config['email_tmp']
