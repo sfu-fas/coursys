@@ -18,7 +18,7 @@ import csv
 import datetime
 import json
 
-def _get_visa_info(request: HttpRequest, person: Person) -> HttpResponse:
+def _get_visa_info(request: HttpRequest, person: Person) -> list:
     visas = []
     personvisas = Visa.objects.visible().filter(person=person, unit__in=request.units).order_by('-start_date')
     for v in personvisas:
@@ -291,7 +291,7 @@ def download_admin(request: HttpRequest) -> HttpResponse:
     return response
 
 @requires_role(['PDMA', 'PDOC'])
-def advanced_search(request):
+def advanced_search(request: HttpRequest) -> HttpResponse:
     """
     View for all search options
     """
