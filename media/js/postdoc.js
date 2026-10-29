@@ -69,13 +69,14 @@ function getVisaStatus(emplid) {
         success: function(data) {
             var html = '';
             html += '<h3>Current Visa(s)</h3>';
+            html += '<ul>';
             if (data['visas'].length == 0) {
                 html += '<li><i>No valid visas found.</i></li>';
             } else {
                 $(data['visas']).each(function(e, visa) {
                     html += '<li><p>' + visa['unit'] + '<br>'
-                    html += ' <b>' + visa['status'] + ' - ' + visa['start'] + ' - ' + visa['end'] + '</b></div>'
-                    html += '</li></p>';
+                    html += ' <b>' + visa['status'] + ' - ' + visa['start'] + ' - ' + visa['end'] + '</b>'
+                    html += '</p></li>';
                 });
             }
             html += '</ul>';
@@ -107,6 +108,7 @@ $(document).ready(function() {
     $('dl.dlform').first().before('<div id="visa_status"></div>');
     let personId = $('#id_person');
     personId.change(function() {
+        $('div#visa_status').empty();
         if ($(this).val().length === 9)
         {
             getVisaStatus($(this).val());

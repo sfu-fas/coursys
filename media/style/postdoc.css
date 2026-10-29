@@ -52,3 +52,7 @@ div#visa_status {
 dl.dlform dt {
     clear: none;
 }
+
+.visa-item { 
+  margin-bottom: 1em; 
+}

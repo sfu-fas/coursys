@@ -3,6 +3,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+<link rel="stylesheet" href="{% static 'style/postdoc.css' %}" />
 {% endblock %}
 
 {% block title %}Post Doc Appointment for {{ appt.person.sortname_pref }}{% endblock %}
@@ -52,15 +53,17 @@
     <ul>
     {% if visas %}
       {% for visa in visas %}
-        <p><u><li><b>Type:</b> {{ visa.status }}</li></u>
-        <li><b>Starts:</b> {{ visa.start }}</li>
-        <li><b>Ends:</b> {{ visa.end }}</li>
-        <li><b>Unit:</b> {{ visa.unit }}</li></p>
+        <li class="visa-item">
+          <b>Type:</b> {{ visa.status }}<br>
+          <b>Starts:</b> {{ visa.start }}<br>
+          <b>Ends:</b> {{ visa.end }}<br>
+          <b>Unit:</b> {{ visa.unit }}
+        </li>
       {% endfor %}
     {% else %}
       <li class="empty">No currently valid visa in system.</li>
     {% endif %}
-    <a href="{% url "visas:list_all_visas" emplid=appt.person.userid_or_emplid %}"><b>View All Visas for {{ appt.person.name }}</b></a>
+    <li><a href="{% url "visas:list_all_visas" emplid=appt.person.userid_or_emplid %}"><b>View All Visas for {{ appt.person.name }}</b></a></li>
     </ul>
   {% endif %}
 </div>
