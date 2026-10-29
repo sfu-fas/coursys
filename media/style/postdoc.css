@@ -43,3 +43,42 @@
   width: 6%;
   white-space: nowrap;
 }
+
+div#visa_status {
+	float: right;
+	width: 25%;
+}
+
+dl.dlform dt {
+    clear: none;
+}
+
+/* reference: https://www.w3schools.com/css/css_tooltip.asp */
+
+.info-bubble {
+    position: relative;
+    display: inline-block;
+  }
+
+.info-bubble .fa {
+    color: #777777;
+}
+
+.info-bubble .info {
+    visibility: hidden;
+    width: 200px;
+    background-color: #777777;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 2px;
+    position: absolute;
+    z-index: 1;
+    top: 30px;
+    right: 110%;
+    margin-left: -100px;
+}
+
+.info-bubble:hover .info {
+    visibility: visible;
+}

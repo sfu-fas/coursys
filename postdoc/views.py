@@ -8,6 +8,7 @@ from coredata.models import Person, Role
 from courselib.search import find_userid_or_emplid
 from grad.models import GradStudent
 from log.models import LogEntry
+from postdoc.utils import get_postdoc_intro_html
 from tacontracts.models import TAContract
 from ta.models import TAContract as OldTAContract
 from postdoc.forms import PostDocFundingSourceFormSet, PostDocForm, PostDocNoteForm, PostDocAdminAttachmentForm, PostDocDownloadForm, PostDocSupervisorFormSet
@@ -15,7 +16,25 @@ from postdoc.models import PostDoc, PostDocFundingSource
 from visas.models import Visa
 import csv
 import datetime
+import json
 
+def _get_visa_info(request: HttpRequest, person: Person) -> HttpResponse:
+    visas = []
+    personvisas = Visa.objects.visible().filter(person=person, unit__in=request.units).order_by('-start_date')
+    for v in personvisas:
+        if v.is_current():
+            if v.end_date:
+                end_date = v.end_date.isoformat()
+            else:
+                end_date = "Unknown"
+            data = {
+                'unit': v.unit.name,
+                'start': v.start_date.isoformat(),
+                'end': end_date,
+                'status': v.status,
+            }
+            visas.append(data)
+    return visas
 
 @requires_role(['PDMA', 'PDOC'])
 def post_doctoral_fellow(request: HttpRequest) -> HttpResponse:
@@ -28,7 +47,8 @@ def post_doctoral_fellow(request: HttpRequest) -> HttpResponse:
 def view_postdoc_appointment(request: HttpRequest, postdoc_slug: str) -> HttpResponse:
     appt = get_object_or_404(PostDoc.objects.select_related('person', 'unit').prefetch_related(Prefetch('funding_sources', queryset=PostDocFundingSource.objects.order_by('start_date', 'id'))), slug=postdoc_slug, unit__in=request.units, deleted=False)
     postdoc_admin = Role.objects_fresh.filter(role='PDMA', person__userid=request.user.username).exists()
-    return render(request, 'postdoc/view_postdoc_appointment.html', {'appt': appt, 'postdoc_admin': postdoc_admin})
+    visas = _get_visa_info(request, appt.person)
+    return render(request, 'postdoc/view_postdoc_appointment.html', {'appt': appt, 'postdoc_admin': postdoc_admin, 'visas': visas})
 
 
 @requires_role('PDMA')
@@ -57,7 +77,7 @@ def new_postdoc_appointment(request: HttpRequest) -> HttpResponse:
         supervisor_formset = PostDocSupervisorFormSet(prefix='supervisors')
         funding_formset = PostDocFundingSourceFormSet(prefix='funding')
 
-    return render(request, 'postdoc/new_postdoc_appointment.html', {'form': form, 'supervisor_formset': supervisor_formset, 'funding_formset': funding_formset})
+    return render(request, 'postdoc/new_postdoc_appointment.html', {'form': form, 'supervisor_formset': supervisor_formset, 'funding_formset': funding_formset, 'postdoc_intro_html': get_postdoc_intro_html()})
 
 
 @requires_role('PDMA')
@@ -88,7 +108,7 @@ def edit_postdoc_appointment(request: HttpRequest, postdoc_slug: str) -> HttpRes
         supervisor_formset = PostDocSupervisorFormSet(instance=appt, prefix='supervisors')
         funding_formset = PostDocFundingSourceFormSet(instance=appt, prefix='funding')
 
-    return render(request, 'postdoc/new_postdoc_appointment.html', {'form': form, 'edit': True, 'supervisor_formset': supervisor_formset, 'funding_formset': funding_formset, 'appt': appt})
+    return render(request, 'postdoc/new_postdoc_appointment.html', {'form': form, 'edit': True, 'supervisor_formset': supervisor_formset, 'funding_formset': funding_formset, 'appt': appt, 'postdoc_intro_html': get_postdoc_intro_html()})
 
 @requires_role(['PDMA', 'PDOC'])
 def edit_postdoc_notes(request: HttpRequest, postdoc_slug: str) -> HttpResponse:
@@ -291,3 +311,19 @@ def supervisor_appointments(request: HttpRequest, userid) -> HttpResponse:
     appointments = PostDoc.objects.filter(supervisor_links__supervisor=person, unit__in=request.units, deleted=False).select_related('person', 'unit').prefetch_related('supervisor_links__supervisor').distinct().order_by('-created_at')
     context = {'appointments': appointments, 'person': person}
     return render(request, 'postdoc/search/supervisor_appointments.html', context)
+
+@requires_role(['PDMA'])
+def person_visas(request: HttpRequest) -> HttpResponse:
+    """
+    Get info on this person's visa status.
+    """
+    result = {'visas': []}
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
+        pass
+    else:
+        person = Person.objects.get(emplid=emplid)
+        result['visas'] = _get_visa_info(request, person)
+        result['name'] = person.name_pref()
+        result['userid'] = person.userid_or_emplid()
+    return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')

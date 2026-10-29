@@ -62,6 +62,32 @@ function updateVisaLink() {
     link.show();
 }
 
+function getVisaStatus(emplid) {
+    $.ajax({
+        type: 'GET',
+        url: personvisas_url + '?emplid=' + emplid,
+        success: function(data) {
+            var html = '';
+            html += '<h3>Current Visa(s)</h3>';
+            if (data['visas'].length == 0) {
+                html += '<li><i>No valid visas found.</i></li>';
+            } else {
+                $(data['visas']).each(function(e, visa) {
+                    html += '<li><p>' + visa['unit'] + '<br>'
+                    html += ' <b>' + visa['status'] + ' - ' + visa['start'] + ' - ' + visa['end'] + '</b></div>'
+                    html += '</li></p>';
+                });
+            }
+            html += '</ul>';
+            html += '<p><a href="/visas/' + data['userid'] + '"><b>View All Visas for ' + data['name'] + '</b></a></p>';
+            $('div#visa_status').html(html);
+        },
+        error: function(xhr) {
+            $('div#visa_status').html("Error retrieving this person's visa information (ID may not be in the system).");
+        }
+    });
+}
+
 $(document).ready(function() {
     $('#id_person').autocomplete({
         source: '/data/students',
@@ -77,6 +103,16 @@ $(document).ready(function() {
             $(this).data('val', ui.item.value);
         }
     });
+
+    $('dl.dlform').first().before('<div id="visa_status"></div>');
+    let personId = $('#id_person');
+    personId.change(function() {
+        if ($(this).val().length === 9)
+        {
+            getVisaStatus($(this).val());
+        }
+    });
+    personId.change();
 
     updateRelocationReimbursement();
     updateLumpSumPayment();

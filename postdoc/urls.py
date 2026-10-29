@@ -7,6 +7,7 @@ postdoc_patterns = [  # prefix /postdoc/
     url(r'^download_index/$', views.download_index, name='download_index'),
     url(r'^download_admin/$', views.download_admin, name='download_admin'),
     url(r'^new/$', views.new_postdoc_appointment, name='new_postdoc_appointment'),
+    url(r'^_personvisas/$', views.person_visas, name='person_visas'),
     url(r'^(?P<postdoc_slug>[\w-]+)/$', views.view_postdoc_appointment, name='view_postdoc_appointment'),
     url(r'^(?P<postdoc_slug>[\w-]+)/edit/$', views.edit_postdoc_appointment, name='edit_postdoc_appointment'),
     url(r'^(?P<postdoc_slug>[\w-]+)/delete/$', views.delete_postdoc_appointment, name='delete_postdoc_appointment'),
