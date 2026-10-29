@@ -23,7 +23,7 @@ from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
-from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
+from ra.utils import get_contact_email
 from textwrap import wrap
 
 PAPER_SIZE = letter
@@ -1211,21 +1211,14 @@ class RARequestForm(SFUMediaMixin):
 
         email = None
         name = None
-        unit = self.ra.unit.label
+        unit = self.ra.unit
         if graduate_research_assistant:
-            if unit == "CMPT":
-                email = CS_CONTACT
-            elif unit == "MSE":
-                email = MSE_CONTACT
-            elif unit == "ENSC":
-                email = ENSC_CONTACT
-            elif unit == "SEE":
-                email = SEE_CONTACT
+            if unit.label in ["CMPT", "MSE", "ENSC", "SEE"]:
+                email = get_contact_email(unit)
+            if unit == "SEE":
                 name = "Manager, Operations & Administrative Services"
-            elif unit == "APSC":
-                email = FAS_CONTACT
         elif research_assistant or non_continuing:
-            email = FAS_CONTACT
+            email = get_contact_email()
 
         self._box_entry(32*mm, 22*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 14*mm, 60*mm, 6*mm, content='')
