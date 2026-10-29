@@ -11,7 +11,7 @@ from log.models import LogEntry
 from postdoc.utils import get_postdoc_intro_html
 from tacontracts.models import TAContract
 from ta.models import TAContract as OldTAContract
-from postdoc.forms import PostDocFundingSourceFormSet, PostDocForm, PostDocNoteForm, PostDocAdminAttachmentForm, PostDocDownloadForm, PostDocSupervisorFormSet
+from postdoc.forms import AppointeeSearchForm, PostDocFundingSourceFormSet, PostDocForm, PostDocNoteForm, PostDocAdminAttachmentForm, PostDocDownloadForm, PostDocSupervisorFormSet, SupervisorSearchForm
 from postdoc.models import PostDoc, PostDocFundingSource
 from visas.models import Visa
 import csv
@@ -289,6 +289,38 @@ def download_admin(request: HttpRequest) -> HttpResponse:
             funding_units, funding_funds, funding_projects] + visa_status_values + [appt.start_date, appt.end_date, appt.get_type_display(), pay_amount, payment_type])
 
     return response
+
+@requires_role(['PDMA', 'PDOC'])
+def advanced_search(request):
+    """
+    View for all search options
+    """
+    if request.method == 'POST':
+        appointee_form = AppointeeSearchForm()
+        supervisor_form = SupervisorSearchForm()
+        if 'appointee_submit' in request.POST:
+            appointee_form = AppointeeSearchForm(request.POST)
+            if appointee_form.is_valid():
+                person = appointee_form.cleaned_data['appointee']
+                if person.userid:
+                    userid = person.userid
+                else:
+                    userid = person.emplid
+                return HttpResponseRedirect(reverse('postdoc:appointee_appointments', kwargs={'userid': userid}))
+        elif 'supervisor_submit' in request.POST:
+            supervisor_form = SupervisorSearchForm(request.POST)
+            if supervisor_form.is_valid():
+                person = supervisor_form.cleaned_data['supervisor']
+                if person.userid:
+                    userid = person.userid
+                else:
+                    userid = person.emplid
+                return HttpResponseRedirect(reverse('postdoc:supervisor_appointments', kwargs={'userid': userid}))
+    else:
+        appointee_form = AppointeeSearchForm()
+        supervisor_form = SupervisorSearchForm()
+    context = {'supervisor_form': supervisor_form, 'appointee_form': appointee_form}
+    return render(request, 'postdoc/search/advanced_search.html', context)
 
 @requires_role(['PDMA', 'PDOC'])
 def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
