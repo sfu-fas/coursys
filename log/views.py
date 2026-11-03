@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
@@ -248,3 +249,20 @@ def log_view(request, log_type: str, log_id: str):
         'display_data': display_data,
     }
     return render(request, 'log/log_view.html', context)
+
+
+def _to_entry(l):
+    data = json.loads(l.comment)
+    return data['csp-report'].get('document-uri', 'Report'), l.datetime, json.dumps(data, indent=2)
+
+
+@requires_global_role("SYSA")
+def csp_reports(request):
+    logs = LogEntry.objects.filter(description='CSP violation').order_by('-datetime')[:100]
+    
+    reports = [_to_entry(l) for l in logs]
+
+    context = {
+        'reports': reports,
+    }
+    return render(request, 'log/csp_reports.html', context)

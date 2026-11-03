@@ -41,6 +41,7 @@ admin_patterns = [ # prefix /admin/
 sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^$', coredata_views.sysadmin, name='sysadmin'),
     url(r'^log/$', log_views.index, name='index'),
+    url(r'^log/csp$', log_views.csp_reports, name='csp_reports'),
     url(r'^roles/$', coredata_views.role_list, name='role_list'),
     url(r'^roles/expired$', coredata_views.expired_role_list, name='expired_role_list'),
     url(r'^roles/(?P<role_id>\d+)/delete$', coredata_views.delete_role, name='delete_role'),

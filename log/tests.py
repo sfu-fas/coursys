@@ -1,10 +1,12 @@
+import json
+
 from django.test import TestCase
 from django.urls import reverse
 
 from courselib.testing import Client, test_views
 from courses import settings
 from log.forms import EVENT_FORM_TYPES, EventLogFilterForm
-from log.models import EventLogEntry, RequestLog, EVENT_LOG_TYPES, CeleryTaskLog
+from log.models import LogEntry, EventLogEntry, RequestLog, EVENT_LOG_TYPES, CeleryTaskLog
 from log.views import EVENT_DATA_VIEWS
 
 
@@ -93,5 +95,8 @@ class EventLogEntryTest(TestCase):
         response = c.get(reverse('sysadmin:log_explore'))
         self.assertEqual(response.status_code, 403)
 
+        # get a CSP report in the db, and test the report view
+        c.post(reverse('dashboard:csp_reports'), data=json.dumps({'csp-report': {'foo': 'bar'}}), content_type="application/json")
+
         c.login_user('ggbaker')
-        test_views(self, c, 'sysadmin:', ['log_explore'], {})
+        test_views(self, c, 'sysadmin:', ['log_explore', 'csp_reports'], {})
