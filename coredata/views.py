@@ -1,5 +1,6 @@
 import itertools
 
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -152,6 +153,8 @@ def edit_unit(request, unit_slug=None):
         if form.is_valid():
             unit.slug = None
             form.save()
+            from coredata.importer import ACAD_ORG_MAP_KEY
+            cache.delete(ACAD_ORG_MAP_KEY)
             messages.success(request, 'Edited unit %s.' % (unit.name))
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,

@@ -26,7 +26,7 @@ DUMMY_IMAGE_FILE = os.path.join(settings.BASE_DIR, 'media', 'images', 'No_image.
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
-PHOTO_TIMEOUT = 20 # number of seconds the views will wait for the photo service
+PHOTO_TIMEOUT = 15 # number of seconds the views will wait for the photo service
 MAX_PHOTO_SIZE = 720 # max (width and height) dimensions of an image we'll return
 TASK_BACKOFF = [1,2,3,4,5,6] # times to wait for photo fetching tasks
 
@@ -137,7 +137,7 @@ def pre_fetch_photos(emplids):
 
 
 
-def do_photo_fetch(emplids, timeout=20):
+def do_photo_fetch(emplids, timeout=PHOTO_TIMEOUT):
     """
     Do the actual work of fetching photos: called by the celery task. Store them in the cache for finding by the view.
     """
@@ -167,7 +167,7 @@ def _get_photo_token(allow_fail=False):
     """
     token_data = urllib.parse.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()}).encode('utf8')
     try:
-        token_request = url_opener.open(TOKEN_URL, data=token_data)
+        token_request = url_opener.open(TOKEN_URL, data=token_data, timeout=PHOTO_TIMEOUT)
     except IOError:
         if allow_fail:
             raise
@@ -198,7 +198,7 @@ def possibly_resize(original):
     return resize.getvalue()
 
 
-def _get_photos(emplids, timeout=20):
+def _get_photos(emplids, timeout=PHOTO_TIMEOUT):
     """
     Get actual photo data from photo service. Returns emplid -> JPEG data dict
     """
@@ -321,7 +321,7 @@ def api_info():
     
     try:
         token = _get_photo_token(allow_fail=True)
-        data.append(('Token fetch', f'Retrieved {token!r}'))
+        data.append(('Token fetch', f'Retrieved {token[:10]!r}'))
     except Exception as e:
         data.append(('Token fetch', f'Failed: {e}'))
 
