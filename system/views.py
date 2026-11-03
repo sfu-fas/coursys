@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
 
 from courselib.auth import requires_global_role
 from log.models import LogEntry
@@ -62,7 +61,6 @@ def edit_systemvariable(request, systemvariable_id):
 
 
 @requires_global_role("SYSA")
-@require_POST
 def delete_systemvariable(request, systemvariable_id):
     variable = get_object_or_404(SystemVariable, id=systemvariable_id)
     l = LogEntry(userid=request.user.username,
