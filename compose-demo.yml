@@ -137,6 +137,7 @@ services:
       resources:
         limits:
           memory: 10mb
+    restart: unless-stopped
     volumes:
       - status:/status:rw
       - /data/nginx_logs:/nginx_logs:rw,z

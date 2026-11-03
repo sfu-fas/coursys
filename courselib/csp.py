@@ -61,7 +61,8 @@ class CSPMiddleware(object):
         value = f"default-src 'self' * ; " \
                 f"style-src 'self' 'unsafe-inline' {extra_style_src} ; " \
                 f"img-src 'self' www.sfu.ca data: ; " \
-                f"font-src 'self' www.sfu.ca ; " \
+                f"font-src 'self' www.sfu.ca data: ; " \
+                f"worker-src 'self' blob: ; " \
                 f"script-src 'self' https://cdnjs.cloudflare.com {extra_script_src} ; " \
                 f"{extra_csp}" \
                 f"report-uri {report_uri} ;"
