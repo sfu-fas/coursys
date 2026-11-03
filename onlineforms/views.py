@@ -724,16 +724,25 @@ def new_form(request):
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
-        sheet_id = request.POST['sheet_id']
-        sheets = Sheet.objects.filter(id=sheet_id, form=form)
-        if sheets:
-            sheet = sheets[0]
-            sheet.delete()
-            messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
-           
-        return HttpResponseRedirect(
-            reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
+    if request.method == 'POST' and 'action' in request.POST:
+        if request.POST['action'] == 'del':
+            sheet_id = request.POST['sheet_id']
+            sheets = Sheet.objects.filter(id=sheet_id, form=form)
+            if sheets:
+                sheet = sheets[0]
+                sheet.delete()
+                messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
+            return HttpResponseRedirect(
+                reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
+        elif request.POST['action'] == 'revive':
+            form.revive()
+            l = LogEntry(userid=request.user.username,
+                description=("Revived form %s.") % (form,),
+                related_object=form)
+            l.save()
+            messages.success(request, 'Revived the form "%s".' % (form.title))
+            return HttpResponseRedirect(
+                reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
 
     form_url = request.build_absolute_uri(reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': form_slug}))
     context = {'form': form, 'sheets': sheets, 'form_url': form_url}

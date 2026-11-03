@@ -103,4 +103,15 @@
 {% if form.unlisted %}This form is unlisted.  {% endif %}
 The URL where people can fill this form out (if it is enabled) is <a href="{{ form_url }}">{{ form_url }}</a>
 
+{% if not form.active %}
+    <h2>This form is not active.</h2>
+    <p>If this form was removed in error, you can revive it below:</p>
+    <form action="{% url "onlineforms:view_form" form_slug=form.slug %}" method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="revive" />
+        <p class="actionbutton">
+            <input type="submit" value="Revive" class="btn confirm-submit" data-submit-action="revive this form" />
+        </p>
+    </form>
+{% endif %}
+
 {% endblock %}
