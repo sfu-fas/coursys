@@ -212,3 +212,17 @@ class PostDocDownloadForm(forms.Form):
         today = datetime.date.today()
         self.initial['start_date'] = today - datetime.timedelta(days=1095)
         self.initial['end_date'] = today
+
+class AppointeeSearchForm(forms.Form):
+    appointee = PersonField(required=True, label="Appointee", help_text="Type to search for a PDF's appointments.")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AppointeeSearchForm, self).is_valid(*args, **kwargs)
+
+class SupervisorSearchForm(forms.Form):
+    supervisor = PersonField(required=True, label="Supervisor", help_text="Type to search for a supervisor's appointments.")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(SupervisorSearchForm, self).is_valid(*args, **kwargs)

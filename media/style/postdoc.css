@@ -43,3 +43,16 @@
   width: 6%;
   white-space: nowrap;
 }
+
+div#visa_status {
+	float: right;
+	width: 25%;
+}
+
+dl.dlform dt {
+    clear: none;
+}
+
+.visa-item { 
+  margin-bottom: 1em; 
+}

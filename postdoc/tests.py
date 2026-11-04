@@ -23,7 +23,7 @@ class PostDocViewsTest(TestCase):
         Role.objects.create(person=admin, role='PDMA', unit=unit, expiry=(datetime.date.today() + datetime.timedelta(days=30)))
 
         # basic pages
-        test_views(self, c, 'postdoc:', ['post_doctoral_fellow', 'new_postdoc_appointment', 'download_index'], {})
+        test_views(self, c, 'postdoc:', ['post_doctoral_fellow', 'new_postdoc_appointment', 'download_index', 'advanced_search'], {})
 
         # create a PostDoc appointment to test view/edit pages
         p = Person.objects.exclude(userid='dzhao').first()
