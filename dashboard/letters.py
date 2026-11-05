@@ -1215,7 +1215,7 @@ class RARequestForm(SFUMediaMixin):
         if graduate_research_assistant:
             if unit.label in ["CMPT", "MSE", "ENSC", "SEE"]:
                 email = get_contact_email(unit)
-            if unit == "SEE":
+            if unit.label == "SEE":
                 name = "Manager, Operations & Administrative Services"
         elif research_assistant or non_continuing:
             email = get_contact_email()
