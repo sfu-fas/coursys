@@ -3,7 +3,8 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES, FAS_CONTACT
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
+from ra.utils import get_min_wage, get_new_min_wage, get_new_min_wage_date, get_ishf_fee, get_new_ra_wage_date, get_new_ra_wage, get_vacation_pay_help_text, get_biweekly_hours_error_text
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
@@ -40,22 +41,19 @@ OBJECT_CHOICES = (
     (5844, '5844 - Invited Speakers Honoraria')
 )
 
-
-# TODO: Settings - would really like all of the following to be editable by funding admins (or even sys admins)
-# it should be the same across all units, and doesn't change with the semester
-# model with a single entry doesn't seem quite right? django-dbsettings?
-
-# deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2026, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 18.25 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 17.85 # Update to new minimum wage once another upcoming minimum wage is known 
-ISHF_FEE = 75
+NEW_MIN_WAGE_DATE = get_new_min_wage_date()
+NEW_MIN_WAGE = get_new_min_wage()
+MIN_WAGE = get_min_wage()
+ISHF_FEE = get_ishf_fee()
 
 # deal with upcoming ra wage requirements
-NEW_RA_WAGE_DATE = datetime.date(2026, 3, 31)
-NEW_RA_WAGE = 24.74
+NEW_RA_WAGE_DATE = get_new_ra_wage_date()
+NEW_RA_WAGE = get_new_ra_wage()
 
 RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
+
+VACATION_PAY_HELP_TEXT = get_vacation_pay_help_text()
+BIWEEKLY_HOURS_ERROR_TEXT = get_biweekly_hours_error_text()
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
@@ -86,15 +84,6 @@ def add_business_days(date, days):
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
 MIN_BIWEEKLY_HOURS = 4
-# unit contacts 
-CS_CONTACT = "csrahelp@sfu.ca"
-MSE_CONTACT = "mse_admin_assistant@sfu.ca"
-ENSC_CONTACT = "ensc-finance@sfu.ca"
-SEE_CONTACT = "fas_sry_admin@sfu.ca"
-DEANS_CONTACT = "fas_budget_manager@sfu.ca"
-# intro contacts
-URA_CONTACT = "fas_academic_relations@sfu.ca"
-PD_CONTACT = "fas_postdoc_support@sfu.ca"
 
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
@@ -622,7 +611,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe("<a href='https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/time-off/vacation'>Minimum 4%</a> (equivalent to two weeks of vacation time)"))
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe(VACATION_PAY_HELP_TEXT))
 
     class Meta:
         model = RARequest
@@ -709,7 +698,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
-                    self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
+                    self.add_error('biweekly_hours', mark_safe(BIWEEKLY_HOURS_ERROR_TEXT))
             if nc_payment_method == "LS":
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
@@ -768,7 +757,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe("<a href='https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/time-off/vacation'>Minimum 4%</a> (equivalent to two weeks of vacation time)"))
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe(VACATION_PAY_HELP_TEXT))
     
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -889,7 +878,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
-                    self.add_error('biweekly_hours', mark_safe('In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours">B.C. Employment Standards Act</a>, an employee must be scheduled for at least two (2) hours of work per day, or four (4) hours biweekly.'))
+                    self.add_error('biweekly_hours', mark_safe(BIWEEKLY_HOURS_ERROR_TEXT))
 
 
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
