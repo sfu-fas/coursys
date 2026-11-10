@@ -1145,7 +1145,7 @@ class RARequestForm(SFUMediaMixin):
         self.c.setFont("Helvetica-Bold", 7.5)
         self.c.drawString(1*mm, 68*mm, "If FUNDING CHANGE ONLY, enter current funding information")
 
-        self._small_box_entry(1*mm, 58*mm, 33*mm, 8*mm, content="Project", subtext="6-8 digits")
+        self._small_box_entry(1*mm, 58*mm, 33*mm, 8*mm, content="Project", subtext="(6-8 digits)")
         self._box_entry(1*mm, 52*mm, 33*mm, 6*mm, content='')
         self._box_entry(1*mm, 46*mm, 33*mm, 6*mm, content='')
         self._box_entry(1*mm, 40*mm, 33*mm, 6*mm, content='')
