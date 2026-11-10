@@ -3,6 +3,8 @@ from ..table import Table
 from coredata.models import Semester, Unit, Member
 from ta.models import TACourse as ta_courses
 from tacontracts.models import TACourse as tacontracts_courses
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 
 class CMPTTAConflictRolesReport(Report):
     title = "CMPT TAs has conflict memberships for the Current Semester"
@@ -17,11 +19,13 @@ class CMPTTAConflictRolesReport(Report):
         units = Unit.objects.filter(label__in=['CMPT'])
         
         # - /ta
-        tas = ta_courses.objects.filter(contract__posting__semester__in=semesters,                                        
-                                        contract__posting__unit__in=units).order_by("course__name", "contract__application__person__emplid")
+        tas = ta_courses.objects.filter(contract__posting__semester__in=semesters, contract__posting__unit__in=units) \
+            .annotate(course_name=Concat(F("course__subject"), Value(" "), F("course__number"), Value(" "), F("course__section"),)) \
+            .order_by("course_name", "contract__application__person__emplid")
         # - /tacontracts
-        tacontracts = tacontracts_courses.objects.filter(contract__category__hiring_semester__semester__in=semesters, 
-                                                         contract__category__hiring_semester__unit__in=units).order_by("course__name")
+        tacontracts = tacontracts_courses.objects.filter(contract__category__hiring_semester__semester__in=semesters, contract__category__hiring_semester__unit__in=units) \
+            .annotate(course_name=Concat(F("course__subject"), Value(" "), F("course__number"), Value(" "), F("course__section"),)) \
+            .order_by("course_name")
 
         results = Table()
         results.append_column('Semester')
@@ -67,10 +71,8 @@ class CMPTTAConflictRolesReport(Report):
 
         for ta in tacontracts:
             m = Member.objects.filter(person=ta.contract.person, offering=ta.course, role='STUD').first()
-            # check combined courses as well
-            # TBD
             if m:
-                results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m.offering.name(), ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                results.append_row([ta.contract.category.hiring_semester.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m.offering.name(), ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
             # check combined courses as well
             co = ta.course
             joint_with = co.config.get('joint_with')
@@ -88,9 +90,9 @@ class CMPTTAConflictRolesReport(Report):
                         m1 = Member.objects.filter(person=ta.contract.person, offering__slug=o[0], role='STUD').first()
                         m2 = Member.objects.filter(person=ta.contract.person, offering__slug=o[1], role='STUD').first()
                         if m1:
-                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m1.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.category.hiring_semester.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m1.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
                         if m2:
-                            results.append_row([ta.contract.posting.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m2.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
+                            results.append_row([ta.contract.category.hiring_semester.semester, ta.contract.person.name_with_pref(), ta.contract.person.emplid, ta.contract.person.userid, ta.contract.status, ta.course.name(), m2.offering.name()+'*', ta.course.title, "; ".join(p.userid for p in ta.course.instructors())])
 
                     except Member.DoesNotExist:
                         continue
