@@ -42,8 +42,10 @@ class FASTAHistoryReport(Report):
         results.append_column('Category')
         results.append_column('Appointment Start Date')
         results.append_column('Appointment End Date')
-        results.append_column('Course(s)')
+        results.append_column('Course')
         results.append_column('Number of BUs')
+        results.append_column('Total Number of BUs in Contract')
+        results.append_column('Total Number of Courses in Contract')
         results.append_column('Contract Status')
         results.append_column('Source')
         results.append_column('Visa Type')
@@ -60,17 +62,19 @@ class FASTAHistoryReport(Report):
             start_date = ta.appointment_start
             end_date = ta.appointment_end
             courses = ''
-            ta_courses = ta_course.objects.filter(contract=ta)
-            if len(ta_courses) > 0:
-                courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
             total_bu = ta.total_bu()
             status = "Signed" if ta.status == 'SGN' else "Accepted"
             source = settings.BASE_ABS_URL + reverse('ta:view_application', kwargs={'post_slug': ta.application.posting.slug, 'userid': ta.application.person.userid})
 
             # visa info
             visa_type, visa_start_date, visa_end_date = self.get_visa_info(ta.application.person, ta.appointment_start)
-           
-            results.append_row([semester, unit, name, id, category, start_date, end_date, courses, total_bu, status, source, visa_type, visa_start_date, visa_end_date])
+
+            courses = ta_course.objects.filter(contract=ta)
+            for course in courses:
+                course_bu = str(course.total_bu)
+                total_courses = len(courses)
+                course = str(course.course.name())
+                results.append_row([semester, unit, name, id, category, start_date, end_date, course, course_bu, total_bu, total_courses, status, source, visa_type, visa_start_date, visa_end_date])
 
         for ta in tacontracts:
             # contract info
@@ -81,7 +85,6 @@ class FASTAHistoryReport(Report):
             category = str(ta.category.code) + " " + str(ta.category.title) + " - " + str(ta.category.account)
             start_date = ta.appointment_start
             end_date = ta.appointment_end
-            courses = ta.course_list_string()
             total_bu = ta.total_bu
             status = "Signed"
             source = settings.BASE_ABS_URL + reverse('tacontracts:view_contract', kwargs={'unit_slug': ta.category.hiring_semester.unit.label, 'semester': ta.category.hiring_semester.semester.name, 'contract_slug': ta.slug})
@@ -89,6 +92,11 @@ class FASTAHistoryReport(Report):
             # visa info
             visa_type, visa_start_date, visa_end_date = self.get_visa_info(ta.person, ta.appointment_start)
 
-            results.append_row([semester, unit, name, id, category, start_date, end_date, courses, total_bu, status, source, visa_type, visa_start_date, visa_end_date])
+            courses = ta.course.all()
+            for course in courses:
+                course_bu = str(course.total_bu)
+                total_courses = len(courses)
+                course = str(course.course.name())
+                results.append_row([semester, unit, name, id, category, start_date, end_date, course, course_bu, total_bu, total_courses, status, source, visa_type, visa_start_date, visa_end_date])
 
         self.artifacts.append(results)
