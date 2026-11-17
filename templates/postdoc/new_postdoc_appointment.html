@@ -16,6 +16,9 @@
 {% endblock %}
 
 {% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+var personvisas_url = "{% url 'postdoc:person_visas' %}";
+</script>
 <link rel="stylesheet" href="{% static 'style/postdoc.css' %}" />
 <script type="text/javascript" src="{% static 'js/postdoc.js' %}"></script>
 {% endblock %}
@@ -26,8 +29,7 @@
 {% block content %}
 <div class="form_container">
   <div class="admin_info">
-    <p>Postdoctoral Fellows (PDF) appointment records in Faculty of Applied Sciences</p>
-    <p>For inquiries or questions, please contact <b>fas_postdoc_support@sfu.ca</b></p>
+    {{ postdoc_intro_html|safe }}
   </div>
   {% if edit %}
   <form action="{% url "postdoc:edit_postdoc_appointment" postdoc_slug=appt.slug %}" method="post" class="subtle">

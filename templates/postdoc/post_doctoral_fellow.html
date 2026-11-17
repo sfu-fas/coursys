@@ -38,6 +38,7 @@ $(document).ready(function() {
 {% block content %}
 <div class="actionlist">
     {% if postdoc_admin %}<a class="btn" href="{% url "postdoc:new_postdoc_appointment" %}">New Post Doc Appointment</a>{% endif %}
+    <a class="btn" href="{% url "postdoc:advanced_search" %}">Advanced Search</a>
     <a class="btn" href="{% url "postdoc:download_index" %}">Downloads</a>
 </div>
 
