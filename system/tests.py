@@ -1,7 +1,6 @@
 
 from datetime import datetime
 from django.test import TestCase
-from django.urls import reverse
 from system.models import SystemVariable
 from courselib.testing import Client, freshen_roles, test_views
 
