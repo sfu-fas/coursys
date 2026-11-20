@@ -1650,19 +1650,19 @@ def import_person(p: Person, commit=True, grad_data=False) -> Optional[Person]:
         if emplid and email and VALID_EMAIL.fullmatch(email) and email.endswith('sfu.ca'):
             assert str(emplid) == str(p.emplid)
             if email != f'{p.userid}@sfu.ca':
-                p.config['email_tmp'] = email
-            elif 'email_tmp' in p.config:
+                p.config['email'] = email
+            elif 'email' in p.config:
                 # we default to userid@sfu.ca, so don't store that
-                del p.config['email_tmp']
+                del p.config['email']
             p.config['lastemailimport'] = int(now)
 
-        elif 'email_tmp' in p.config:
+        elif 'email' in p.config:
             # no response on their email: revert to the safe userid@sfu.ca option
-            del p.config['email_tmp']
+            del p.config['email']
 
-        # TODO: when switching this on, purge the temp import values
-        # if 'email_tmp' in p.config:
-        #     del p.config['email_tmp']
+        # purge the temp import values from testing
+        if 'email_tmp' in p.config:
+            del p.config['email_tmp']
 
     if grad_data:
         data = grad_student_info(p.emplid)
