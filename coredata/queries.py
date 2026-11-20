@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from coredata.models import Person, Semester, SemesterWeek, CourseOffering
 from django.conf import settings
 from django.core.mail import mail_admins
@@ -8,6 +10,8 @@ import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error
 import socket, decimal
 
 
+EMAIL_IMPORT_THRESHOLD = 3600*24*30 # import preferred email even more infrequently than name
+VALID_EMAIL = re.compile(r'[^@]+@[^@]+\.[^@]+')  # reasonably email-like string, from https://stackoverflow.com/a/8022584
 multiple_breaks = re.compile(r'\n\n+')
 
 
@@ -290,9 +294,9 @@ def add_person(emplid, commit=True, external_email=False):
     return p
 
 
-@cache_by_args
-def get_person_by_userid(userid):
-    return ensure_person_from_userid(userid)
+# @cache_by_args
+# def get_person_by_userid(userid):
+#     return ensure_person_from_userid(userid)
 
 
 @cache_by_args
@@ -1509,16 +1513,16 @@ def outlines_data_json(offering):
 
 ##############################################################################
 # Emplid -> Userid APIs
+# Help for the API: the "Identity" team in ITS.
 
 EMPLID_SECRET = settings.EMPLID_API_SECRET
-EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
+EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global/accountInfo.json?'
 USERID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/amaint/username/username.json?'
 
-def userid_to_emplid(userid):
-    """
-    Fetch emplid from ITS API for userid -> emplid mapping.
 
-    Admin contact for the API is George Lee in the Learning & Community Platforms Group
+def userid_to_emplid_and_email(userid: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Fetch emplid and preferred email address from ITS API for userid -> emplid mapping.
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
@@ -1529,21 +1533,24 @@ def userid_to_emplid(userid):
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
-        return None
+        return None, None
     except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
-        return None
+        return None, None
 
-    if 'sfuid' not in data:
-        return None
+    return data.get('sfuid'), data.get('preferredEmail')
 
-    return data['sfuid']
+
+def userid_to_emplid(userid):
+    """
+    Fetch emplid from ITS API for userid -> emplid mapping.
+    """
+    return userid_to_emplid_and_email(userid)[0]
+
 
 def emplid_to_userid(emplid):
     """
     Fetch userid from ITS API for emplid -> userid mapping.
-
-    Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
@@ -1601,7 +1608,7 @@ def build_person(emplid, userid=None, commit=True):
     return import_person(p, commit=commit)
 
 
-def import_person(p, commit=True, grad_data=False):
+def import_person(p: Person, commit=True, grad_data=False) -> Optional[Person]:
     """
     Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
@@ -1630,11 +1637,32 @@ def import_person(p, commit=True, grad_data=False):
 
     # don't deactivate userids that have been deactivated by the University
     if userid:
-        ## but freak out if a userid changes
+        # but warn if a userid changes
         if p.userid and p.userid != userid:
-            #raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
             mail_admins(subject='userid change', message="Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
+
+    now = time.time()
+    email_import_age = now - p.config.get('lastemailimport', 0)
+
+    if userid and email_import_age > EMAIL_IMPORT_THRESHOLD:
+        emplid, email = userid_to_emplid_and_email(userid)
+        if emplid and email and VALID_EMAIL.fullmatch(email) and email.endswith('sfu.ca'):
+            assert str(emplid) == str(p.emplid)
+            if email != f'{p.userid}@sfu.ca':
+                p.config['email'] = email
+            elif 'email' in p.config:
+                # we default to userid@sfu.ca, so don't store that
+                del p.config['email']
+            p.config['lastemailimport'] = int(now)
+
+        elif 'email' in p.config:
+            # no response on their email: revert to the safe userid@sfu.ca option
+            del p.config['email']
+
+        # purge the temp import values from testing
+        if 'email_tmp' in p.config:
+            del p.config['email_tmp']
 
     if grad_data:
         data = grad_student_info(p.emplid)

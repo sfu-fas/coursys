@@ -91,7 +91,7 @@ class EditPageForm(MarkupContentMixin(field_name='markup_content'), EditPageFile
         if instance:
             # push the initial values into the page object, to make MarkupContentMixin happy
             version = instance.current_version()
-            instance.markup_content = version.wikitext
+            instance.markup_content = version.get_wikitext()
             instance.markup = version.markup()
             instance.math = version.math()
         super(EditPageForm, self).__init__(instance=instance, *args, **kwargs)
