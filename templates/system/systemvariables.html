@@ -15,12 +15,6 @@ $(document).ready(function() {
     'aaSorting': [[0, 'asc']]
   } );
 } );
-
-function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this record? Do not delete system variables unless you are sure they are not in use.") ) {
-    document.location = url;
-  };
-}
 </script>
 
 {% endblock %}
@@ -62,9 +56,12 @@ function confirmDelete(url) {
             <td>{% if variable.unit %}{{ variable.unit.label }}{% else %}Global{% endif %}</td>
             <td>{{ variable.created_at|date:"Y-m-d H:i" }}</td>
             <td>
-                <a href="{% url 'system:edit_systemvariable' variable.id %}">Edit</a>
-                |
-                <a href="#" onclick="confirmDelete('{% url 'system:delete_systemvariable' variable.id %}'); return false;">Delete</a>
+                <form class="lineform" method="POST" action="{% url 'system:delete_systemvariable' variable.id %}">
+                    {% csrf_token %}<button type='submit' class='btn confirm-submit' title="Delete Variable" data-submit-action="delete this variable"><i class='fa fa-trash-o'></i></button>
+                </form>
+                <a class="lineform" href="{% url 'system:edit_systemvariable' variable.id %}">
+                    <button type='submit' class='btn' title="Edit Variable"><i class='fa fa-edit'></i></button>
+                </a>
             </td>
         </tr>
         {% endfor %}

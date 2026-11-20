@@ -71,14 +71,7 @@
       <div class ="form_section">
         <h2><strong>Hiring Category: Research Assistant {% if usra %}(USRA){% endif %}</strong></h2>
         <div class="helptext">
-          <ul>
-            <li><u><b>Appointment Budget Overview</b></u></li>
-            <li>B.C. minimum wage starting from June 01, 2026: $18.25 per hour </li>
-            <li>TSSU minimum hourly wage: $24.74 per hour </li>
-            <li>Employer portion of statutory benefits covering CPP, EI, WCB and EHT: estimated at 11% </li>
-            <li>Employer paid extended health benefits: estimated at 6% </li>
-            <li>Vacation pay: minimum 4%, which equals to 2 weeks annual vacation </li>
-          </ul>
+          {{ funding_intro|safe }}
         </div>
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
@@ -87,7 +80,11 @@
                 {{ form }}
             {% endfor %}
         {% else %}
-            {{ wizard.form|as_dl_excludefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_includefields:"ra_payment_method" }}
+            {% if not usra %}
+              {{ wizard.form|as_dl_includefields:"timesheet_required" }}
+            {% endif %}
+            {{ wizard.form|as_dl_excludefields:"ra_payment_method,timesheet_required,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
           <div id="biweekly_warning" class="errorlist">
              <p>In accordance with the <a href="https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/hours/overtime-pay">BC Employment Standards Act</a>, Employees who work more than eight hours in a day or 40 hours in a week must be paid time-and-a-half or double-time for overtime hours worked.</p>
           </div>          
