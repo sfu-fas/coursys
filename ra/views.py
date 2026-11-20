@@ -9,8 +9,10 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterFor
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
     RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestISHFForm, ISHF_FEE,\
-    CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT, PD_CONTACT, URA_CONTACT, DEANS_CONTACT, AppointeeSearchForm, SupervisorSearchForm, \
+    AppointeeSearchForm, SupervisorSearchForm, \
     RA_ONLY_FUNDS
+from ra.utils import get_ra_intro_html, get_contact_email, get_ra_definition, get_gras_definition, get_nc_definition, get_usra_definition, \
+    get_gras_funding_intro, get_nc_funding_intro, get_ra_funding_intro, get_ishf_info
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -162,22 +164,18 @@ def _email_request_notification(req, url):
     subject = "New Research Personnel Appointment Request Form Submission" 
     from_email = req.author.email()
     email = None
-    cc = None
+    cc = []
     if req.hiring_category == "GRAS":
-        if req.unit.label == "CMPT":
-            email = CS_CONTACT
-        elif req.unit.label == "MSE":
-            email = MSE_CONTACT
-        elif req.unit.label == "ENSC":
-            email = ENSC_CONTACT
-        elif req.unit.label == "SEE":
-            email = SEE_CONTACT
+        if req.unit.label in ["CMPT", "MSE", "ENSC", "SEE"]:
+            email = get_contact_email(req.unit)
         else:
-            email = FAS_CONTACT
+            email = get_contact_email()
     elif req.hiring_category == "RA" or req.hiring_category == "NC":
-        email = FAS_CONTACT
+        email = get_contact_email()
         if req.unit.label == "CMPT":
-            cc = [CS_CONTACT]
+            unit_contact = get_contact_email(req.unit)
+            if unit_contact:
+                cc.append(unit_contact)
 
     if email:
         content_text = req.author.name() + " has submitted a new Research Personnel Appointment Request Form. You can view it here: " + url
@@ -207,15 +205,14 @@ class RANewRequestWizard(SessionWizardView):
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         reappoint = 'ra_slug' in self.kwargs
-        context.update({'fas_contact': FAS_CONTACT})
+        context.update({'fas_contact': get_contact_email()})
         if self.steps.current == 'intro':
-            context.update({'ura_contact': URA_CONTACT, 
-                            'pd_contact': PD_CONTACT, 
-                            'cs_contact': CS_CONTACT, 
-                            'mse_contact': MSE_CONTACT, 
-                            'see_contact': SEE_CONTACT, 
-                            'ensc_contact': ENSC_CONTACT, 
-                            'deans_contact': DEANS_CONTACT})
+            context.update({'ra_intro_html': get_ra_intro_html(),
+                            'ra_definition': get_ra_definition(),
+                            'gras_definition': get_gras_definition(),
+                            'nc_definition': get_nc_definition(),
+                            'usra_definition': get_usra_definition()
+                            })
         if self.steps.current == 'funding_sources':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
@@ -231,11 +228,15 @@ class RANewRequestWizard(SessionWizardView):
             context.update({'total_pay': pay_data['total_pay']})
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
-            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ishf_info': get_ishf_info()})
         if self.steps.current == 'research_assistant':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
             usra = cleaned_data_intro.get('usra', False)
-            context.update({'usra': usra})
+            context.update({'usra': usra, 'funding_intro': get_ra_funding_intro()})
+        if self.steps.current == 'graduate_research_assistant':
+            context.update({'funding_intro': get_gras_funding_intro()})
+        if self.steps.current == 'non_continuing':
+            context.update({'funding_intro': get_nc_funding_intro()})
         if reappoint:
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
@@ -459,15 +460,14 @@ class RAEditRequestWizard(SessionWizardView):
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
-        context.update({'fas_contact': FAS_CONTACT})
+        context.update({'fas_contact': get_contact_email()})
         if self.steps.current == 'intro':
-            context.update({'ura_contact': URA_CONTACT, 
-                            'pd_contact': PD_CONTACT, 
-                            'cs_contact': CS_CONTACT, 
-                            'mse_contact': MSE_CONTACT, 
-                            'see_contact': SEE_CONTACT, 
-                            'ensc_contact': ENSC_CONTACT, 
-                            'deans_contact': DEANS_CONTACT})
+            context.update({ 'ra_intro_html': get_ra_intro_html(),
+                            'ra_definition': get_ra_definition(),
+                            'gras_definition': get_gras_definition(),
+                            'nc_definition': get_nc_definition(),
+                            'usra_definition': get_usra_definition()
+                            })
         if self.steps.current == 'funding_sources':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
@@ -483,11 +483,15 @@ class RAEditRequestWizard(SessionWizardView):
             context.update({'total_pay': pay_data['total_pay']})
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
-            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA'})
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ishf_info': get_ishf_info()})
         if self.steps.current == 'research_assistant':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
             usra = cleaned_data_intro.get('usra', False)
-            context.update({'usra': usra})
+            context.update({'usra': usra, 'funding_intro': get_ra_funding_intro()})
+        if self.steps.current == 'graduate_research_assistant':
+            context.update({'funding_intro': get_gras_funding_intro()})
+        if self.steps.current == 'non_continuing':
+            context.update({'funding_intro': get_nc_funding_intro()})
         ra_slug = self.kwargs['ra_slug']
         req = _edit_req(self.request, ra_slug)
         context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'get_hiring_category_title': req.get_hiring_category_title(), 'admin': _has_admin_role(self.request), 'status': req.status()})

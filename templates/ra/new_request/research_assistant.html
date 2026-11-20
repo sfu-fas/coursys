@@ -71,14 +71,7 @@
       <div class ="form_section">
         <h2><strong>Hiring Category: Research Assistant {% if usra %}(USRA){% endif %}</strong></h2>
         <div class="helptext">
-          <ul>
-            <li><u><b>Appointment Budget Overview</b></u></li>
-            <li>B.C. minimum wage starting from June 01, 2026: $18.25 per hour </li>
-            <li>TSSU minimum hourly wage: $24.74 per hour </li>
-            <li>Employer portion of statutory benefits covering CPP, EI, WCB and EHT: estimated at 11% </li>
-            <li>Employer paid extended health benefits: estimated at 6% </li>
-            <li>Vacation pay: minimum 4%, which equals to 2 weeks annual vacation </li>
-          </ul>
+          {{ funding_intro|safe }}
         </div>
         {{ wizard.management_form }}
         {% if wizard.form.forms %}

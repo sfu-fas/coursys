@@ -71,11 +71,7 @@
       <div class ="form_section">
         <h2><strong>Hiring Category: Graduate Research Assistant Scholarship</strong></h2>
         <div class="helptext">
-          <ul>
-            <li>This is a scholarship appointment; therefore, there will be no additional deductions for statutory/welfare benefits and vacation from your grant.</li>
-            <li>The total funding indicated will be the total deducted from the project.</li>
-            <li>This also means that the Appointee is not eligible for employment benefits (i.e. EHT, CPP, EI, WCB and other discretionary health and dental benefits) as this is not an employment appointment.</li>
-          </ul>
+          {{ funding_intro|safe}}
         </div>
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
