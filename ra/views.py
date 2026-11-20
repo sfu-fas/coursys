@@ -83,10 +83,8 @@ def _can_view_ra_requests():
     """
     def auth_test(request, **kwargs):
         supervisor = RARequest.objects.filter(supervisor__userid=request.user.username, draft=False, deleted=False).exists() or RAAppointment.objects.filter(hiring_faculty__userid=request.user.username).exists()
-        author = RARequest.objects.filter(author__userid=request.user.username, draft=False, deleted=False).exists()
         request.is_supervisor = supervisor
-        request.is_author = author
-        return has_role('FDRE', request, **kwargs) or _has_admin_role(request) or author or supervisor
+        return has_role('FDRE', request, **kwargs) or _has_admin_role(request) or supervisor
     
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator

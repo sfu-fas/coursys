@@ -302,7 +302,7 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 
 RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
-    ('H', 'No (Hourly - Hourly - The Appointee will receive vacation pay in lieu of vacation time.)')
+    ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time.)')
 )
 
 RA_PAYMENT_METHOD_CHOICES_USRA = (
@@ -340,12 +340,6 @@ RA_VACATION_PAY_CHOICES = (
     ('10P', '10%'),
     ('11P', '11%'),
     ('12P', '12%')
-)
-
-RA_BENEFITS_CHOICES = (
-    ('Y', "Yes (The cost will be shared 75/25 between employer and employee)."),
-    ('NE', 'No - My grant is not eligible.'),
-    ('N', 'No')
 )
 
 DUTIES_CHOICES_EX = (
@@ -1140,7 +1134,10 @@ class RARequest(models.Model):
 
             if hiring_category == "RA":
                 subject = "Research Assistant Appointment Expiry Reminder"
-                cc = [get_contact_email()]
+                cc = []
+                cc_email = get_contact_email()
+                if cc_email:
+                    cc.append(cc_email)
             elif hiring_category == "GRAS":
                 cc = None
                 subject = "Graduate RA Scholarship Appointment Expiry Reminder"

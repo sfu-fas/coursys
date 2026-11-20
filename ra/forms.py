@@ -3,7 +3,7 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ, REQUEST_HIRING_CATEGORY
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES_USRA, NC_PAYMENT_METHOD_CHOICES, TIMESHEET_CHOICES, BOOL_CHOICES
 from ra.utils import get_min_wage, get_new_min_wage, get_new_min_wage_date, get_ishf_fee, get_new_ra_wage_date, get_new_ra_wage, get_vacation_pay_help_text, get_biweekly_hours_error_text
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
