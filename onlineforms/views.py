@@ -733,6 +733,20 @@ def view_form(request, form_slug):
                 sheet = sheets[0]
                 sheet.delete()
                 messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
+                l = LogEntry(userid=request.user.username,
+                            description=("Deleted sheet %s from form %s.") % (sheet.title, form.title),
+                            related_object=form)
+                l.save()
+                # if only the initial sheet remains, disable progress bar
+                initial_sheet_only = Sheet.objects.filter(form=form, active=True, is_initial=False).count() == 0 
+                if initial_sheet_only and form.progress_bar:
+                    form.progress_bar = False 
+                    form.save()
+                    messages.warning(request, 'Form progress was automatically disabled, as only the initial sheet remains.')
+                    l = LogEntry(userid=request.user.username,
+                                description=("Form progress was disabled due to the deletion of sheet %s from form %s.") % (sheet.title, form.title),
+                                related_object=form)
+                    l.save()
             return HttpResponseRedirect(
                 reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
         elif request.POST['action'] == 'revive':
@@ -1547,7 +1561,7 @@ def view_submission_progress(request, form_slug, formsubmit_slug):
 
     progress_bar_enabled = form_submission.form.progress_bar
     if not progress_bar_enabled:
-        raise Http404
+        return render(request, 'onlineforms/admin/view_progress.html', {'disabled': True})
     
     sheetsubs = SheetSubmission.objects.filter(form_submission=form_submission)
     sheets = Sheet.objects.filter(Q(progress_bar=True) | Q(is_initial=True), Q(active=True) | Q(id__in=sheetsubs.values('sheet')), form=form).order_by('order')
@@ -1579,6 +1593,7 @@ def view_submission_progress(request, form_slug, formsubmit_slug):
             'form_slug': form_slug,
             'formsubmit_slug': formsubmit_slug,
             'complete': complete,
+            'disabled': False,
             }
     return render(request, 'onlineforms/admin/view_progress.html', context)
 
@@ -2058,6 +2073,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
                         if sheet.is_initial and sheet.form.autoconfirm():
                             sheet.form.email_confirm(formFiller)
+                        if sheet_submission.requires_progress_bar_info():
+                            sheet_submission.email_progress_bar_info()
                         if sheet_submission.filler.isSFUPerson() and sheet.config.get('emailsubmission') == 'Y':                            
                             filled_sheets = _readonly_sheets(form_submission, sheet_submission)
                             subjectsuffix = ''

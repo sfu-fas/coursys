@@ -1,0 +1,3 @@
+Form progress has been enabled for your recent form submission. Please visit the following link to view::
+
+{{ progress_bar_url }}

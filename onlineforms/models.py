@@ -1251,6 +1251,18 @@ class SheetSubmission(models.Model):
     def requires_progress_bar_info(self):
         return self.sheet.is_initial and self.form_submission.form.progress_bar
 
+    def email_progress_bar_info(self):
+        subject = 'Progress of %s' % (self.form_submission.form.title)
+        plaintext = get_template('onlineforms/emails/progress_bar_info.txt')
+        html = get_template('onlineforms/emails/progress_bar_info.html')
+        progress_bar_url = settings.BASE_ABS_URL + self.form_submission.get_progress_bar_url()
+        context = {'form_submission': self.form_submission, 'progress_bar_url': progress_bar_url}
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(context),
+                                    from_email=settings.DEFAULT_FROM_EMAIL, to=[self.filler.full_email()],
+                                    headers={'X-coursys-topic': 'onlineforms'})
+        msg.attach_alternative(html.render(context), "text/html")
+        msg.send()
+
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)
     field = models.ForeignKey(Field, on_delete=models.PROTECT)

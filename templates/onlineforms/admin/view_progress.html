@@ -15,6 +15,9 @@
 {% endblock %}
 
 {% block content %}
+{% if disabled %}
+Form progress has been disabled for this form.
+{% else %}
 	{% if complete %}
 		<p><b>This form has been marked as complete.</b></p>
 	{% endif %}
@@ -25,4 +28,5 @@
 		<h3>Additional Information</h3>
 		<p>{{ form.progressinfo }}</p>
 	{% endif %}
+{% endif %}
 {% endblock %}
