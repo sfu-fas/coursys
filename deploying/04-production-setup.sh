@@ -65,3 +65,6 @@ setup_user_docker_production() {
 setup_user_docker_production ${COURSYS_USERNAME} ${COURSYS_HOME}
 setup_user_docker_production ${USERNAME} ${USER_HOME}
 setup_user_docker_production root /root
+
+echo "export HTTP_PROXY=http://bby-vcontrol-proxy.its.sfu.ca:8080" >> /etc/profile.d/coursys.sh
+echo "export HTTPS_PROXY=http://bby-vcontrol-proxy.its.sfu.ca:8080" >> /etc/profile.d/coursys.sh

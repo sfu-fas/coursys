@@ -78,7 +78,7 @@ class CourseField(forms.ModelChoiceField):
 class UnitForm(forms.ModelForm):
     class Meta:
         model = Unit
-        exclude = ('config',)
+        exclude = ()
         widgets = {
                    'label': forms.TextInput(attrs={'size': 5, 'autofocus': True}),
                    'name': forms.TextInput(attrs={'size': 40}),

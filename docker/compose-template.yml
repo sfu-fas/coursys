@@ -135,6 +135,7 @@ services:
       resources:
         limits:
           memory: 10mb
+    restart: unless-stopped
     volumes:
       - status:/status:rw
       - {{ data_location }}nginx_logs:/nginx_logs:rw{% if selinux %},z{% endif %}

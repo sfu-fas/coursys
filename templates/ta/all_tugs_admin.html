@@ -114,7 +114,7 @@ There are three TA-related processes that course instructors need to complete as
   	{% if data.tug and is_wr_visible %}  	
       {% if data.taworkload.reviewdate %}
         <a href="{% url "offering:view_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Reviewed on: {{ data.taworkload.reviewdate|default:"Unknown" }} <br> 
-          {% if data.taworkload.reviewhour %} <i class="fa fa-star">Needs Action</i>{% endif %}</a>
+          {% if data.taworkload.reviewhour %} <i class="fa fa-star"></i>Needs Action{% endif %}</a>
   	  {% else %}
         {% if data.is_instr or admin %}
           {% if not data.tug.draft  %}
@@ -132,7 +132,7 @@ There are three TA-related processes that course instructors need to complete as
     {% if data.tug %}  	
       {% if data.taeval %}        
         <a href="{% url "offering:view_ta_evaluation" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">{% if data.taeval.draft %}(DRAFT)<br>{% endif %} Evaluated on: {{ data.taeval.instructor_signdate|default:"Unknown" }} </a>
-        {% if not data.taeval.draft and not data.taeval.ta_signdate %}  <i class="fa fa-question"> Missing TA comments</i> {% endif %}
+        {% if not data.taeval.draft and not data.taeval.ta_signdate %}  <i class="fa fa-question"></i>Missing TA comments {% endif %}
   	  {% else %}
         {% if data.is_instr or admin %}
           {% if not data.tug.draft %}
@@ -151,10 +151,10 @@ There are three TA-related processes that course instructors need to complete as
         {% if data.tug and data.taeval %}  
           {% if not data.taeval.ta_signdate %}
             {% if data.taeval.config.released %}          
-              <i class="fa fa-info"> Released msg sent</i>
+              <i class="fa fa-info"></i>Released msg sent
             {% endif %}
             {% if data.taeval.config.reminded %}          
-              <i class="fa fa-info"> Reminded msg sent</i>
+              <i class="fa fa-info"></i>Reminded msg sent
             {% endif %}
               <input name="taeval_{{data.taeval.id}}" class="taeval" type="checkbox"/>
           {% endif %}

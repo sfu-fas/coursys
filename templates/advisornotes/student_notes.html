@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load compress %}
 
 {% block title %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
 {% block h1 %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
@@ -11,60 +12,20 @@
 {% endblock %}
 
 {% block headextra %}
+{% compress css %}
 <link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
-<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
+{% endcompress %}
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/advisornotes.js' %}"></script>
+{% endcompress %}
 <script nonce="{{ CSP_NONCE }}">
+    const student_notes_url = "{% url "advising:student_notes" userid=userid %}";
+    const more_info_url = '{% url "advising:student_more_info" userid=userid %}';
+    const csrf_token = "{{csrf_token}}";
+
     var show_deleted = false;
     $(document).ready(function() {
-        $('.delete').click(function(){
-		    var id = $(this).data('id');
-            $("#note-whole-"+id ).addClass('deletednote');
-            $("#note-box-"+id+" .delete").hide();
-            $("#note-box-"+id+" .restore").show();
-            if( !show_deleted ){
-                $("#note-whole-"+id).hide();
-            }
-	
-	        $.post("{% url "advising:student_notes" userid=userid%}",
-			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'yes'});
-        });
-        $('.restore').click(function(){
-		    var id = $(this).data('id');
-            $("#note-whole-"+id ).removeClass('deletednote');
-            $("#note-box-"+id+" .delete").show();
-            $("#note-box-"+id+" .restore").hide();
-	
-	        $.post("{% url "advising:student_notes" userid=userid%}",
-			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'no'});
-        });
-        $('.show_deleted').click(function(){
-            show_deleted = true;
-            $('.deletednote').show();
-            $('.show_deleted').hide();
-            $('.hide_deleted').show();
-            return false;
-        });
-        $('.hide_deleted').click(function(){
-            show_deleted = false;
-            $('.deletednote').hide();
-            $('.show_deleted').show();
-            $('.hide_deleted').hide();
-            return false;
-        });
-
-        $('#moreinfo>a').click(function() {
-            get_more_info('{% url "advising:student_more_info" userid=userid %}');
-        });
-
-        $('#advisingvisits').dataTable( {
-            'bPaginate': true,
-            'bInfo': false,
-            'bLengthChange': true,
-            "bJQueryUI": true,
-            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
-            'aaSorting': [[0, 'desc']]
-
-        } );
+        student_notes_ready(student_notes_url, more_info_url, csrf_token);
 	});
 </script>
 {% endblock %}
@@ -75,7 +36,7 @@
     <ul>
         <li><a href="{% url "advising:new_note" userid=userid%}">New Note</a></li>
         {% if not nonstudent %}
-        {% if show_transcript %}<li><a href="{% url "advising:student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
+        <li><a href="{% url "advising:student_courses" userid=userid%}">View Courses</a></li>
         <li><a href="{% url "advising:student_transfers" userid=userid %}">View Transfer Credits</a></li>
         <li id="moreinfo">
             <a href="#">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>

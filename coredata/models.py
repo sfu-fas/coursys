@@ -60,6 +60,8 @@ ROLE_CHOICES = (
         ('FUND', 'Grad Funding Administrator'),
         ('FDMA', 'Grad Funding Manager'),
         ('FDRE', 'Grad Funding Requester'),
+        ('PDOC', 'Post Doc Administrator'),
+        ('PDMA', 'Post Doc Manager'),
         ('FDCC', 'Grad Funding Reminder CC'),
         ('TECH', 'Tech Staff'),
         ('GPA', 'GPA conversion system admin'),
@@ -76,10 +78,10 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'ADVM', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDMA', 'FDCC', 'GRPD',
+UNIT_ROLES = ['ADVS', 'ADVM', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDMA', 'FDCC', 'GRPD', 'PDOC', 'PDMA',
               'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
-SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD', 'FDRE', 'FDMA']
+SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD', 'FDRE', 'FDMA', 'PDMA']
 
 # discipline-related roles.  We notify someone else on top of the DAs for those.
 DISC_ROLES = ['DISC', 'DICC']
@@ -98,6 +100,8 @@ ROLE_DESCR = {
         'FDRE': 'Can submit grad student funding requests.',
         'FDMA': 'Can manage grad student funding settings and research assistants',
         'FDCC': 'Gets copied on RA expiring reminder emails',
+        'PDOC': 'Can view post doctoral fellow appointments',
+        'PDMA': 'Can manage post doctoral fellow appointments',
         'TECH': 'Can manage resources required for courses.',
         'FAC': 'Faculty Member',
         'SESS': 'Sessional Instructor',
@@ -1588,16 +1592,18 @@ class Unit(models.Model):
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
         # 'card_account':  Account code for card access forms
         # 'card_rooms': Rooms all grads have access to; separate lines with "|" and buildings/rooms with ":", e.g. "AQ:1234|AQ:5678"
+        # 'other_acad_orgs': list of other acad_org strings that should map to this unit on import, e.g. ["DEANSOFFICE", "WHYSOMANY"]
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
-                'deptid': ''}
+                'deptid': '', 'other_acad_orgs': []}
     address, set_address = getter_setter('address')
     email, set_email = getter_setter('email')
     tel, set_tel = getter_setter('tel')
     fax, set_fax = getter_setter('fax')
     web, set_web = getter_setter('web')
     deptid, set_deptid = getter_setter('deptid')
+    other_acad_orgs, set_other_acad_orgs = getter_setter('other_acad_orgs')
     _, set_informal_name = getter_setter('informal_name')
 
     class Meta:

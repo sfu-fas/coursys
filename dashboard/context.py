@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 from coredata.models import Member
 from cache_utils.decorators import cached
 from courselib.branding import product_name, help_email
-
+from coredata.utils import get_banner_message_index, get_banner_message
 
 @cached(3600)
 def is_instr_ta(userid):
@@ -48,6 +48,9 @@ def media(request):
     instr_ta = is_instr_ta(request.user.username)
     instr_ta_ab = instr_ta and request.user.is_authenticated and request.user.id % 2 == 0
     # GRAD_DATE(TIME?)_FORMAT for the grad/ra/ta apps
+    server_message_index = get_banner_message_index() or get_server_message('SERVER_MESSAGE_INDEX',Path('/dynamic_config/server_message_index.html'))
+    server_message = get_banner_message() or get_server_message('SERVER_MESSAGE', Path('/dynamic_config/server_message.html'))
+   
     return {'GRAD_DATE_FORMAT': settings.GRAD_DATE_FORMAT,
             'GRAD_DATETIME_FORMAT': settings.GRAD_DATETIME_FORMAT,
             'LOGOUT_URL': settings.LOGOUT_URL,
@@ -58,7 +61,9 @@ def media(request):
             'request_path': request.path,
             'CourSys': product_name(request),
             'help_email': help_email(request),
-            'SERVER_MESSAGE_INDEX': get_server_message('SERVER_MESSAGE_INDEX', Path('/dynamic_config/server_message_index.html')),
-            'SERVER_MESSAGE': get_server_message('SERVER_MESSAGE', Path('/dynamic_config/server_message.html')),
+            #'SERVER_MESSAGE_INDEX': get_server_message('SERVER_MESSAGE_INDEX', Path('/dynamic_config/server_message_index.html')),
+            #'SERVER_MESSAGE': get_server_message('SERVER_MESSAGE', Path('/dynamic_config/server_message.html')),
+            'SERVER_MESSAGE_INDEX': mark_safe(server_message_index),
+            'SERVER_MESSAGE': mark_safe(server_message),
             'SERVER_HOSTNAME': socket.gethostname(),
             }

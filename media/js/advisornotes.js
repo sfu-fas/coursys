@@ -241,3 +241,137 @@ function course_outline_info(url) {
 		},
 	});
 }
+
+function show_titles() {
+    $('.coursetitle').show();
+    $('.showtitle').hide();
+}
+function hide_titles() {
+    $('.coursetitle').hide();
+    $('.showtitle').show();
+}
+
+function display_data(data) {
+    const elt = $('#coursecontent');
+    if (data['error']) {
+        const res = '<p class="empty">Could not fetch data: ' + data['error'] + '.</p>';
+        elt.html(res);
+        return;
+    }
+    if ( data['refresh'] === 'unknown' ) {
+        elt.html(`<p>The course data in the Reporting Database is of <strong>unknown age</strong>. This seems suspicious and is cause for concern.</p><p style="margin-top: 20em"><button id="ack">I understand this data is <strong>of unknown age</strong> and quality</button></p>`);
+    } else {
+        const refresh = new Date(data['refresh']);
+        const age_hr = (new Date() - refresh) / 3600000;
+        elt.html(`<p>The course data in the Reporting Database was refreshed at ${refresh.toLocaleString()}. Data is is <strong>at least</strong> that old.</p><p><button id="ack">I understand this data is <strong>${age_hr.toFixed(0)} hours</strong> old and less reliable than SIMS</button><p>`);
+    }
+    document.getElementById("ack").onclick = () => actually_display_data(data);
+    return;
+}
+
+function actually_display_data(data) {
+    const elt = $('#coursecontent');
+    elt.html('');
+    
+    /* transfer credits */
+    var html = '';
+    html += '<h2 id="transfer">Transfer Credits</h2><table class="courses">';
+    
+    $(data.transfers).each(function(i, trns){
+        html += '<tr><td>' + trns.subject + ' ' + trns.catalog_nbr + ' <span class="coursetitle">(' + trns.descr + ')</span></td><td>' + trns.units + '</td>';
+        html += '<td>' + trns.grade + '</td><td>' + trns.repeat + '</td><td>' + trns.src + '</td><td>' + trns.req + '</td></tr>';
+    });
+    html += '</table>';
+    elt.append(html);
+
+    /* semesters and courses */
+    $(data.semesters).each(function(i, sem){
+        html = '';
+        html += '<h2 id="s-' + sem.strm + '">' + sem.semname + ' (' + sem.career;
+        if (sem.standing) {
+            html += ', ' + sem.standing;
+        }
+        html += ')</h2>';
+        html += '<table class="courses">';
+        $(sem.courses).each(function(j, crs) {
+            html += '<tr><td>' + crs.subject + ' ' + crs.number + ' <span class="coursetitle">(' + crs.descr + ')</span></td><td>' + crs.unit_taken + '</td>'
+            html += '<td>' + crs.grade + '</td><td>' + crs.repeat + '</td><td>' + crs.req + '</td></tr>';
+        });
+        html += '</table>';
+        elt.append(html);
+        
+        html = '';
+        html += '<p>Term GPA: ' + sem.tgpa + '; CGPA: ' + sem.cgpa;
+        if (sem.udgpa) {
+            html += '; UDGPA: ' + sem.udgpa;
+        }
+        html += '</p>';
+        elt.append(html);
+    });
+}
+
+function course_data_ready(data_url) {
+    $(document).ready(function() {
+        $('#showlink').click(show_titles);
+        $('#hidelink').click(hide_titles);
+        $.ajax({
+            url: data_url,
+            success: display_data,
+            error: function(jqXHR, textStatus, errorThrown) {
+                res = '<p class="empty">Could not contact server to check for student data.</p>';
+                $('#coursecontent').html(res);
+            },
+        });
+    });
+}
+
+function student_notes_ready(student_notes_url, more_info_url, csrf_token) {
+    $('.delete').click(function(){
+        var id = $(this).data('id');
+        $("#note-whole-"+id ).addClass('deletednote');
+        $("#note-box-"+id+" .delete").hide();
+        $("#note-box-"+id+" .restore").show();
+        if( !show_deleted ){
+            $("#note-whole-"+id).hide();
+        }
+
+        $.post(student_notes_url,
+            {'csrfmiddlewaretoken': csrf_token, 'note_id': id, 'hide': 'yes'});
+    });
+    $('.restore').click(function(){
+        var id = $(this).data('id');
+        $("#note-whole-"+id ).removeClass('deletednote');
+        $("#note-box-"+id+" .delete").show();
+        $("#note-box-"+id+" .restore").hide();
+
+        $.post(student_notes_url,
+            {'csrfmiddlewaretoken': csrf_token, 'note_id': id, 'hide': 'no'});
+    });
+    $('.show_deleted').click(function(){
+        show_deleted = true;
+        $('.deletednote').show();
+        $('.show_deleted').hide();
+        $('.hide_deleted').show();
+        return false;
+    });
+    $('.hide_deleted').click(function(){
+        show_deleted = false;
+        $('.deletednote').hide();
+        $('.show_deleted').show();
+        $('.hide_deleted').hide();
+        return false;
+    });
+
+    $('#moreinfo>a').click(function() {
+        get_more_info(more_info_url);
+    });
+
+    $('#advisingvisits').dataTable( {
+        'bPaginate': true,
+        'bInfo': false,
+        'bLengthChange': true,
+        "bJQueryUI": true,
+        'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
+        'aaSorting': [[0, 'desc']]
+    } );
+}

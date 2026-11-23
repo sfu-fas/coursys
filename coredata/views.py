@@ -1,5 +1,6 @@
 import itertools
 
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -152,6 +153,8 @@ def edit_unit(request, unit_slug=None):
         if form.is_valid():
             unit.slug = None
             form.save()
+            from coredata.importer import ACAD_ORG_MAP_KEY
+            cache.delete(ACAD_ORG_MAP_KEY)
             messages.success(request, 'Edited unit %s.' % (unit.name))
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -461,6 +464,9 @@ def admin_panel(request):
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
             return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
+        elif request.GET['content'] == 'photos':
+            from dashboard.photos import api_info
+            return render(request, 'coredata/admin_panel_tab.html', {'photoapi': api_info()})
         elif request.GET['content'] == 'csrpt':
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
@@ -472,6 +478,8 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose ps\n" + panel.get_docker_status('ps')})
         elif request.GET['content'] == 'docker-stats':
             return render(request, 'coredata/admin_panel_tab.html', {'small_content': "# docker compose stats\n" + panel.get_docker_status('stats')})
+        elif request.GET['content'] == 'csp':
+            return HttpResponse('<script>alert()</script>This should trigger a content-security-policy report for an inline script tag')
         elif request.GET['content'] == 'throw':
             raise RuntimeError(
                 'This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')

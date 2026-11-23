@@ -59,6 +59,8 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
             fields.append(o.config['legal_first_name_do_not_use'])
         if o.userid:
             fields.append(o.userid)
+        if 'email' in o.config:
+            fields.append(o.config['email'])
         return '\n'.join(fields)
 
     def prepare_search_display(self, o):
@@ -96,6 +98,8 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
             fields.append(m.person.config['legal_first_name_do_not_use'])
         if m.person.userid:
             fields.append(m.person.userid)
+        if 'email' in m.person.config:
+            fields.append(m.person.config['email'])
         return '\n'.join(fields)
 
     def prepare_offering_slug(self, m):

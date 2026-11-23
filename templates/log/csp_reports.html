@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}CSP Reports{% endblock %}
+{% block h1 %}CSP Reports{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>CSP Reports</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+
+{% for title, dt, r in reports %}
+<h2>{{ dt }} &mdash; {{ title }}</h2>
+<pre>{{ r }}</pre>
+{% endfor %}
+
+{% endblock %}

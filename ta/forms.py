@@ -605,7 +605,11 @@ class TAPostingForm(forms.ModelForm):
         self.initial['contact'] = self.instance.contact().id
         self.initial['send_notify'] = self.instance.send_notify()
         self.initial['offer_text'] = self.instance.offer_text()
-        skills = Skill.objects.filter(posting=self.instance)
+        #skills = Skill.objects.filter(posting=self.instance)
+        if self.instance.pk:
+            skills = Skill.objects.filter(posting=self.instance)
+        else:
+            skills = Skill.objects.none()
         self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions())
         self.initial['skills'] = '\n'.join((s.name for s in skills))
         self.initial['instructions'] = self.instance.instructions()
@@ -728,7 +732,10 @@ class TAPostingForm(forms.ModelForm):
     def clean_skills(self):
         skills = self.cleaned_data['skills']
         skills = [s.strip() for s in skills.split("\n") if len(s.strip()) > 0]
-        old_skills = Skill.objects.filter(posting=self.instance)
+        if self.instance.pk is None:
+            old_skills = Skill.objects.none()
+        else:
+            old_skills = Skill.objects.filter(posting=self.instance)
         res = []
         for i, skill in enumerate(skills):
             if len(old_skills) < i+1:

@@ -102,7 +102,7 @@
 {% endif %}
 
 {% if status == 'waiting' %}
-<p class="helptext">These forms have been given to someone <b>at least two weeks ago</b>and are waiting completion of their sheet. You can mark them complete here in bulk (maximum of 25 at a time).</p>
+<p class="helptext">These forms have been given to someone <b>at least two weeks ago</b> and are waiting completion of their sheet. You can mark them complete here in bulk (maximum of 25 at a time).</p>
 <form action="{% url "onlineforms:bulk_close_waiting" %}" method="post">
 {% csrf_token %}
     <div class="datatable_container">

@@ -1,13 +1,21 @@
 @startuml
 
+cloud python as "python-slim"
+cloud node
+
 package "app.Dockerfile" {
 
-    artifact builder [
-        builder
+    artifact pip_builder [
+        pip_builder
         ----
         collects and builds Python
-        requirements.txt and NPM
-        packages.json
+        requirements.txt
+    ]
+    artifact npm_builder [
+        npm_builder
+        ----
+        collects and builds
+        NPM packages.json
     ]
     artifact base [
         base
@@ -47,15 +55,16 @@ package "app.Dockerfile" {
         shell commands
     ]
 
-    builder -[#black,thickness=4]-> base :  Python and NPM libs copied
+    pip_builder -[#black,thickness=4]-> base : Python libs copied
+    npm_builder -[#black,thickness=4]-> base : JavaScript libs copied
     base ..> app
     base ..> celery
     base ..> beat
     manage <. base
     base .> admin
 
-    cloud python
-    python .> builder
+    node ..> npm_builder
+    python ..> pip_builder
     python ..> base
 
 }
