@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from system.models import SystemVariable
 
