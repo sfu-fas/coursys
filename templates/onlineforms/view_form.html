@@ -29,6 +29,7 @@
         <li><a href="{% url "onlineforms:edit_form" form_slug=form.slug %}">Edit Form Info</a></li>
         <li><a href="{% url "onlineforms:new_sheet" form_slug=form.slug %}">New Sheet</a></li>
         <li><a href="{% url "onlineforms:preview_form" form_slug=form.slug %}">Preview all sheets</a></li>
+        <li><a href="{% url "onlineforms:edit_progress" form_slug=form.slug %}">Progress Settings</a></li>
     </ul>
 </div>
 {% endblock %}

@@ -46,3 +46,68 @@ fieldset label.sublabel {
 	width: auto;
 }
 
+.form_progress {
+  display: grid;
+  gap: 15px;
+}
+
+.form_progress_sheet {
+  display: flex;
+  justify-content: space-between;
+  align-items:center;
+  background: #f2f2f2;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgb(202, 202, 202);
+  padding: 15px;
+}
+
+.step_status_icon span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.step_status_icon {
+    font-size: 30px;
+}
+
+.step_status_icon span {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-right: 25px;
+  background-color: #ddd;
+  border: 2px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.step_info {
+  flex: 1;
+  display:flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.step_status_icon .complete {
+  background-color: rgb(129, 175, 106);
+  border: 1px solid #a1a1a1;
+}
+
+.step_status_icon .progress {
+  background-color: rgb(255, 172, 63);
+  border: 1px solid #a1a1a1;
+}
+
+.step_status_icon .pending {
+  background-color: rgb(156, 156, 156);
+  border: 1px solid #a1a1a1;
+}
+
+

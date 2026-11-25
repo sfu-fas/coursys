@@ -15,8 +15,9 @@ from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin
 from courselib.db import retry_transaction
 from courselib.branding import help_email
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.conf import settings
 
-from onlineforms.forms import FormForm, NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
+from onlineforms.forms import FormForm, NewFormForm, ProgressForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm, \
     BulkAssignForm, SearchCompletedForm, FormSubmissionNotesForm, DuplicateForm
@@ -732,6 +733,20 @@ def view_form(request, form_slug):
                 sheet = sheets[0]
                 sheet.delete()
                 messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
+                l = LogEntry(userid=request.user.username,
+                            description=("Deleted sheet %s from form %s.") % (sheet.title, form.title),
+                            related_object=form)
+                l.save()
+                # if only the initial sheet remains, disable progress bar
+                initial_sheet_only = Sheet.objects.filter(form=form, active=True, is_initial=False).count() == 0 
+                if initial_sheet_only and form.progress_bar:
+                    form.progress_bar = False 
+                    form.save()
+                    messages.warning(request, 'Form progress was automatically disabled, as only the initial sheet remains.')
+                    l = LogEntry(userid=request.user.username,
+                                description=("Form progress was disabled due to the deletion of sheet %s from form %s.") % (sheet.title, form.title),
+                                related_object=form)
+                    l.save()
             return HttpResponseRedirect(
                 reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
         elif request.POST['action'] == 'revive':
@@ -776,6 +791,46 @@ def edit_form(request, form_slug):
         context = {'form': form, 'owner_form': owner_form}
         return render(request, 'onlineforms/edit_form.html', context)
 
+@requires_form_admin_by_slug()
+def edit_progress(request, form_slug):
+    # can access if in owning formgroup
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    subsequent_sheets = Sheet.objects.filter(form=owner_form, active=True, is_initial=False).count() > 0
+    subsequent_selected_sheets = Sheet.objects.filter(form=owner_form, active=True, is_initial=False, progress_bar=True).count() > 0
+
+    if request.method == 'POST':
+        form = ProgressForm(request.POST, instance=owner_form)
+        if form.is_valid():
+            form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username, description=("Edited form progress settings %s.") % (owner_form,), related_object=owner_form)
+            l.save()
+            messages.success(request, 'Successfully edited progress settings for "%s"' % owner_form.title)
+            return HttpResponseRedirect(reverse('onlineforms:edit_progress', kwargs={'form_slug': owner_form.slug}))
+    else:
+        form = ProgressForm(instance=owner_form)
+
+    # for an example progress bar
+    example_sheets = Sheet.objects.filter(form=owner_form, active=True).filter(Q(progress_bar=True) | Q(is_initial=True)).order_by('order')
+    sheet_progress = []
+    user = get_object_or_404(Person, userid=request.user.username)
+    for i, sheet in enumerate(example_sheets):
+        item = {
+            'sheet': sheet,
+            'status': 'pending',
+            'complete_sheets': [],
+            'pend_sheets': [],
+        }
+        if i == 0:
+            item['status'] = 'complete'
+            item['complete_sheets'] = [{
+                'filler': user,
+                'completed_at': datetime.datetime.now(),
+            }]
+        sheet_progress.append(item)
+
+    context = {'form': form, 'owner_form': owner_form, 'sheet_progress': sheet_progress, 'subsequent_sheets': subsequent_sheets, 'subsequent_selected_sheets': subsequent_selected_sheets}
+    return render(request, 'onlineforms/admin/edit_progress.html', context)
 
 @requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
@@ -1486,6 +1541,61 @@ def view_submission(request, form_slug, formsubmit_slug):
                    }
         return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
+@login_required
+def view_submission_progress(request, form_slug, formsubmit_slug):
+    
+    # can access if in owning formgroup
+    formgroups = FormGroup.objects.filter(members__userid=request.user.username)
+    form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug, owner__in=formgroups)
+    
+    is_initiator = False
+    if not form_submissions:
+        user = get_object_or_404(Person, userid=request.user.username)
+        is_initiator = SheetSubmission.objects.filter(form_submission__slug=formsubmit_slug, form_submission__initiator__sfuFormFiller=user, sheet__is_initial=True).exists()
+
+    if not is_initiator and not form_submissions:
+        raise Http404
+    
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
+    form = form_submission.form
+
+    progress_bar_enabled = form_submission.form.progress_bar
+    if not progress_bar_enabled:
+        return render(request, 'onlineforms/admin/view_progress.html', {'disabled': True})
+    
+    sheetsubs = SheetSubmission.objects.filter(form_submission=form_submission)
+    sheets = Sheet.objects.filter(Q(progress_bar=True) | Q(is_initial=True), Q(active=True) | Q(id__in=sheetsubs.values('sheet')), form=form).order_by('order')
+    complete = form_submission.status == 'DONE'
+    sheet_progress = []
+    for sheet in sheets:
+        complete_sheets = sheetsubs.filter(sheet=sheet, status='DONE')
+        pend_sheets = sheetsubs.filter(sheet=sheet, status='WAIT')
+        if complete_sheets and not pend_sheets:
+            status = 'complete'
+        elif pend_sheets:
+            status = 'progress'
+        else:
+            status = 'pending'
+
+        # only show completed sheets if the form is complete, otherwise show all sheets
+        if complete:
+            if status != 'complete':
+                continue
+            
+        sheet_progress.append({'sheet': sheet, 
+                               'status': status,
+                               'complete_sheets': complete_sheets, 
+                               'pend_sheets': pend_sheets})
+    context = {
+            'form': form,
+            'form_sub': form_submission,
+            'sheet_progress': sheet_progress,
+            'form_slug': form_slug,
+            'formsubmit_slug': formsubmit_slug,
+            'complete': complete,
+            'disabled': False,
+            }
+    return render(request, 'onlineforms/admin/view_progress.html', context)
 
 @login_required
 def update_submission_notes(request, form_slug, formsubmit_slug):
@@ -1963,6 +2073,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
                         if sheet.is_initial and sheet.form.autoconfirm():
                             sheet.form.email_confirm(formFiller)
+                        if sheet_submission.requires_progress_bar_info():
+                            sheet_submission.email_progress_bar_info()
                         if sheet_submission.filler.isSFUPerson() and sheet.config.get('emailsubmission') == 'Y':                            
                             filled_sheets = _readonly_sheets(form_submission, sheet_submission)
                             subjectsuffix = ''
@@ -1973,8 +2085,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                         break
                                 
                             sheet_submission.emailsubmission_to_filler(form_submission, sheet_submission.filler.getFormFiller().email(), filled_sheets, subjectsuffix)
-
-                        messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
+                        message = 'You have succesfully completed sheet %s of form %s. ' % (sheet.title, owner_form.title)
+                        if sheet_submission.requires_progress_bar_info():
+                            message = message + 'View progress here: %s' % (settings.BASE_ABS_URL + form_submission.get_progress_bar_url())
+                        messages.success(request, message)
                         return HttpResponseRedirect(reverse('onlineforms:index'))
                 else:
                     messages.error(request, "Error in user data.")

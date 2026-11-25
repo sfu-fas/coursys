@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}{{ form.title}} Edit Progress{% endblock %}
+{% block h1 %}{{ form.title}} Edit Progress{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:list_all" %}">Edit Forms</a></li>
+    <li><a href="{% url "onlineforms:view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>Edit Progress</li>
+{% endblock %}
+
+{% block content %}
+<p>If this feature is enabled, any user who initially submits this form will receive a URL to track the progress of any subsequent sheets. This progress includes which user is assigned each subsequent sheet and when they last updated them.</p>
+<p>Please ensure that you mark form submissions as complete once all sheets are finished to ensure the user sees an accurate status.</p>
+{% if subsequent_sheets %}
+    <div class="form_container" id="edit_progress">
+        <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        {% if form %}{{ form|as_dl }}{% endif %}
+        <p><input class="submit"  type="submit" value="Submit" /></p>
+        </form>
+    </div>
+{% else %}
+    <b>There are no subsequent sheets for this form, so the progress tracker cannot be enabled.</b>
+{% endif %}
+{% if subsequent_selected_sheets %}
+    <h3>Example</h3>
+    {% if sheet_progress %}
+        {% include "onlineforms/admin/view_tracker.html" with sheet_progress=sheet_progress %}
+    {% endif %}
+{% elif subsequent_sheets %}
+    Please enable at least one subsequent sheet above to view an example of this progress tracker.
+{% endif %}
+{% endblock %}
+

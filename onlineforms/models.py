@@ -328,10 +328,13 @@ class Form(models.Model, _FormCoherenceMixin):
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?")
+    progress_bar = models.BooleanField(default=False, help_text="Should submissions display a progress bar?")
+
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+    # 'progressinfo': Additional info for users viewing form submissions progress
     # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
     # 'unlisted':  Form can be filled out, but doesn't show up in the index
     # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
@@ -339,9 +342,9 @@ class Form(models.Model, _FormCoherenceMixin):
     # 'autoconfirm':  Whether a confirmation should be emailed once someone submits the initial sheet.
     # 'emailsubject', 'emailbody':  The subject and body for the autoconfirm email if the autoconfirm option is set.
 
-
-    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None, 'autoconfirm': False, 'emailsubject': '',
+    defaults = {'progressinfo': '', 'loginprompt': True, 'unlisted': False, 'jsfile': None, 'autoconfirm': False, 'emailsubject': '',
                 'emailbody': ''}
+    progressinfo, set_progressinfo = getter_setter('progressinfo')
     loginprompt, set_loginprompt = getter_setter('loginprompt')
     unlisted, set_unlisted = getter_setter('unlisted')
     jsfile, set_jsfile = getter_setter('jsfile')
@@ -732,6 +735,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     # indicates whether a person filling a sheet can see the results from all the previous sheets
     can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON", help_text='When someone is filling out this sheet, what else can they see?')
     active = models.BooleanField(default=True)
+    progress_bar = models.BooleanField(default=False, help_text="Should this sheet display to form fillers in a progress bar, if enabled?")
     original = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
@@ -796,6 +800,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
                     next_order = 0
                     # making first sheet for form--- initial 
                     self.is_initial = True
+                    self.progress_bar = True
                 else:
                     next_order = max_aggregate['order__max'] + 1
                 self.order = next_order
@@ -900,6 +905,9 @@ class FormSubmission(models.Model):
 
     def get_absolute_url(self):
         return reverse('onlineforms:view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
+    
+    def get_progress_bar_url(self):
+        return reverse('onlineforms:view_submission_progress', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
 
     def closer(self):
         try:
@@ -1232,10 +1240,26 @@ class SheetSubmission(models.Model):
         subject = 'Copy of %s (%s) Submission %s ' % (formsub.form.title, self.sheet.title, subjectsuffix)
         plaintext = get_template('onlineforms/emails/notify_submission_copy.txt')
         html = get_template('onlineforms/emails/notify_submission_copy.html')
-        context = {'form_submission': formsub, 'filled_sheets': filled_sheets,'sheet_submission': self}
+        progress_bar_url = settings.BASE_ABS_URL + formsub.get_progress_bar_url()
+        context = {'form_submission': formsub, 'filled_sheets': filled_sheets,'sheet_submission': self, 'progress_bar_url': progress_bar_url}
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(context),
                                      from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient],
                                      headers={'X-coursys-topic': 'onlineforms'})
+        msg.attach_alternative(html.render(context), "text/html")
+        msg.send()
+
+    def requires_progress_bar_info(self):
+        return self.sheet.is_initial and self.form_submission.form.progress_bar
+
+    def email_progress_bar_info(self):
+        subject = 'Progress of %s' % (self.form_submission.form.title)
+        plaintext = get_template('onlineforms/emails/progress_bar_info.txt')
+        html = get_template('onlineforms/emails/progress_bar_info.html')
+        progress_bar_url = settings.BASE_ABS_URL + self.form_submission.get_progress_bar_url()
+        context = {'form_submission': self.form_submission, 'progress_bar_url': progress_bar_url}
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(context),
+                                    from_email=settings.DEFAULT_FROM_EMAIL, to=[self.filler.full_email()],
+                                    headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(context), "text/html")
         msg.send()
 

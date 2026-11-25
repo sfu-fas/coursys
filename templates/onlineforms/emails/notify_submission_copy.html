@@ -7,6 +7,7 @@ Here is a copy of submission.</p>
 Form:  {{  form_submission.form.title }} <br>
 Sheet:  {{ sheet_submission.sheet.title }}<br>
 Sheet submitted by: {{ sheet_submission.filler }} <br>
+{% if sheet_submission.requires_progress_bar_info %}Progress Bar: {{ form_submission.get_progress_bar_url }}{% endif %}
 </p>
 {% if filled_sheets %}
     {% for sheet_sub, fields in  filled_sheets %}

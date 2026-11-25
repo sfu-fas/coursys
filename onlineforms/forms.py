@@ -61,7 +61,7 @@ class FormForm(ModelForm):
 
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'config')
+        exclude = ('active', 'original', 'unit', 'config', 'progress_bar')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -106,7 +106,7 @@ class FormForm(ModelForm):
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators', 'config')
+        exclude = ('active', 'original', 'unit', 'initiators', 'config', 'progress_bar')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -120,6 +120,8 @@ class SheetForm(forms.Form):
             ('N', 'No')),
             required=False,
             widget=forms.RadioSelect, initial='N', label="Email submission", help_text="Email form filler a copy of submission")
+    class Meta:
+        exclude =('progress_bar',)
 
 class EditSheetForm(ModelForm):
     emailsubmission = forms.ChoiceField(choices=(
@@ -129,7 +131,7 @@ class EditSheetForm(ModelForm):
             widget=forms.RadioSelect, label="Email submission", help_text="Email form filler a copy of submission")
     class Meta:
         model = Sheet
-        exclude = ('active', 'original', 'order', 'is_initial', 'config', 'form')
+        exclude = ('active', 'original', 'order', 'is_initial', 'config', 'form', 'progress_bar')
 
 class NonSFUFormFillerForm(ModelForm):
     class Meta:
@@ -391,3 +393,38 @@ class SearchCompletedForm(forms.Form):
         super(SearchCompletedForm, self).__init__(*args, **kwargs)
         self.initial['fromdate'] = datetime.datetime.today() - datetime.timedelta(days=365)
         self.initial['todate'] = datetime.datetime.today()
+
+class ProgressForm(forms.ModelForm):
+    progress_bar = forms.ChoiceField(required=True,initial='False',label='Should users be able to view the progress of their submitted form?', choices=(("True", "Enabled"), ("False", "Disabled")), widget=forms.RadioSelect,)
+    progressinfo = forms.CharField(required=False, label='Enter any additional information for users viewing form submissions progress.', help_text='This text will display below the tracker', widget=forms.Textarea(attrs={'rows': '3', 'cols': '70'}))
+    sheets = forms.ModelMultipleChoiceField(queryset=Sheet.objects.none(), required=False, label='Which subsquent sheets should appear in the progress bar?', help_text='The initial sheet is required.', widget=forms.CheckboxSelectMultiple)
+
+    class Meta:
+        model = Form
+        fields = ('progress_bar', 'progressinfo', 'sheets')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            qs = Sheet.objects.filter(form=self.instance, active=True, is_initial=False).order_by('order')
+            self.fields['sheets'].queryset = qs          
+            self.fields['sheets'].label_from_instance = lambda s: s.title
+            self.initial['sheets'] = list(qs.filter(progress_bar=True).values_list('id', flat=True))
+            self.initial['progressinfo'] = self.instance.progressinfo()
+            self.initial['progress_bar'] = 'True' if self.instance.progress_bar else 'False'
+
+    def clean_progress_bar(self):
+        value = self.cleaned_data.get('progress_bar')
+        return value == 'True'
+
+    def save(self, *args, **kwargs):        
+        self.instance.set_progressinfo(self.cleaned_data['progressinfo'])
+        self.instance.save()
+
+        active_sheets = Sheet.objects.filter(form=self.instance, active=True)
+        active_sheets.update(progress_bar=False)
+        selected_sheet_ids = [sheet.id for sheet in self.cleaned_data.get('sheets', [])]
+        if selected_sheet_ids:
+            active_sheets.filter(id__in=selected_sheet_ids).update(progress_bar=True)
+
+        return self.instance

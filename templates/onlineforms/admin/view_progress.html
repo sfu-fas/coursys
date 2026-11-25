@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block h1 %}View {{ form.title }} Progess{% endblock %}
+{% block title %}View {{ form.title }} Progress{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li>View {{ form.title }} Progress</li>
+{% endblock %}
+
+{% block content %}
+{% if disabled %}
+Form progress has been disabled for this form.
+{% else %}
+	{% if complete %}
+		<p><b>This form has been marked as complete.</b></p>
+	{% endif %}
+	{% if sheet_progress %}
+	    {% include "onlineforms/admin/view_tracker.html" with sheet_progress=sheet_progress form_slug=form_slug formsubmit_slug=formsubmit_slug %}
+    {% endif %}
+	{% if form.progressinfo %}
+		<h3>Additional Information</h3>
+		<p>{{ form.progressinfo }}</p>
+	{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{# be sure to include this if using this fragment: <link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />  #}
+
+<div class="form_progress">
+    {% for sheet in sheet_progress %}
+    <div class="form_progress_sheet">
+        <div class="step_info">
+            <legend>{{ sheet.sheet.title }}</legend>
+            <h3>{% if sheet.status == 'complete' %}Complete
+            {% elif sheet.status == 'progress' %}In Progress
+            {% elif sheet.status == 'pending' %}Pending
+            {% endif %}</h3>
+            <p>
+                {% for cs in sheet.complete_sheets %}
+                   {{ cs.filler.name }} finished work on this step on {{ cs.completed_at }} <br>
+                {% endfor %}
+                {% for ps in sheet.pend_sheets %}
+                    This step was assigned to {{ ps.filler.name }} on {{ ps.given_at }}<br>
+                {% endfor %}
+                {% if sheet.status == 'pending' %}
+                    This step has yet to be worked on.
+                {% endif %}
+            </p>
+        </div>
+        <div class="step_status_icon">
+            {% if sheet.status == 'complete' %}<span class="complete"><div class="step_status_icon"><i class="fa fa-check"></i></div></span>
+            {% elif sheet.status == 'progress' %}<span class="progress"><div class="step_status_icon"><i class="fa fa-clipboard-list"></i></div></span>
+            {% elif sheet.status == 'pending' %}<span class="pending"><div class="step_status_icon"><i class="fa fa-hourglass-half"></i></div></span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
