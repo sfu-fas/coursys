@@ -801,6 +801,7 @@ class RARequestForm(SFUMediaMixin):
         gras_bw = graduate_research_assistant and self.ra.gras_payment_method=="BW"
         ra_hourly = research_assistant and self.ra.ra_payment_method=="H"
         ra_hourly_usra = research_assistant and self.ra.ra_payment_method=="H" and self.ra.usra
+        ra_hourly_timesheet_not_required = research_assistant and self.ra.ra_payment_method=="H" and self.ra.timesheet_required == False
         ra_bw = research_assistant and self.ra.ra_payment_method=="BW"
         ra_ls = research_assistant and self.ra.ra_payment_method=="LS"
         nc_hourly = non_continuing and self.ra.nc_payment_method=="H"
@@ -951,7 +952,7 @@ class RARequestForm(SFUMediaMixin):
             init_comment = "Lump sum funding amount $" + str(self.ra.total_pay) + ". "
         elif gras_bw:
             init_comment = "Total funding amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
-        elif ra_hourly_usra:
+        elif ra_hourly_usra or ra_hourly_timesheet_not_required:
             init_comment = ("For total pay $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods (hourly $" + str(self.ra.gross_hourly) 
                             + " for " + str(self.ra.biweekly_hours) + " hours bi-weekly, salary total $" + f"{self.ra.get_base_pay():.2f}" 
                             + " plus " + str(self.ra.vacation_pay) + "% vacation pay). Timesheet is not required. ")
