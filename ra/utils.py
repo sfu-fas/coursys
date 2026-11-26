@@ -66,6 +66,10 @@ def get_ishf_info(unit=None):
     value = SystemVariable.get_value('ishf_info', unit)
     return value if value is not None else ''
 
+def get_ra_dates_info(unit=None):
+    value = SystemVariable.get_value('ra_dates_info', unit)
+    return value if value is not None else ''
+
 def get_vacation_pay_help_text(unit=None):
     value = SystemVariable.get_value('vacation_pay_help_text', unit)
     return value if value is not None else ''

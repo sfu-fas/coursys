@@ -12,7 +12,7 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterFor
     AppointeeSearchForm, SupervisorSearchForm, \
     RA_ONLY_FUNDS
 from ra.utils import get_ra_intro_html, get_contact_email, get_ra_definition, get_gras_definition, get_nc_definition, get_usra_definition, \
-    get_gras_funding_intro, get_nc_funding_intro, get_ra_funding_intro, get_ishf_info
+    get_gras_funding_intro, get_nc_funding_intro, get_ra_funding_intro, get_ishf_info, get_ra_dates_info
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -215,7 +215,7 @@ class RANewRequestWizard(SessionWizardView):
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
             cleaned_data_dates = self.get_cleaned_data_for_step('dates') or {}
-            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'non_continuing': hiring_category=='NC', 'ishf_fee': ISHF_FEE})
+            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'non_continuing': hiring_category=='NC', 'ishf_info': get_ishf_info()})
             pay_data = {}
             if hiring_category == "GRAS":
                 pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
@@ -226,7 +226,7 @@ class RANewRequestWizard(SessionWizardView):
             context.update({'total_pay': pay_data['total_pay']})
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
-            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ishf_info': get_ishf_info()})
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ra_dates_info': get_ra_dates_info()})
         if self.steps.current == 'research_assistant':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
             usra = cleaned_data_intro.get('usra', False)
@@ -470,7 +470,7 @@ class RAEditRequestWizard(SessionWizardView):
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
             hiring_category = cleaned_data_intro['hiring_category']
             cleaned_data_dates = self.get_cleaned_data_for_step('dates') or {}
-            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'non_continuing': hiring_category=='NC', 'ishf_fee': ISHF_FEE})
+            context.update({'start_date': cleaned_data_dates['start_date'], 'end_date': cleaned_data_dates['end_date'], 'research_assistant': hiring_category=='RA', 'non_continuing': hiring_category=='NC', 'ishf_info': get_ishf_info()})
             pay_data = {}
             if hiring_category == "GRAS":
                 pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
@@ -481,7 +481,7 @@ class RAEditRequestWizard(SessionWizardView):
             context.update({'total_pay': pay_data['total_pay']})
         if self.steps.current == 'dates':
             cleaned_data = self.get_cleaned_data_for_step('intro')
-            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ishf_info': get_ishf_info()})
+            context.update({'research_assistant': cleaned_data['hiring_category'] == 'RA', 'ra_dates_info': get_ra_dates_info()})
         if self.steps.current == 'research_assistant':
             cleaned_data_intro = self.get_cleaned_data_for_step('intro') or {}
             usra = cleaned_data_intro.get('usra', False)
