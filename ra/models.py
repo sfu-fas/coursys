@@ -12,10 +12,9 @@ from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from ra.utils import get_contact_email
 import datetime, os, uuid, math
 
-# general ra contact
-FAS_CONTACT = "fasra@sfu.ca"
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -303,7 +302,7 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 
 RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Yes (Salaried - The Appointee is entitled to a minimum of 10 vacation days a year. Vacation time will be pro-rated based on the appointment terms.)'),
-    ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time. Timesheet must be submitted biweekly for the Appointee to be paid.)')
+    ('H', 'No (Hourly - The Appointee will receive vacation pay in lieu of vacation time.)')
 )
 
 RA_PAYMENT_METHOD_CHOICES_USRA = (
@@ -317,6 +316,11 @@ NC_PAYMENT_METHOD_CHOICES = (
     ('H', 'Hourly (Vacation pay % will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
     ' timesheets in order for the Appointee to be paid.)'),
     ('LS', 'Lump Sum Amount')
+)
+
+TIMESHEET_CHOICES = (
+    (True, 'Yes (Must be submitted biweekly for the Appointee to be paid.)'),
+    (False, 'No (The Appointee will receive the bi-weekly amount indicated on the PAF, plus vacation pay, regardless of actual hours worked.)')
 )
 
 RA_VACATION_DAYS_CHOICES = (
@@ -336,12 +340,6 @@ RA_VACATION_PAY_CHOICES = (
     ('10P', '10%'),
     ('11P', '11%'),
     ('12P', '12%')
-)
-
-RA_BENEFITS_CHOICES = (
-    ('Y', "Yes (The cost will be shared 75/25 between employer and employee)."),
-    ('NE', 'No - My grant is not eligible.'),
-    ('N', 'No')
 )
 
 DUTIES_CHOICES_EX = (
@@ -613,6 +611,7 @@ class RARequest(models.Model):
     ra_other_duties = config_property('ra_other_duties', default='')
     ishf_total = config_property('ishf_total', default=0)
     ishf_subscribers = config_property('subscribers', default=0)
+    timesheet_required = config_property('timesheet_required', default=True)
 
     # nc only options
     nc_duties = config_property('ra_other_duties', default='')
@@ -1135,7 +1134,10 @@ class RARequest(models.Model):
 
             if hiring_category == "RA":
                 subject = "Research Assistant Appointment Expiry Reminder"
-                cc = [FAS_CONTACT]
+                cc = []
+                cc_email = get_contact_email()
+                if cc_email:
+                    cc.append(cc_email)
             elif hiring_category == "GRAS":
                 cc = None
                 subject = "Graduate RA Scholarship Appointment Expiry Reminder"
