@@ -8,10 +8,10 @@ from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, DownloadForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
-    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestISHFForm, ISHF_FEE,\
+    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestISHFForm,\
     AppointeeSearchForm, SupervisorSearchForm, \
     RA_ONLY_FUNDS
-from ra.utils import get_ra_intro_html, get_contact_email, get_ra_definition, get_gras_definition, get_nc_definition, get_usra_definition, \
+from ra.utils import get_ra_intro_html, get_contact_email, get_ra_definition, get_gras_definition, get_nc_definition, get_usra_definition, get_ishf_fee, \
     get_gras_funding_intro, get_nc_funding_intro, get_ra_funding_intro, get_ishf_info, get_ra_dates_info
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
@@ -826,7 +826,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     can_edit = (graduate_research_assistant and admin) or ((research_assistant or non_cont) and manager)
     adminform = RARequestAdminForm(instance=req)
     ishfform = RARequestISHFForm(instance=req)
-    ishf_fee = ISHF_FEE
+    ishf_fee = get_ishf_fee()
 
     return render(request, 'ra/view_request.html',
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,

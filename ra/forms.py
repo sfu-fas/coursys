@@ -41,34 +41,25 @@ OBJECT_CHOICES = (
     (5844, '5844 - Invited Speakers Honoraria')
 )
 
-NEW_MIN_WAGE_DATE = get_new_min_wage_date()
-NEW_MIN_WAGE = get_new_min_wage()
-MIN_WAGE = get_min_wage()
-ISHF_FEE = get_ishf_fee()
-
-# deal with upcoming ra wage requirements
-NEW_RA_WAGE_DATE = get_new_ra_wage_date()
-NEW_RA_WAGE = get_new_ra_wage()
-
 RA_ONLY_FUNDS = [31, 32, 35, 36, 37, 38]
 
-VACATION_PAY_HELP_TEXT = get_vacation_pay_help_text()
-BIWEEKLY_HOURS_ERROR_TEXT = get_biweekly_hours_error_text()
-
 def get_minimum_wage(date):
-    if date >= NEW_MIN_WAGE_DATE:
-        return NEW_MIN_WAGE
+    new_min_wage_date = get_new_min_wage_date()
+    if date >= new_min_wage_date:
+        return get_new_min_wage()
     else:
-        return MIN_WAGE
+        return get_min_wage()
 
 def get_minimum_wage_error(start_date, end_date):
+    new_min_wage_date = get_new_min_wage_date()
+    new_min_wage = get_new_min_wage()
     message = 'Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % get_minimum_wage(datetime.date.today())) + ')'
     if get_minimum_wage(start_date) != get_minimum_wage(end_date):
-        message += ' NOTE: A minimum wage increase occurs on ' + NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + '. Gross Hourly Rate must be at least ' + ("$%.2f" % NEW_MIN_WAGE) + \
-                   ' after this date. If you would like to pay below ' + ("$%.2f" % NEW_MIN_WAGE) + ' but above ' + ("$%.2f" % get_minimum_wage(start_date)) + ' for this appointment before ' + \
-                   NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + ", please create a separate request for that time period."
-    elif datetime.date.today() < NEW_MIN_WAGE_DATE and start_date >= NEW_MIN_WAGE_DATE:
-        message += ' NOTE: Minimum wage increases on ' + NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + ' to ' + ("$%.2f" % NEW_MIN_WAGE)
+        message += ' NOTE: A minimum wage increase occurs on ' + new_min_wage_date.strftime("%B %d, %Y") + '. Gross Hourly Rate must be at least ' + ("$%.2f" % new_min_wage) + \
+                   ' after this date. If you would like to pay below ' + ("$%.2f" % new_min_wage) + ' but above ' + ("$%.2f" % get_minimum_wage(start_date)) + ' for this appointment before ' + \
+                   new_min_wage_date.strftime("%B %d, %Y") + ", please create a separate request for that time period."
+    elif datetime.date.today() < new_min_wage_date and start_date >= new_min_wage_date:
+        message += ' NOTE: Minimum wage increases on ' + new_min_wage_date.strftime("%B %d, %Y") + ' to ' + ("$%.2f" % new_min_wage)
     return message
 
 def add_business_days(date, days):
@@ -240,12 +231,18 @@ class RARequestDatesForm(forms.ModelForm):
         manager = self.initial['manager']
 
         if start_date and end_date:
+            new_ra_wage_date = get_new_ra_wage_date()
             if end_date < start_date:
                 error_message = "Start date must be before end date."
                 self.add_error('end_date', error_message)
                 self.add_error('start_date', error_message)
-            if end_date > NEW_RA_WAGE_DATE and start_date <= NEW_RA_WAGE_DATE and hiring_category=="RA" and not manager:
-                self.add_error('end_date', 'New appointments that start after or will be extended beyond March 31, 2026, will be required to meet minimum wage $24.74 per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments begin from April 01, 2026.')
+            if end_date > new_ra_wage_date and start_date <= new_ra_wage_date and hiring_category=="RA" and not manager:
+                new_ra_wage = get_new_ra_wage()
+                next_day = new_ra_wage_date + datetime.timedelta(days=1)
+                self.add_error('end_date', 'Appointments that extend beyond ' + new_ra_wage_date.strftime("%B %d, %Y") +
+                               ' must meet minimum wage $' + str(new_ra_wage) +
+                               ' per hour and include 17% for statutory and extended health/dental benefits. Please submit a separate request for appointments beginning on or after ' +
+                               next_day.strftime("%B %d, %Y") + '.')
         if start_date and hiring_category == "RA" and not edit:
             if start_date <= add_business_days(datetime.date.today(), 2):
                 self.add_error('start_date', 'Appointment letters are required to be issued prior to the commencement of all appointments and where possible, a week in advance.')
@@ -611,7 +608,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe(VACATION_PAY_HELP_TEXT))
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %")
 
     class Meta:
         model = RARequest
@@ -624,6 +621,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RARequestNonContinuingForm, self).__init__(*args, **kwargs) 
+        self.fields['vacation_pay'].help_text = mark_safe(get_vacation_pay_help_text())
         
         config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'lump_sum_hours', 'lump_sum_reason']
 
@@ -700,7 +698,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (nc_payment_method == "H" or nc_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
-                    self.add_error('biweekly_hours', mark_safe(BIWEEKLY_HOURS_ERROR_TEXT))
+                    self.add_error('biweekly_hours', mark_safe(get_biweekly_hours_error_text()))
             if nc_payment_method == "LS":
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
@@ -760,7 +758,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %", help_text=mark_safe(VACATION_PAY_HELP_TEXT))
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay %")
     
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -792,6 +790,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         usra = kwargs.pop('usra', False)
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
+        self.fields['vacation_pay'].help_text = mark_safe(get_vacation_pay_help_text())
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
                 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'timesheet_required']
@@ -846,6 +845,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         end_date = self.initial['end_date']
         edit = self.initial['edit']
         usra = self.initial['usra']
+        new_ra_wage_date = get_new_ra_wage_date()
+        new_ra_wage = get_new_ra_wage()
 
         if usra and ra_payment_method == "H":
             self.cleaned_data['timesheet_required'] = True
@@ -869,8 +870,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra and not edit:
-                    raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
+                if float(gross_hourly) < new_ra_wage and start_date > new_ra_wage_date and not usra and not edit:
+                    raise forms.ValidationError('Minimum Wage must be at least $' + str(new_ra_wage) + ' for appointments beginning after ' + new_ra_wage_date.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
@@ -880,8 +881,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                         self.add_error('timesheet_required', error_message)
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif float(gross_hourly) < NEW_RA_WAGE and start_date > NEW_RA_WAGE_DATE and not usra and not edit:
-                    raise forms.ValidationError('Minimum Wage must be at least $' + str(NEW_RA_WAGE) + ' for appointments beginning after ' + NEW_RA_WAGE_DATE.strftime("%B %d, %Y"))
+                elif float(gross_hourly) < new_ra_wage and start_date > new_ra_wage_date and not usra and not edit:
+                    raise forms.ValidationError('Minimum Wage must be at least $' + str(new_ra_wage) + ' for appointments beginning after ' + new_ra_wage_date.strftime("%B %d, %Y"))
                 elif float(gross_hourly) < get_minimum_wage(end_date) and not edit:
                     message = get_minimum_wage_error(start_date, end_date)
                     raise forms.ValidationError(message)
@@ -895,7 +896,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('biweekly_hours', error_message)
             if biweekly_hours is not None and (ra_payment_method == "H" or ra_payment_method == "BW") and not edit:
                 if biweekly_hours < MIN_BIWEEKLY_HOURS:
-                    self.add_error('biweekly_hours', mark_safe(BIWEEKLY_HOURS_ERROR_TEXT))
+                    self.add_error('biweekly_hours', mark_safe(get_biweekly_hours_error_text()))
 
 
             if ra_other_duties == '' and ra_duties_ex == [] and ra_duties_dc == [] and ra_duties_pd == [] and ra_duties_im == [] and ra_duties_eq == [] and ra_duties_su == [] and ra_duties_wr == [] and ra_duties_pm == []:
@@ -1005,7 +1006,7 @@ class RARequestISHFForm(forms.ModelForm):
         self.fields['ishf_subscribers'].initial = getattr(self.instance, 'ishf_subscribers')
         self.fields['ishf_total'].initial = f"{getattr(self.instance, 'ishf_total'):.2f}"
         if self.instance:
-            self.fields['ishf_total'].help_text = mark_safe("Click <button type='button' id='ishf_calc'>here</button> to auto-calculate with current ISHF fee ($" + str(ISHF_FEE) + ") and " + str(self.instance.get_months_spanned()) + " month span.")
+            self.fields['ishf_total'].help_text = mark_safe("Click <button type='button' id='ishf_calc'>here</button> to auto-calculate with current ISHF fee ($" + str(get_ishf_fee()) + ") and " + str(self.instance.get_months_spanned()) + " month span.")
 
     def clean(self):
         cleaned_data = super().clean()
